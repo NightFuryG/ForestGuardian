@@ -30,7 +30,8 @@ final int LINE_HEIGHT = 100;
 final int LINE_SUCCESS = 200;
 final int LOWER_SUCCESS = 75;
 final int UPPER_SUCCESS = 85;
-final int PET_MAX_LIFE = 3000;
+final int PET_MAX_LIFE = 10000;
+final int SUMMON_INCREASE = 3;
 
 final int PET_COOLDOWN_TIME = 3000;
 
@@ -114,11 +115,9 @@ public void unsummonPet() {
 public void checkCooldowns() {
   if(millis() > petCooldownTimer + PET_COOLDOWN_TIME) {
     petCooldown = true;
-    System.out.println("YAY");
     petCooldownTimer = millis();
   }
 }
-
 
 public void summonPet() {
   petAlive = true;
@@ -156,10 +155,9 @@ public void keyPressed() {
     } else if(key == ' ') {
       j = true;
     } else if (key == '1') {
-
       if(petCooldown)
         summon = true;
-        summonCount += 3;
+        summonCount += SUMMON_INCREASE;
     }
 }
 
@@ -435,14 +433,14 @@ public class Background {
 }
 public class Entity {
 
-  final String IDLE_RIGHT = "idleRight";
-  final String IDLE_LEFT = "idleLeft";
-  final String RUN_RIGHT = "runRight";
-  final String RUN_LEFT = "runLeft";
-  final String JUMP_RIGHT = "jumpRight";
-  final String JUMP_LEFT = "jumpLeft";
-  final String ATTACK_RIGHT = "attackRight";
-  final String ATTACK_LEFT = "attackLeft";
+  final String IDLE_RIGHT = "idleRight/";
+  final String IDLE_LEFT = "idleLeft/";
+  final String RUN_RIGHT = "runRight/";
+  final String RUN_LEFT = "runLeft/";
+  final String JUMP_RIGHT = "jumpRight/";
+  final String JUMP_LEFT = "jumpLeft/";
+  final String ATTACK_RIGHT = "attackRight/";
+  final String ATTACK_LEFT = "attackLeft/";
 
   String idleRightPath;
   String idleLeftPath;
@@ -474,14 +472,14 @@ public class Entity {
     this.velocity = new PVector(0, 0);
     this.animations = new HashMap<String, Animation>();
 
-    this.idleRightPath = path + IDLE_RIGHT + "/";
-    this.idleLeftPath = path + IDLE_LEFT+ "/";
-    this.runRightPath = path + RUN_RIGHT+ "/";
-    this.runLeftPath = path + RUN_LEFT+ "/";
-    this.jumpRightPath = path + JUMP_RIGHT+ "/";
-    this.jumpLeftPath = path + JUMP_LEFT+ "/";
-    this.attackRightPath = path + ATTACK_RIGHT+ "/";
-    this.attackLeftPath = path + ATTACK_LEFT+ "/";
+    this.idleRightPath = path + IDLE_RIGHT;
+    this.idleLeftPath = path + IDLE_LEFT;
+    this.runRightPath = path + RUN_RIGHT;
+    this.runLeftPath = path + RUN_LEFT;
+    this.jumpRightPath = path + JUMP_RIGHT;
+    this.jumpLeftPath = path + JUMP_LEFT;
+    this.attackRightPath = path + ATTACK_RIGHT;
+    this.attackLeftPath = path + ATTACK_LEFT;
 
     initialiseAnimations();
 
