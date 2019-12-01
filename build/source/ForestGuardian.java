@@ -53,6 +53,9 @@ final int PET_COOLDOWN_TIME = 3000;
 final String GUARDIAN_PATH = "animations/guardian/";
 final String WOLF_PATH = "animations/pet/1/";
 final String ENEMY_ONE_PATH = "animations/enemy/1/";
+final String ENEMY_TWO_PATH = "animations/enemy/2/";
+final String ENEMY_THREE_PATH = "animations/enemy/3/";
+final String ENEMY_FOUR_PATH = "animations/enemy/4/";
 final String BACKGROUND_ONE_PATH = "background/0/";
 final String BACKGROUND_TWO_PATH = "background/1/";
 
@@ -112,7 +115,7 @@ public void setup() {
   attacks = new ArrayList<Attack>();
   enemies = new ArrayList<Enemy>();
 
-  enemy = new Enemy(ENEMY_ONE_PATH, width, ground);
+  enemy = new Enemy(ENEMY_FOUR_PATH, width, ground);
   enemies.add(enemy);
 
   platform = new Platform(TILE_THREE, 0, tileGround);

@@ -1,3 +1,4 @@
+//Animation class for loading in and setting animation speed
 public class Animation {
 
   final String EXTENSION = ".png";
@@ -20,6 +21,8 @@ public class Animation {
     this.animated = false;
   }
 
+  //load all images for an animation
+  //animation is in order and files named from 0-4.png
   void loadAnimation() {
     for(int i = 0; i < TOTAL_FRAMES; i++) {
       String frameName = (filename + i + EXTENSION);
@@ -28,6 +31,7 @@ public class Animation {
   }
 
 
+  //animate by playing frames in order using a stopwatch
   void draw(PVector position) {
     if(millis() > prevTime + deltaTime) {
       currentFrame++;

@@ -1,4 +1,5 @@
-class Attack {
+//Attack class for projectile
+public class Attack {
 
   PImage attackRight = loadImage("animations/guardian/wolfAttack/0.png");
   PImage attackLeft = loadImage("animations/guardian/wolfAttack/1.png");
@@ -18,7 +19,7 @@ class Attack {
   float startX;
   float startY;
 
-  //Bullet act as a simple projectile towards a target
+  //attack act as a simple projectile towards a target
   Attack(float startX, float startY, float endX, float endY, boolean right) {
     this.startX = startX;
     this.startY = startY;
@@ -32,23 +33,25 @@ class Attack {
     scaleAttack();
   }
 
-  //calculate direction of travel
+  //calculate direction of travel using sub
   PVector calculateDirection() {
     return PVector.sub(destination, position);
   }
 
-  //calculate acceleration
+  //calculate acceleration of attack
   PVector calculateAcceleration() {
     PVector a = this.direction.normalize();
     a = this.direction.mult(5);
     return a;
   }
 
+  //change size of attack
   void scaleAttack() {
     attackRight.resize(ATTACK_SIZE, 0);
     attackLeft.resize(ATTACK_SIZE, 0);
   }
 
+  //update position by adding acceleration to velocity and velocity to position
   void update(){
     velocity.add(acceleration);
     velocity.limit(ATTACK_SPEED);
@@ -56,6 +59,7 @@ class Attack {
     distance = dist(startX, startY, position.x, position.y);
   }
 
+  //display differently depending on orientation
   void display() {
     if(right) {
       image(attackRight, position.x, position.y);
