@@ -40,7 +40,7 @@ class Attack {
   //calculate acceleration
   PVector calculateAcceleration() {
     PVector a = this.direction.normalize();
-    a = this.direction.mult(2);
+    a = this.direction.mult(5);
     return a;
   }
 

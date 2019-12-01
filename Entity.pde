@@ -8,6 +8,8 @@ public class Entity {
   final String JUMP_LEFT = "jumpLeft/";
   final String ATTACK_RIGHT = "attackRight/";
   final String ATTACK_LEFT = "attackLeft/";
+  final String DIE_RIGHT = "dieRight/";
+  final String DIE_LEFT = "dieLeft";
 
   String idleRightPath;
   String idleLeftPath;

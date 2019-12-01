@@ -3,6 +3,9 @@ Entity guardian;
 Entity pet;
 
 final int GUARDIAN_WIDTH = 20;
+final int ATTACK_WIDTH = 40;
+final int GUARDIAN_HEIGHT = 20;
+final int ATTACK_DISTANCE = 40;
 final float GROUND = height;
 final int BAR_WIDTH = 20;
 final int BAR_LEFT = 150;
@@ -17,7 +20,7 @@ final int UPPER_SUCCESS = 85;
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
 
-final int CAMERA_SPEED = 200;
+final int CAMERA_SPEED = 50;
 
 final int PARALLAX_RIGHT = 1;
 final int PARALLAX_LEFT = 2;
@@ -31,6 +34,7 @@ final int PET_COOLDOWN_TIME = 3000;
 
 final String GUARDIAN_PATH = "animations/guardian/";
 final String WOLF_PATH = "animations/pet/1/";
+final String ENEMY_ONE_PATH = "animations/enemy/1/";
 
 boolean w, a, s, d, j;
 boolean petAlive;
@@ -45,6 +49,9 @@ int petCooldownTimer;
 
 
 ArrayList<Attack> attacks;
+ArrayList<Enemy> enemies;
+
+Enemy enemy;
 
 void setup() {
   fullScreen();
@@ -61,7 +68,10 @@ void setup() {
   background = new Background(BACKGROUND_ONE);
   guardian = new Guardian(GUARDIAN_PATH, width/2, height - height/6.85);
   attacks = new ArrayList<Attack>();
+  enemies = new ArrayList<Enemy>();
 
+  enemy = new Enemy(ENEMY_ONE_PATH, width/2, height - height/6.85);
+  enemies.add(enemy);
 }
 
 void draw() {
@@ -75,11 +85,11 @@ void draw() {
   unsummonPet();
   guardian.draw();
   attack();
+  drawEnemies();
+  enemyAttack();
   bar();
   checkCooldowns();
-
-  System.out.println("LEFT: " + guardian.anchorLeft + " Right: " + guardian.anchorRight);
-  System.out.println(guardian.idle);
+  detectAttackCollision();
 }
 
 void updatePet() {
@@ -128,11 +138,11 @@ void summonPet() {
 }
 
 void drawParallaxBackround() {
-  if(guardian.anchorRight && guardian.idle && guardian.position.x < width/2) {
+  if(guardian.anchorRight && guardian.idle) {
       background.cameraTransitionSpeed();
       parallax = PARALLAX_LEFT;
       guardian.velocity.x = CAMERA_SPEED;
-  } else if (guardian.anchorLeft && guardian.idle && guardian.position.x > width/2) {
+  } else if (guardian.anchorLeft && guardian.idle) {
       background.cameraTransitionSpeed();
       parallax = PARALLAX_RIGHT;
       guardian.velocity.x = -CAMERA_SPEED;
@@ -247,16 +257,16 @@ void mousePressed() {
     if(attacks.size() == 0)
       if(guardian.right) {
         if(mouseX < guardian.position.x) {
-          attacks.add( new Attack(guardian.position.x - width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, false));
+          attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false));
         } else {
-          attacks.add( new Attack(guardian.position.x + width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, true));
+          attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true));
         }
       } else {
         if(mouseX > guardian.position.x) {
 
-          attacks.add( new Attack(guardian.position.x + width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, true));
+          attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true));
         } else {
-          attacks.add( new Attack(guardian.position.x - width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, false));
+          attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false));
         }
       }
   }
@@ -269,7 +279,7 @@ void attack() {
 
 void removeAttack() {
   for(Attack attack : new ArrayList<Attack>(attacks)) {
-    if(attack.distance > attack.MAX_DISTANCE || attack.position.y < GROUND ) {
+    if(attack.distance > attack.MAX_DISTANCE || attack.position.y > height - height/10 ) {
       attacks.remove(attack);
     }
   }
@@ -278,5 +288,61 @@ void removeAttack() {
 void drawAttack() {
   for(Attack attack : attacks) {
     attack.draw();
+  }
+}
+
+void enemyAttack() {
+  for(Enemy enemy : enemies) {
+  if(!enemy.attack) {
+    if(guardian.position.x < enemy.position.x) {
+      enemy.right = false;
+    } else {
+      enemy.right = true;
+    }
+  }
+
+    if(enemy.right && guardian.position.x < enemy.position.x + width/ATTACK_DISTANCE) {
+      enemy.attack = true;
+      enemy.velocity.x = 0;
+    } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
+      enemy.attack = true;
+      enemy.velocity.x = 0;
+    } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/5) {
+      enemy.idle = true;
+      enemy.attack = false;
+    } else {
+      enemy.idle = false;
+    }
+
+
+    if(!enemy.idle) {
+    enemy.attack();
+
+    }
+  }
+}
+
+void detectAttackCollision() {
+  for(Attack attack : new ArrayList<Attack>(attacks)) {
+    float attackX = attack.position.x + attack.attackRight.width/2;
+    float attackY = attack.position.y - attack.attackRight.height/2;
+
+    for(Enemy enemy : new ArrayList<Enemy>(enemies)) {
+
+      float enemyX = enemy.position.x + width/GUARDIAN_WIDTH;
+      float enemyY = enemy.position.y - width/GUARDIAN_HEIGHT;
+      if( attackX < enemyX && attackX > enemy.position.x ) {
+        if(attackY < enemy.position.y && attackY > enemyY) {
+          enemies.remove(enemy);
+        }
+      }
+    }
+  }
+}
+
+
+void drawEnemies() {
+  for(Enemy enemy : enemies) {
+    enemy.draw();
   }
 }

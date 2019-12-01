@@ -2,7 +2,7 @@ public class Background {
 
   final String PNG = ".png";
   final String PATH = "background/";
-  final int CAMERA = 100 ;
+  final int CAMERA = 50 ;
 
   int startX = 0;
   int startY = 0;

@@ -24,7 +24,7 @@ public class Guardian extends Entity {
       super(path, x, y);
       this.anchorRight = false;
       this.anchorLeft = false;
-      this.anchorRightPos = width - width/5 - width/GUARDIAN_WIDTH;
+      this.anchorRightPos = width/3;
       this.anchorLeftPos =  width/5 ;
       resize();
   }
@@ -87,7 +87,7 @@ public class Guardian extends Entity {
     } else {
       anchorRight = true;
       anchorLeft = false;
-      velocity.x = -200;
+      velocity.x = -50;
       if(position.x <= anchorLeftPos) {
         velocity.x = 0;
       }
@@ -103,7 +103,7 @@ public class Guardian extends Entity {
     } else {
       anchorLeft = true;
       anchorRight = false;
-      velocity.x = 200;
+      velocity.x = 50;
       if(position.x >= anchorRightPos) {
           velocity.x = 0;
       }
@@ -134,8 +134,14 @@ public class Guardian extends Entity {
         break;
       case 5:
         idle = true;
-        if(anchorLeft || anchorRight) {
-          if(guardian.position.x > width/2 - width/GUARDIAN_WIDTH && guardian.position.x < width/2) {
+        if(anchorLeft) {
+          if(guardian.position.x < 1.5*width/5) {
+            anchorLeft = false;
+            anchorRight = false;
+            velocity.x = 0;
+          }
+        } else if (anchorRight) {
+          if(guardian.position.x >= 1.5*width/5 - width/GUARDIAN_WIDTH) {
             anchorLeft = false;
             anchorRight = false;
             velocity.x = 0;
