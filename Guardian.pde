@@ -6,19 +6,35 @@ public class Guardian extends Entity {
   final int JUMP_RESIZE = width/20;
   final int RUN_RESIZE = width/20;
 
+  final int CAMERA_ANCHOR = 10;
+
   float GROUND = height - height/6.85;
   float MIDDLE = width/2;
-  final int GUARDIAN_SPEED = 10;
+  final int GUARDIAN_SPEED = 7;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 2;
   final int deltaTime = 100;
   int prevTime = 0;
-
+  final int GUARDIAN_WIDTH = 20;
+  int anchorRightPos;
+  int anchorLeftPos;
 
 
   Guardian (String path, float x, float y) {
       super(path, x, y);
+      this.anchorRight = false;
+      this.anchorLeft = false;
+      this.anchorRightPos = width - width/5 - width/GUARDIAN_WIDTH;
+      this.anchorLeftPos =  width/5 ;
       resize();
+  }
+
+  boolean getAnchorRight() {
+    return anchorRight;
+  }
+
+  boolean getAnchorLeft() {
+    return anchorLeft;
   }
 
   void resize() {
@@ -65,20 +81,32 @@ public class Guardian extends Entity {
   }
 
   void moveRight() {
-    if(position.x < width - width/3) {
+    if(position.x < anchorRightPos && !anchorRight) {
       velocity.x += GUARDIAN_SPEED;
+      anchorLeft = false;
     } else {
-      velocity.x = 0;
+      anchorRight = true;
+      anchorLeft = false;
+      velocity.x = -100;
+      if(position.x <= anchorLeftPos) {
+        velocity.x = 0;
+      }
     }
     right = true;
     idle = false;
   }
 
   void moveLeft() {
-    if(position.x > width/3) {
+    if(position.x > anchorLeftPos && !anchorLeft) {
       velocity.x -= GUARDIAN_SPEED;
+      anchorRight = false;
     } else {
-      velocity.x = 0;
+      anchorLeft = true;
+      anchorRight = false;
+      velocity.x = 100;
+      if(position.x >= anchorRightPos) {
+          velocity.x = 0;
+      }
     }
     right = false;
     idle = false;
@@ -106,6 +134,14 @@ public class Guardian extends Entity {
         break;
       case 5:
         idle = true;
+        if(anchorLeft || anchorRight) {
+          if(guardian.position.x > width/2 - width/GUARDIAN_WIDTH && guardian.position.x < width/2) {
+            anchorLeft = false;
+            anchorRight = false;
+            velocity.x = 0;
+          }
+        }
+
         break;
       case 6:
         jump();

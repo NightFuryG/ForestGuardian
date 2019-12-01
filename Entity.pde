@@ -28,6 +28,8 @@ public class Entity {
   boolean idle;
   boolean jump;
   boolean attack;
+  boolean anchorRight;
+  boolean anchorLeft;
 
   PVector velocity;
   PVector position;
@@ -50,11 +52,13 @@ public class Entity {
 
     initialiseAnimations();
 
-    right = true;
-    idle = true;
-    jump = false;
-    attack = false;
+    this.right = true;
+    this.idle = true;
+    this.jump = false;
+    this.attack = false;
 
+    this.anchorLeft = false;
+    this.anchorRight = false;
 
   }
 

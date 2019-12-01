@@ -61,21 +61,11 @@ public class Pet extends Entity {
   }
 
   void moveRight() {
-    if(position.x < width - width/3 - width/10) {
-      velocity.x += PET_SPEED;
-    } else {
-      velocity.x = 0;
-    }
     right = true;
     idle = false;
   }
 
   void moveLeft() {
-    if(position.x > width/3 + width/10) {
-      velocity.x -= PET_SPEED;
-    } else {
-      velocity.x = 0;
-    }
     right = false;
     idle = false;
   }

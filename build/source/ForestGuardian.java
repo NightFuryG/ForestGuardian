@@ -18,7 +18,7 @@ Background background;
 Entity guardian;
 Entity pet;
 
-final int GUARDIAN_WIDTH = width/3;
+final int GUARDIAN_WIDTH = 20;
 final float GROUND = height;
 final int BAR_WIDTH = 20;
 final int BAR_LEFT = 150;
@@ -32,6 +32,14 @@ final int LOWER_SUCCESS = 75;
 final int UPPER_SUCCESS = 85;
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
+
+final int PARALLAX_RIGHT = 1;
+final int PARALLAX_LEFT = 2;
+final int PARALLAX_NONE = 0;
+
+final int CAMERA_ANCHOR = 10;
+
+final int BACKGROUND_ONE = 11;
 
 final int PET_COOLDOWN_TIME = 3000;
 
@@ -64,7 +72,7 @@ public void setup() {
   petCooldownTimer = 0;
 
 
-  background = new Background();
+  background = new Background(BACKGROUND_ONE);
   guardian = new Guardian(GUARDIAN_PATH, width/2, height - height/6.85f);
   attacks = new ArrayList<Attack>();
 
@@ -83,6 +91,13 @@ public void draw() {
   attack();
   bar();
   checkCooldowns();
+
+  System.out.println("LEFT: " + guardian.anchorLeft + " RIGHT: " + guardian.anchorRight);
+}
+
+public void updatePet() {
+  pet.position.x = guardian.position.x;
+  pet.position.y = guardian.position.y;
 }
 
 /*
@@ -126,20 +141,24 @@ public void summonPet() {
 }
 
 public void drawParallaxBackround() {
-  if(guardian.right && guardian.position.x >= width - width/3
+
+  if(guardian.anchorRight && guardian.idle) {
+      parallax = PARALLAX_LEFT;
+      guardian.velocity.x = 100;
+  } else if (guardian.anchorLeft && guardian.idle) {
+      parallax = PARALLAX_RIGHT;
+      guardian.velocity.x = -100;
+    } else if(guardian.right && guardian.anchorRight
       && !guardian.idle) {
-        guardian.velocity.x = 0;
-        parallax = 1;
-        background.draw(parallax);
-  } else if (!guardian.right && guardian.position.x <= width/3
+      parallax = PARALLAX_RIGHT;
+  } else if (!guardian.right && guardian.anchorLeft
       && !guardian.idle){
-        guardian.velocity.x = 0;
-        parallax = 2;
-        background.draw(parallax);
+      parallax = PARALLAX_LEFT;
   } else {
-      parallax = 0;
-      background.draw(parallax);
+      parallax = PARALLAX_NONE;
   }
+  background.draw(parallax);
+
 }
 
 // movement
@@ -219,6 +238,9 @@ public void playerMove() {
     if(petAlive)
       pet.move(6);
   }
+  if(petAlive) {
+    updatePet();
+  }
 }
 
 public void mousePressed() {
@@ -227,16 +249,16 @@ public void mousePressed() {
     if(attacks.size() == 0)
       if(guardian.right) {
         if(mouseX < guardian.position.x) {
-          attacks.add( new Attack(guardian.position.x - GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, false));
+          attacks.add( new Attack(guardian.position.x - width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, false));
         } else {
-          attacks.add( new Attack(guardian.position.x + GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, true));
+          attacks.add( new Attack(guardian.position.x + width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, true));
         }
       } else {
         if(mouseX > guardian.position.x) {
 
-          attacks.add( new Attack(guardian.position.x + GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, true));
+          attacks.add( new Attack(guardian.position.x + width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, true));
         } else {
-          attacks.add( new Attack(guardian.position.x - GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, false));
+          attacks.add( new Attack(guardian.position.x - width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, false));
         }
       }
   }
@@ -376,42 +398,28 @@ class Attack {
 }
 public class Background {
 
+  final String PNG = ".png";
+  final String PATH = "background/";
+
   int startX = 0;
   int startY = 0;
   int resize = height + height/4;
+  int layerTotal;
 
-  Layer img0 = new Layer ("background/Layer_0000_9.png", startX, startY, 20);
-  Layer img1 = new Layer ("background/Layer_0001_8.png", startX, startY, 18);
-  Layer img2 = new Layer ("background/Layer_0002_7.png", startX, startY, 16);
-  Layer img3 = new Layer ("background/Layer_0003_6.png", startX, startY, 14);
-  Layer img4 = new Layer ("background/Layer_0004_Lights.png", startX, startY, 12);
-  Layer img5 = new Layer ("background/Layer_0005_5.png", startX, startY, 10);
-  Layer img6 = new Layer ("background/Layer_0006_4.png", startX, startY, 8);
-  Layer img7 = new Layer ("background/Layer_0007_Lights.png", startX, startY, 6);
-  Layer img8 = new Layer ("background/Layer_0008_3.png", startX, startY, 4);
-  Layer img9 = new Layer ("background/Layer_0009_2.png", startX, startY, 2);
-  Layer img10 = new Layer ("background/Layer_0010_1.png", startX, startY, 0);
 
   ArrayList<Layer> layers;
 
-  Background() {
+  Background(int layerTotal) {
+    this.layerTotal = layerTotal;
     this.layers = new ArrayList<Layer>();
-    addLayers();
+    initialiseLayers();
     resizeLayers();
   }
 
-  public void addLayers() {
-    layers.add(img10);
-    layers.add(img9);
-    layers.add(img8);
-    layers.add(img7);
-    layers.add(img6);
-    layers.add(img5);
-    layers.add(img4);
-    layers.add(img3);
-    layers.add(img2);
-    layers.add(img1);
-    layers.add(img0);
+  public void initialiseLayers() {
+    for(int i = 0; i < layerTotal; i ++) {
+      layers.add(new Layer(PATH + i + PNG, startX, startY, i*2));
+    }
   }
 
   public void resizeLayers() {
@@ -461,6 +469,8 @@ public class Entity {
   boolean idle;
   boolean jump;
   boolean attack;
+  boolean anchorRight;
+  boolean anchorLeft;
 
   PVector velocity;
   PVector position;
@@ -483,11 +493,13 @@ public class Entity {
 
     initialiseAnimations();
 
-    right = true;
-    idle = true;
-    jump = false;
-    attack = false;
+    this.right = true;
+    this.idle = true;
+    this.jump = false;
+    this.attack = false;
 
+    this.anchorLeft = false;
+    this.anchorRight = false;
 
   }
 
@@ -582,19 +594,35 @@ public class Guardian extends Entity {
   final int JUMP_RESIZE = width/20;
   final int RUN_RESIZE = width/20;
 
+  final int CAMERA_ANCHOR = 10;
+
   float GROUND = height - height/6.85f;
   float MIDDLE = width/2;
-  final int GUARDIAN_SPEED = 10;
+  final int GUARDIAN_SPEED = 7;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 2;
   final int deltaTime = 100;
   int prevTime = 0;
-
+  final int GUARDIAN_WIDTH = 20;
+  int anchorRightPos;
+  int anchorLeftPos;
 
 
   Guardian (String path, float x, float y) {
       super(path, x, y);
+      this.anchorRight = false;
+      this.anchorLeft = false;
+      this.anchorRightPos = width - width/5 - width/GUARDIAN_WIDTH;
+      this.anchorLeftPos =  width/5 ;
       resize();
+  }
+
+  public boolean getAnchorRight() {
+    return anchorRight;
+  }
+
+  public boolean getAnchorLeft() {
+    return anchorLeft;
   }
 
   public void resize() {
@@ -641,20 +669,32 @@ public class Guardian extends Entity {
   }
 
   public void moveRight() {
-    if(position.x < width - width/3) {
+    if(position.x < anchorRightPos && !anchorRight) {
       velocity.x += GUARDIAN_SPEED;
+      anchorLeft = false;
     } else {
-      velocity.x = 0;
+      anchorRight = true;
+      anchorLeft = false;
+      velocity.x = -100;
+      if(position.x <= anchorLeftPos) {
+        velocity.x = 0;
+      }
     }
     right = true;
     idle = false;
   }
 
   public void moveLeft() {
-    if(position.x > width/3) {
+    if(position.x > anchorLeftPos && !anchorLeft) {
       velocity.x -= GUARDIAN_SPEED;
+      anchorRight = false;
     } else {
-      velocity.x = 0;
+      anchorLeft = true;
+      anchorRight = false;
+      velocity.x = 100;
+      if(position.x >= anchorRightPos) {
+          velocity.x = 0;
+      }
     }
     right = false;
     idle = false;
@@ -682,6 +722,14 @@ public class Guardian extends Entity {
         break;
       case 5:
         idle = true;
+        if(anchorLeft || anchorRight) {
+          if(guardian.position.x > width/2 - width/GUARDIAN_WIDTH && guardian.position.x < width/2) {
+            anchorLeft = false;
+            anchorRight = false;
+            velocity.x = 0;
+          }
+        }
+
         break;
       case 6:
         jump();
@@ -823,21 +871,11 @@ public class Pet extends Entity {
   }
 
   public void moveRight() {
-    if(position.x < width - width/3 - width/10) {
-      velocity.x += PET_SPEED;
-    } else {
-      velocity.x = 0;
-    }
     right = true;
     idle = false;
   }
 
   public void moveLeft() {
-    if(position.x > width/3 + width/10) {
-      velocity.x -= PET_SPEED;
-    } else {
-      velocity.x = 0;
-    }
     right = false;
     idle = false;
   }

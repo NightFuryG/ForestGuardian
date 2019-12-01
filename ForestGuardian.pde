@@ -2,7 +2,7 @@ Background background;
 Entity guardian;
 Entity pet;
 
-final int GUARDIAN_WIDTH = width/3;
+final int GUARDIAN_WIDTH = 20;
 final float GROUND = height;
 final int BAR_WIDTH = 20;
 final int BAR_LEFT = 150;
@@ -16,6 +16,14 @@ final int LOWER_SUCCESS = 75;
 final int UPPER_SUCCESS = 85;
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
+
+final int PARALLAX_RIGHT = 1;
+final int PARALLAX_LEFT = 2;
+final int PARALLAX_NONE = 0;
+
+final int CAMERA_ANCHOR = 10;
+
+final int BACKGROUND_ONE = 11;
 
 final int PET_COOLDOWN_TIME = 3000;
 
@@ -48,7 +56,7 @@ void setup() {
   petCooldownTimer = 0;
 
 
-  background = new Background();
+  background = new Background(BACKGROUND_ONE);
   guardian = new Guardian(GUARDIAN_PATH, width/2, height - height/6.85);
   attacks = new ArrayList<Attack>();
 
@@ -67,6 +75,13 @@ void draw() {
   attack();
   bar();
   checkCooldowns();
+
+  System.out.println("LEFT: " + guardian.anchorLeft + " RIGHT: " + guardian.anchorRight);
+}
+
+void updatePet() {
+  pet.position.x = guardian.position.x;
+  pet.position.y = guardian.position.y;
 }
 
 /*
@@ -110,20 +125,24 @@ void summonPet() {
 }
 
 void drawParallaxBackround() {
-  if(guardian.right && guardian.position.x >= width - width/3
+
+  if(guardian.anchorRight && guardian.idle) {
+      parallax = PARALLAX_LEFT;
+      guardian.velocity.x = 100;
+  } else if (guardian.anchorLeft && guardian.idle) {
+      parallax = PARALLAX_RIGHT;
+      guardian.velocity.x = -100;
+    } else if(guardian.right && guardian.anchorRight
       && !guardian.idle) {
-        guardian.velocity.x = 0;
-        parallax = 1;
-        background.draw(parallax);
-  } else if (!guardian.right && guardian.position.x <= width/3
+      parallax = PARALLAX_RIGHT;
+  } else if (!guardian.right && guardian.anchorLeft
       && !guardian.idle){
-        guardian.velocity.x = 0;
-        parallax = 2;
-        background.draw(parallax);
+      parallax = PARALLAX_LEFT;
   } else {
-      parallax = 0;
-      background.draw(parallax);
+      parallax = PARALLAX_NONE;
   }
+  background.draw(parallax);
+
 }
 
 // movement
@@ -203,6 +222,9 @@ void playerMove() {
     if(petAlive)
       pet.move(6);
   }
+  if(petAlive) {
+    updatePet();
+  }
 }
 
 void mousePressed() {
@@ -211,16 +233,16 @@ void mousePressed() {
     if(attacks.size() == 0)
       if(guardian.right) {
         if(mouseX < guardian.position.x) {
-          attacks.add( new Attack(guardian.position.x - GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, false));
+          attacks.add( new Attack(guardian.position.x - width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, false));
         } else {
-          attacks.add( new Attack(guardian.position.x + GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, true));
+          attacks.add( new Attack(guardian.position.x + width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, true));
         }
       } else {
         if(mouseX > guardian.position.x) {
 
-          attacks.add( new Attack(guardian.position.x + GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, true));
+          attacks.add( new Attack(guardian.position.x + width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, true));
         } else {
-          attacks.add( new Attack(guardian.position.x - GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, false));
+          attacks.add( new Attack(guardian.position.x - width/GUARDIAN_WIDTH, guardian.position.y, mouseX, mouseY, false));
         }
       }
   }
