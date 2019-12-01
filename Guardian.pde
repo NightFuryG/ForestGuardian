@@ -6,13 +6,15 @@ public class Guardian extends Entity {
   final int JUMP_RESIZE = width/20;
   final int RUN_RESIZE = width/20;
 
+  final int VELOCITY_SWITCH = width/38;
+
   final int CAMERA_ANCHOR = 10;
 
   float GROUND = height - height/6.85;
   float MIDDLE = width/2;
   final int GUARDIAN_SPEED = 7;
-  final int JUMP_SPEED = 20;
-  final float GRAVITY = 2;
+  final int JUMP_SPEED = 30;
+  final float GRAVITY = 3;
   final int deltaTime = 100;
   int prevTime = 0;
   final int GUARDIAN_WIDTH = 20;
@@ -80,14 +82,14 @@ public class Guardian extends Entity {
     }
   }
 
-  void moveRight() {
+  void moveRightParallax() {
     if(position.x < anchorRightPos && !anchorRight) {
       velocity.x += GUARDIAN_SPEED;
       anchorLeft = false;
     } else {
       anchorRight = true;
       anchorLeft = false;
-      velocity.x = -50;
+      velocity.x = -VELOCITY_SWITCH;
       if(position.x <= anchorLeftPos) {
         velocity.x = 0;
       }
@@ -96,14 +98,36 @@ public class Guardian extends Entity {
     idle = false;
   }
 
+  void moveRight() {
+    if(position.x + width/GUARDIAN_WIDTH <= width) {
+      velocity.x += GUARDIAN_SPEED;
+    } else {
+      velocity.x = -GUARDIAN_SPEED;
+    }
+
+    right = true;
+    idle = false;
+  }
+
   void moveLeft() {
+      if(position.x >= 0) {
+        velocity.x -= GUARDIAN_SPEED;
+      } else {
+        velocity.x = GUARDIAN_SPEED;
+      }
+
+      right = false;
+      idle = false;
+  }
+
+  void moveLeftParallax() {
     if(position.x > anchorLeftPos && !anchorLeft) {
       velocity.x -= GUARDIAN_SPEED;
       anchorRight = false;
     } else {
       anchorLeft = true;
       anchorRight = false;
-      velocity.x = 50;
+      velocity.x = VELOCITY_SWITCH;
       if(position.x >= anchorRightPos) {
           velocity.x = 0;
       }
@@ -120,33 +144,46 @@ public class Guardian extends Entity {
   }
 
   @Override
-  void move(int i) {
+  void move(int i, boolean b) {
     switch (i) {
       case 1:
         break;
       case 2:
         break;
       case 3:
+      if(b) {
         moveRight();
+      } else {
+        moveRightParallax();
+      }
+
         break;
       case 4:
+      if(b) {
         moveLeft();
+      } else {
+        moveLeftParallax();
+      }
         break;
       case 5:
         idle = true;
-        if(anchorLeft) {
-          if(guardian.position.x < 1.5*width/5) {
-            anchorLeft = false;
-            anchorRight = false;
-            velocity.x = 0;
-          }
-        } else if (anchorRight) {
-          if(guardian.position.x >= 1.5*width/5 - width/GUARDIAN_WIDTH) {
-            anchorLeft = false;
-            anchorRight = false;
-            velocity.x = 0;
+
+        if(!b) {
+          if(anchorLeft) {
+            if(guardian.position.x < 1.5*width/5) {
+              anchorLeft = false;
+              anchorRight = false;
+              velocity.x = 0;
+            }
+          } else if (anchorRight) {
+            if(guardian.position.x >= 1.5*width/5 - width/GUARDIAN_WIDTH) {
+              anchorLeft = false;
+              anchorRight = false;
+              velocity.x = 0;
+            }
           }
         }
+
         break;
       case 6:
         jump();

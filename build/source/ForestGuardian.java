@@ -15,6 +15,7 @@ import java.io.IOException;
 public class ForestGuardian extends PApplet {
 
 Background background;
+Background backgroundtwo;
 Entity guardian;
 Entity pet;
 
@@ -44,24 +45,45 @@ final int PARALLAX_NONE = 0;
 
 final int CAMERA_ANCHOR = 10;
 
-final int BACKGROUND_ONE = 11;
+final int BACKGROUND_ONE_LAYERS = 11;
+final int BACKGROUND_TWO_LAYERS = 1;
 
 final int PET_COOLDOWN_TIME = 3000;
 
 final String GUARDIAN_PATH = "animations/guardian/";
 final String WOLF_PATH = "animations/pet/1/";
 final String ENEMY_ONE_PATH = "animations/enemy/1/";
+final String BACKGROUND_ONE_PATH = "background/0/";
+final String BACKGROUND_TWO_PATH = "background/1/";
+
+final String TILE_ZERO =  "tileset/0.png";
+final String TILE_ONE =  "tileset/1png";
+final String TILE_TWO =  "tileset/2.png";
+final String TILE_THREE =  "tileset/3.png";
+final String TILE_FOUR =  "tileset/4.png";
+final String TILE_FIVE =  "tileset/5.png";
+final String TILE_SIX =  "tileset/6.png";
+final String TILE_SEVEN =  "tileset/7.png";
+
+float ground;
+final float GROUND_PROP = 6.85f;
+
+float tileGround;
+final float GROUND_TILE = 12;
 
 boolean w, a, s, d, j;
 boolean petAlive;
 boolean summon;
 boolean petCooldown;
+boolean attacking;
 
 
 int parallax;
 int summonCount;
 int petTimer;
 int petCooldownTimer;
+
+Platform platform;
 
 
 ArrayList<Attack> attacks;
@@ -75,25 +97,39 @@ public void setup() {
   petAlive = false;
   petCooldown = false;
   summon = false;
+  attacking = false;
   parallax = 0;
   summonCount = 0;
   petTimer = 0;
   petCooldownTimer = 0;
 
+  ground = height - height/GROUND_PROP;
+  tileGround = height - height/GROUND_TILE;
 
-  background = new Background(BACKGROUND_ONE);
-  guardian = new Guardian(GUARDIAN_PATH, width/2, height - height/6.85f);
+
+  background = new Background(BACKGROUND_ONE_PATH, BACKGROUND_ONE_LAYERS);
+  guardian = new Guardian(GUARDIAN_PATH, width/4, ground);
   attacks = new ArrayList<Attack>();
   enemies = new ArrayList<Enemy>();
 
-  enemy = new Enemy(ENEMY_ONE_PATH, width/2, height - height/6.85f);
+  enemy = new Enemy(ENEMY_ONE_PATH, width, ground);
   enemies.add(enemy);
+
+  platform = new Platform(TILE_THREE, 0, tileGround);
+
+
 }
 
 public void draw() {
   imageMode(CORNER);
   background(255);
-  drawParallaxBackround();
+  checkAttacking();
+  if(!attacking) {
+    drawParallaxBackround();
+  } else {
+    background.draw(PARALLAX_NONE);
+  }
+
   playerMove();
   if(petAlive) {
     pet.draw();
@@ -106,6 +142,19 @@ public void draw() {
   bar();
   checkCooldowns();
   detectAttackCollision();
+  //platform.draw();
+}
+
+public void checkAttacking() {
+  for(Enemy enemy : enemies) {
+    if(!enemy.idle) {
+      attacking = true;
+    }
+  }
+
+  if(enemies.size() == 0) {
+    attacking = false;
+  }
 }
 
 public void updatePet() {
@@ -158,10 +207,12 @@ public void drawParallaxBackround() {
       background.cameraTransitionSpeed();
       parallax = PARALLAX_LEFT;
       guardian.velocity.x = CAMERA_SPEED;
+      positionEnemies(CAMERA_SPEED);
   } else if (guardian.anchorLeft && guardian.idle) {
       background.cameraTransitionSpeed();
       parallax = PARALLAX_RIGHT;
       guardian.velocity.x = -CAMERA_SPEED;
+      positionEnemies(-CAMERA_SPEED);
     } else if(guardian.right && guardian.anchorRight
       && !guardian.idle) {
         if(guardian.velocity.x == 0) {
@@ -169,6 +220,7 @@ public void drawParallaxBackround() {
         } else {
           background.cameraTransitionSpeed();
         }
+        positionEnemies(-20);
         parallax = PARALLAX_RIGHT;
   } else if (!guardian.right && guardian.anchorLeft
       && !guardian.idle){
@@ -177,12 +229,18 @@ public void drawParallaxBackround() {
         } else {
           background.cameraTransitionSpeed();
         }
+        positionEnemies(20);
       parallax = PARALLAX_LEFT;
   } else {
       parallax = PARALLAX_NONE;
   }
   background.draw(parallax);
+}
 
+public void positionEnemies(int velocity) {
+  for(Enemy enemy : enemies) {
+    enemy.velocity.x = velocity;
+  }
 }
 
 // movement
@@ -233,34 +291,34 @@ public void keyReleased() {
 // movement
 public void playerMove() {
   if(w) {
-    guardian.move(1);
+    guardian.move(1, attacking);
     if(petAlive)
-      pet.move(1);
+      pet.move(1, attacking);
   }
   if(s) {
-    guardian.move(2);
+    guardian.move(2, attacking);
     if(petAlive)
-      pet.move(2);
+      pet.move(2, attacking);
   }
   if(d) {
-    guardian.move(3);
+    guardian.move(3, attacking);
     if(petAlive)
-      pet.move(3);
+      pet.move(3, attacking);
   }
   if(a) {
-    guardian.move(4);
+    guardian.move(4, attacking);
     if(petAlive)
-      pet.move(4);
+      pet.move(4, attacking);
   }
   if(!w && !s && !d && !a) {
-    guardian.move(5);
+    guardian.move(5, attacking);
     if(petAlive)
-      pet.move(5);
+      pet.move(5, attacking);
   }
   if(j) {
-    guardian.move(6);
+    guardian.move(6, attacking);
     if(petAlive)
-      pet.move(6);
+      pet.move(6, attacking);
   }
   if(petAlive) {
     updatePet();
@@ -323,7 +381,7 @@ public void enemyAttack() {
     } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
       enemy.attack = true;
       enemy.velocity.x = 0;
-    } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/5) {
+    } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
       enemy.idle = true;
       enemy.attack = false;
     } else {
@@ -479,20 +537,22 @@ class Attack {
 public class Background {
 
   final String PNG = ".png";
-  final String PATH = "background/";
   final int CAMERA = 25 ;
+  final int ONE_LAYER = 20;
 
   int startX = 0;
   int startY = 0;
   int resize = height + height/4;
   int layerTotal;
+  String path;
 
   boolean reset;
 
 
   ArrayList<Layer> layers;
 
-  Background(int layerTotal) {
+  Background(String path, int layerTotal) {
+    this.path = path;
     this.layerTotal = layerTotal;
     this.layers = new ArrayList<Layer>();
     initialiseLayers();
@@ -502,16 +562,26 @@ public class Background {
 
   public void initialiseLayers() {
     for(int i = 0; i < layerTotal; i ++) {
-      layers.add(new Layer(PATH + i + PNG, startX, startY, i*2));
+      if(layerTotal == 1) {
+        System.out.println("HELLO");
+        layers.add(new Layer(path + i + PNG, startX, startY, 20));
+      } else {
+        layers.add(new Layer(path + i + PNG, startX, startY, i*2));
+      }
+
     }
   }
 
   public void resetTransitionSpeed() {
     if(!reset) {
       for(int i = 0; i < layerTotal; i++) {
-        layers.get(i).transition = i*2;
+        if(layerTotal == 1) {
+          layers.get(i).transition = 20;
+        } else {
+          layers.get(i).transition = i*2;
+        }
+
       }
-      System.out.println("Normal");
       reset = true;
     }
 
@@ -522,7 +592,6 @@ public class Background {
       for(int i = 0; i < layerTotal; i++) {
         layers.get(i).transition = CAMERA;
       }
-      System.out.println("Fast");
       reset = false;
     }
   }
@@ -762,8 +831,7 @@ public class Entity {
     display();
   }
 
-  public void move(int i) {
-
+  public void move(int i, boolean b){  
   }
 }
 public class Guardian extends Entity {
@@ -774,13 +842,15 @@ public class Guardian extends Entity {
   final int JUMP_RESIZE = width/20;
   final int RUN_RESIZE = width/20;
 
+  final int VELOCITY_SWITCH = width/38;
+
   final int CAMERA_ANCHOR = 10;
 
   float GROUND = height - height/6.85f;
   float MIDDLE = width/2;
   final int GUARDIAN_SPEED = 7;
-  final int JUMP_SPEED = 20;
-  final float GRAVITY = 2;
+  final int JUMP_SPEED = 30;
+  final float GRAVITY = 3;
   final int deltaTime = 100;
   int prevTime = 0;
   final int GUARDIAN_WIDTH = 20;
@@ -848,14 +918,14 @@ public class Guardian extends Entity {
     }
   }
 
-  public void moveRight() {
+  public void moveRightParallax() {
     if(position.x < anchorRightPos && !anchorRight) {
       velocity.x += GUARDIAN_SPEED;
       anchorLeft = false;
     } else {
       anchorRight = true;
       anchorLeft = false;
-      velocity.x = -50;
+      velocity.x = -VELOCITY_SWITCH;
       if(position.x <= anchorLeftPos) {
         velocity.x = 0;
       }
@@ -864,14 +934,36 @@ public class Guardian extends Entity {
     idle = false;
   }
 
+  public void moveRight() {
+    if(position.x + width/GUARDIAN_WIDTH <= width) {
+      velocity.x += GUARDIAN_SPEED;
+    } else {
+      velocity.x = -GUARDIAN_SPEED;
+    }
+
+    right = true;
+    idle = false;
+  }
+
   public void moveLeft() {
+      if(position.x >= 0) {
+        velocity.x -= GUARDIAN_SPEED;
+      } else {
+        velocity.x = GUARDIAN_SPEED;
+      }
+
+      right = false;
+      idle = false;
+  }
+
+  public void moveLeftParallax() {
     if(position.x > anchorLeftPos && !anchorLeft) {
       velocity.x -= GUARDIAN_SPEED;
       anchorRight = false;
     } else {
       anchorLeft = true;
       anchorRight = false;
-      velocity.x = 50;
+      velocity.x = VELOCITY_SWITCH;
       if(position.x >= anchorRightPos) {
           velocity.x = 0;
       }
@@ -888,33 +980,46 @@ public class Guardian extends Entity {
   }
 
   public @Override
-  void move(int i) {
+  void move(int i, boolean b) {
     switch (i) {
       case 1:
         break;
       case 2:
         break;
       case 3:
+      if(b) {
         moveRight();
+      } else {
+        moveRightParallax();
+      }
+
         break;
       case 4:
+      if(b) {
         moveLeft();
+      } else {
+        moveLeftParallax();
+      }
         break;
       case 5:
         idle = true;
-        if(anchorLeft) {
-          if(guardian.position.x < 1.5f*width/5) {
-            anchorLeft = false;
-            anchorRight = false;
-            velocity.x = 0;
-          }
-        } else if (anchorRight) {
-          if(guardian.position.x >= 1.5f*width/5 - width/GUARDIAN_WIDTH) {
-            anchorLeft = false;
-            anchorRight = false;
-            velocity.x = 0;
+
+        if(!b) {
+          if(anchorLeft) {
+            if(guardian.position.x < 1.5f*width/5) {
+              anchorLeft = false;
+              anchorRight = false;
+              velocity.x = 0;
+            }
+          } else if (anchorRight) {
+            if(guardian.position.x >= 1.5f*width/5 - width/GUARDIAN_WIDTH) {
+              anchorLeft = false;
+              anchorRight = false;
+              velocity.x = 0;
+            }
           }
         }
+
         break;
       case 6:
         jump();
@@ -1073,7 +1178,7 @@ public class Pet extends Entity {
   }
 
   public @Override
-  void move(int i) {
+  void move(int i, boolean b) {
     switch (i) {
       case 1:
         break;
@@ -1095,6 +1200,27 @@ public class Pet extends Entity {
         break;
     }
   }
+
+
+}
+public class Platform {
+
+  PVector position;
+  PImage tile;
+
+  final int RESIZE = 6;
+
+  Platform(String path, float x, float y) {
+    this.tile = loadImage(path);
+    this.position = new PVector(x, y);
+    this.tile.resize(width/RESIZE, 0);
+
+  }
+
+  public void draw() {
+    image(tile, position.x, position.y);
+  }
+
 
 
 }

@@ -1,4 +1,5 @@
 Background background;
+Background backgroundtwo;
 Entity guardian;
 Entity pet;
 
@@ -28,24 +29,45 @@ final int PARALLAX_NONE = 0;
 
 final int CAMERA_ANCHOR = 10;
 
-final int BACKGROUND_ONE = 11;
+final int BACKGROUND_ONE_LAYERS = 11;
+final int BACKGROUND_TWO_LAYERS = 1;
 
 final int PET_COOLDOWN_TIME = 3000;
 
 final String GUARDIAN_PATH = "animations/guardian/";
 final String WOLF_PATH = "animations/pet/1/";
 final String ENEMY_ONE_PATH = "animations/enemy/1/";
+final String BACKGROUND_ONE_PATH = "background/0/";
+final String BACKGROUND_TWO_PATH = "background/1/";
+
+final String TILE_ZERO =  "tileset/0.png";
+final String TILE_ONE =  "tileset/1png";
+final String TILE_TWO =  "tileset/2.png";
+final String TILE_THREE =  "tileset/3.png";
+final String TILE_FOUR =  "tileset/4.png";
+final String TILE_FIVE =  "tileset/5.png";
+final String TILE_SIX =  "tileset/6.png";
+final String TILE_SEVEN =  "tileset/7.png";
+
+float ground;
+final float GROUND_PROP = 6.85;
+
+float tileGround;
+final float GROUND_TILE = 12;
 
 boolean w, a, s, d, j;
 boolean petAlive;
 boolean summon;
 boolean petCooldown;
+boolean attacking;
 
 
 int parallax;
 int summonCount;
 int petTimer;
 int petCooldownTimer;
+
+Platform platform;
 
 
 ArrayList<Attack> attacks;
@@ -59,25 +81,39 @@ void setup() {
   petAlive = false;
   petCooldown = false;
   summon = false;
+  attacking = false;
   parallax = 0;
   summonCount = 0;
   petTimer = 0;
   petCooldownTimer = 0;
 
+  ground = height - height/GROUND_PROP;
+  tileGround = height - height/GROUND_TILE;
 
-  background = new Background(BACKGROUND_ONE);
-  guardian = new Guardian(GUARDIAN_PATH, width/2, height - height/6.85);
+
+  background = new Background(BACKGROUND_ONE_PATH, BACKGROUND_ONE_LAYERS);
+  guardian = new Guardian(GUARDIAN_PATH, width/4, ground);
   attacks = new ArrayList<Attack>();
   enemies = new ArrayList<Enemy>();
 
-  enemy = new Enemy(ENEMY_ONE_PATH, width/2, height - height/6.85);
+  enemy = new Enemy(ENEMY_ONE_PATH, width, ground);
   enemies.add(enemy);
+
+  platform = new Platform(TILE_THREE, 0, tileGround);
+
+
 }
 
 void draw() {
   imageMode(CORNER);
   background(255);
-  drawParallaxBackround();
+  checkAttacking();
+  if(!attacking) {
+    drawParallaxBackround();
+  } else {
+    background.draw(PARALLAX_NONE);
+  }
+
   playerMove();
   if(petAlive) {
     pet.draw();
@@ -90,6 +126,19 @@ void draw() {
   bar();
   checkCooldowns();
   detectAttackCollision();
+  //platform.draw();
+}
+
+void checkAttacking() {
+  for(Enemy enemy : enemies) {
+    if(!enemy.idle) {
+      attacking = true;
+    }
+  }
+
+  if(enemies.size() == 0) {
+    attacking = false;
+  }
 }
 
 void updatePet() {
@@ -142,10 +191,12 @@ void drawParallaxBackround() {
       background.cameraTransitionSpeed();
       parallax = PARALLAX_LEFT;
       guardian.velocity.x = CAMERA_SPEED;
+      positionEnemies(CAMERA_SPEED);
   } else if (guardian.anchorLeft && guardian.idle) {
       background.cameraTransitionSpeed();
       parallax = PARALLAX_RIGHT;
       guardian.velocity.x = -CAMERA_SPEED;
+      positionEnemies(-CAMERA_SPEED);
     } else if(guardian.right && guardian.anchorRight
       && !guardian.idle) {
         if(guardian.velocity.x == 0) {
@@ -153,6 +204,7 @@ void drawParallaxBackround() {
         } else {
           background.cameraTransitionSpeed();
         }
+        positionEnemies(-20);
         parallax = PARALLAX_RIGHT;
   } else if (!guardian.right && guardian.anchorLeft
       && !guardian.idle){
@@ -161,12 +213,18 @@ void drawParallaxBackround() {
         } else {
           background.cameraTransitionSpeed();
         }
+        positionEnemies(20);
       parallax = PARALLAX_LEFT;
   } else {
       parallax = PARALLAX_NONE;
   }
   background.draw(parallax);
+}
 
+void positionEnemies(int velocity) {
+  for(Enemy enemy : enemies) {
+    enemy.velocity.x = velocity;
+  }
 }
 
 // movement
@@ -217,34 +275,34 @@ void keyReleased() {
 // movement
 void playerMove() {
   if(w) {
-    guardian.move(1);
+    guardian.move(1, attacking);
     if(petAlive)
-      pet.move(1);
+      pet.move(1, attacking);
   }
   if(s) {
-    guardian.move(2);
+    guardian.move(2, attacking);
     if(petAlive)
-      pet.move(2);
+      pet.move(2, attacking);
   }
   if(d) {
-    guardian.move(3);
+    guardian.move(3, attacking);
     if(petAlive)
-      pet.move(3);
+      pet.move(3, attacking);
   }
   if(a) {
-    guardian.move(4);
+    guardian.move(4, attacking);
     if(petAlive)
-      pet.move(4);
+      pet.move(4, attacking);
   }
   if(!w && !s && !d && !a) {
-    guardian.move(5);
+    guardian.move(5, attacking);
     if(petAlive)
-      pet.move(5);
+      pet.move(5, attacking);
   }
   if(j) {
-    guardian.move(6);
+    guardian.move(6, attacking);
     if(petAlive)
-      pet.move(6);
+      pet.move(6, attacking);
   }
   if(petAlive) {
     updatePet();
@@ -307,7 +365,7 @@ void enemyAttack() {
     } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
       enemy.attack = true;
       enemy.velocity.x = 0;
-    } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/5) {
+    } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
       enemy.idle = true;
       enemy.attack = false;
     } else {

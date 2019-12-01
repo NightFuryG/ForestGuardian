@@ -143,7 +143,6 @@ public class Entity {
     display();
   }
 
-  void move(int i) {
-
+  void move(int i, boolean b){  
   }
 }

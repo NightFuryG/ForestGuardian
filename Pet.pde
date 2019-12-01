@@ -78,7 +78,7 @@ public class Pet extends Entity {
   }
 
   @Override
-  void move(int i) {
+  void move(int i, boolean b) {
     switch (i) {
       case 1:
         break;
