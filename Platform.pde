@@ -1,3 +1,4 @@
+//Platform class used for each individual tile
 public class Platform {
 
   PVector position;

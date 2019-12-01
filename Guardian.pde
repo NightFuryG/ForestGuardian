@@ -1,5 +1,6 @@
+//Class representing the playable Guardian
+//contains the anchor positions for parallax;
 public class Guardian extends Entity {
-
 
   final int IDLE_RESIZE = width/23;
   final int ATTACK_RESIZE = width/22;
@@ -7,21 +8,20 @@ public class Guardian extends Entity {
   final int RUN_RESIZE = width/20;
 
   final int VELOCITY_SWITCH = width/38;
-
   final int CAMERA_ANCHOR = 10;
 
-  float GROUND = height - height/6.85;
-  float MIDDLE = width/2;
+  final float GROUND = height - height/6.85;
+  final float MIDDLE = width/2;
   final int GUARDIAN_SPEED = 7;
   final int JUMP_SPEED = 30;
   final float GRAVITY = 3;
-  final int deltaTime = 100;
-  int prevTime = 0;
   final int GUARDIAN_WIDTH = 20;
+
   int anchorRightPos;
   int anchorLeftPos;
 
 
+  //path and position
   Guardian (String path, float x, float y) {
       super(path, x, y);
       this.anchorRight = false;
@@ -31,6 +31,7 @@ public class Guardian extends Entity {
       resize();
   }
 
+  //get anchors
   boolean getAnchorRight() {
     return anchorRight;
   }
@@ -39,6 +40,7 @@ public class Guardian extends Entity {
     return anchorLeft;
   }
 
+  //resize animations()
   void resize() {
     resizeIdle();
     resizeRun();
@@ -82,6 +84,9 @@ public class Guardian extends Entity {
     }
   }
 
+  //  parallax move right
+  // logic for moving when moving right and anchoring
+  // if anchored on right move to left anchor to create more visual space
   void moveRightParallax() {
     if(position.x < anchorRightPos && !anchorRight) {
       velocity.x += GUARDIAN_SPEED;
@@ -98,6 +103,7 @@ public class Guardian extends Entity {
     idle = false;
   }
 
+  //basic move right
   void moveRight() {
     if(position.x + width/GUARDIAN_WIDTH <= width) {
       velocity.x += GUARDIAN_SPEED;
@@ -109,6 +115,7 @@ public class Guardian extends Entity {
     idle = false;
   }
 
+  //basic move left
   void moveLeft() {
       if(position.x >= 0) {
         velocity.x -= GUARDIAN_SPEED;
@@ -120,6 +127,7 @@ public class Guardian extends Entity {
       idle = false;
   }
 
+  //parallax move left
   void moveLeftParallax() {
     if(position.x > anchorLeftPos && !anchorLeft) {
       velocity.x -= GUARDIAN_SPEED;
@@ -136,6 +144,7 @@ public class Guardian extends Entity {
     idle = false;
   }
 
+  //jump - needs work
   void jump() {
     if(position.y >= GROUND && !jump) {
       velocity.y = -JUMP_SPEED;
@@ -143,6 +152,7 @@ public class Guardian extends Entity {
     }
   }
 
+  //move method needs more work done
   @Override
   void move(int i, boolean b) {
     switch (i) {
@@ -151,23 +161,22 @@ public class Guardian extends Entity {
       case 2:
         break;
       case 3:
-      if(b) {
-        moveRight();
-      } else {
-        moveRightParallax();
-      }
-
+        if(b) {
+          moveRight();
+        } else {
+          moveRightParallax();
+        }
         break;
       case 4:
-      if(b) {
-        moveLeft();
-      } else {
-        moveLeftParallax();
-      }
+        if(b) {
+          moveLeft();
+        } else {
+          moveLeftParallax();
+        }
         break;
       case 5:
         idle = true;
-
+        //NEED TO REFACTOR
         if(!b) {
           if(anchorLeft) {
             if(guardian.position.x < 1.5*width/5) {
@@ -183,7 +192,6 @@ public class Guardian extends Entity {
             }
           }
         }
-
         break;
       case 6:
         jump();

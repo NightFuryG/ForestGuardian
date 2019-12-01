@@ -1,5 +1,7 @@
+//General Entity class used for all animated entities
 public class Entity {
 
+  //Both paths and keys
   final String IDLE_RIGHT = "idleRight/";
   final String IDLE_LEFT = "idleLeft/";
   final String RUN_RIGHT = "runRight/";
@@ -38,6 +40,8 @@ public class Entity {
 
   HashMap<String, Animation> animations;
 
+  //Entity stalls all animations with HashMap
+  //Nifty path manipulation allows any entity to be created with a single path given
   Entity (String path, float x, float y) {
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
@@ -64,6 +68,7 @@ public class Entity {
 
   }
 
+  //add animations to HashMap
   void initialiseAnimations() {
 
     Animation idleRight = new Animation(idleRightPath);
@@ -87,6 +92,8 @@ public class Entity {
   }
 
 
+  //add momentum to entites and friction
+  //gravity also added to entity movement
   void update() {
     if(velocity.x > 1 || velocity.x < -1) {
       velocity.x *= 0.7;
@@ -106,6 +113,7 @@ public class Entity {
     position.add(velocity);
   }
 
+  //Display method used to show the correct animation
   void display() {
     if(attack && right) {
       animate(ATTACK_RIGHT);
@@ -134,15 +142,17 @@ public class Entity {
     }
   }
 
+  //play an animation
   void animate(String animation) {
     animations.get(animation).draw(position);
   }
 
+  //draw
   void draw() {
     update();
     display();
   }
 
-  void move(int i, boolean b){  
+  void move(int i, boolean b){
   }
 }

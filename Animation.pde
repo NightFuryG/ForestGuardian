@@ -11,6 +11,7 @@ public class Animation {
   int deltaTime;
   boolean animated;
 
+  //Animation contains a list of files and frame sequence time
   Animation(String filename) {
     this.animation = new ArrayList<PImage>();
     this.filename = filename;

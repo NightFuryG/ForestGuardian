@@ -1,7 +1,3 @@
-Background background;
-Background backgroundtwo;
-Entity guardian;
-Entity pet;
 
 final int GUARDIAN_WIDTH = 20;
 final int ATTACK_WIDTH = 40;
@@ -52,6 +48,11 @@ final String TILE_SEVEN =  "tileset/7.png";
 
 final float GROUND_PROP = 6.85;
 final float GROUND_TILE = 12;
+
+Background background;
+Entity guardian;
+Entity pet;
+
 
 boolean w, a, s, d, j;
 boolean petAlive;

@@ -1,3 +1,4 @@
+//Pet class used for when successfully summoned
 public class Pet extends Entity {
 
   final int IDLE_RESIZE = width/15;
@@ -17,6 +18,7 @@ public class Pet extends Entity {
     this.attack = true;
   }
 
+  //resize Animations
   void resize() {
     resizeIdle();
     resizeRun();

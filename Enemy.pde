@@ -1,3 +1,4 @@
+//Enemy class used for enemy entites
 public class Enemy extends Entity {
 
   final int IDLE_RESIZE = width/30;
@@ -16,6 +17,7 @@ public class Enemy extends Entity {
     resize();
   }
 
+  //resize animations so all same size
   void resize() {
     resizeIdle();
     resizeRun();
@@ -59,6 +61,7 @@ public class Enemy extends Entity {
     }
   }
 
+  //attack and pursue guardian
   void attack() {
     if(!attack) {
       if(right) {
