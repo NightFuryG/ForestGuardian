@@ -33,6 +33,8 @@ final int UPPER_SUCCESS = 85;
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
 
+final int CAMERA_SPEED = 200;
+
 final int PARALLAX_RIGHT = 1;
 final int PARALLAX_LEFT = 2;
 final int PARALLAX_NONE = 0;
@@ -92,7 +94,8 @@ public void draw() {
   bar();
   checkCooldowns();
 
-  System.out.println("LEFT: " + guardian.anchorLeft + " RIGHT: " + guardian.anchorRight);
+  System.out.println("LEFT: " + guardian.anchorLeft + " Right: " + guardian.anchorRight);
+  System.out.println(guardian.idle);
 }
 
 public void updatePet() {
@@ -141,18 +144,29 @@ public void summonPet() {
 }
 
 public void drawParallaxBackround() {
-
-  if(guardian.anchorRight && guardian.idle) {
+  if(guardian.anchorRight && guardian.idle && guardian.position.x < width/2) {
+      background.cameraTransitionSpeed();
       parallax = PARALLAX_LEFT;
-      guardian.velocity.x = 100;
-  } else if (guardian.anchorLeft && guardian.idle) {
+      guardian.velocity.x = CAMERA_SPEED;
+  } else if (guardian.anchorLeft && guardian.idle && guardian.position.x > width/2) {
+      background.cameraTransitionSpeed();
       parallax = PARALLAX_RIGHT;
-      guardian.velocity.x = -100;
+      guardian.velocity.x = -CAMERA_SPEED;
     } else if(guardian.right && guardian.anchorRight
       && !guardian.idle) {
-      parallax = PARALLAX_RIGHT;
+        if(guardian.velocity.x == 0) {
+          background.resetTransitionSpeed();
+        } else {
+          background.cameraTransitionSpeed();
+        }
+        parallax = PARALLAX_RIGHT;
   } else if (!guardian.right && guardian.anchorLeft
       && !guardian.idle){
+        if(guardian.velocity.x == 0) {
+          background.resetTransitionSpeed();
+        } else {
+          background.cameraTransitionSpeed();
+        }
       parallax = PARALLAX_LEFT;
   } else {
       parallax = PARALLAX_NONE;
@@ -400,11 +414,14 @@ public class Background {
 
   final String PNG = ".png";
   final String PATH = "background/";
+  final int CAMERA = 100 ;
 
   int startX = 0;
   int startY = 0;
   int resize = height + height/4;
   int layerTotal;
+
+  boolean reset;
 
 
   ArrayList<Layer> layers;
@@ -414,11 +431,33 @@ public class Background {
     this.layers = new ArrayList<Layer>();
     initialiseLayers();
     resizeLayers();
+    this.reset = true;
   }
 
   public void initialiseLayers() {
     for(int i = 0; i < layerTotal; i ++) {
       layers.add(new Layer(PATH + i + PNG, startX, startY, i*2));
+    }
+  }
+
+  public void resetTransitionSpeed() {
+    if(!reset) {
+      for(int i = 0; i < layerTotal; i++) {
+        layers.get(i).transition = i*2;
+      }
+      System.out.println("Normal");
+      reset = true;
+    }
+
+  }
+
+  public void cameraTransitionSpeed() {
+    if(reset) {
+      for(int i = 0; i < layerTotal; i++) {
+        layers.get(i).transition = CAMERA;
+      }
+      System.out.println("Fast");
+      reset = false;
     }
   }
 
@@ -675,7 +714,7 @@ public class Guardian extends Entity {
     } else {
       anchorRight = true;
       anchorLeft = false;
-      velocity.x = -100;
+      velocity.x = -200;
       if(position.x <= anchorLeftPos) {
         velocity.x = 0;
       }
@@ -691,7 +730,7 @@ public class Guardian extends Entity {
     } else {
       anchorLeft = true;
       anchorRight = false;
-      velocity.x = 100;
+      velocity.x = 200;
       if(position.x >= anchorRightPos) {
           velocity.x = 0;
       }
@@ -729,7 +768,6 @@ public class Guardian extends Entity {
             velocity.x = 0;
           }
         }
-
         break;
       case 6:
         jump();

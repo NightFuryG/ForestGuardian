@@ -17,6 +17,8 @@ final int UPPER_SUCCESS = 85;
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
 
+final int CAMERA_SPEED = 200;
+
 final int PARALLAX_RIGHT = 1;
 final int PARALLAX_LEFT = 2;
 final int PARALLAX_NONE = 0;
@@ -76,7 +78,8 @@ void draw() {
   bar();
   checkCooldowns();
 
-  System.out.println("LEFT: " + guardian.anchorLeft + " RIGHT: " + guardian.anchorRight);
+  System.out.println("LEFT: " + guardian.anchorLeft + " Right: " + guardian.anchorRight);
+  System.out.println(guardian.idle);
 }
 
 void updatePet() {
@@ -125,18 +128,29 @@ void summonPet() {
 }
 
 void drawParallaxBackround() {
-
-  if(guardian.anchorRight && guardian.idle) {
+  if(guardian.anchorRight && guardian.idle && guardian.position.x < width/2) {
+      background.cameraTransitionSpeed();
       parallax = PARALLAX_LEFT;
-      guardian.velocity.x = 100;
-  } else if (guardian.anchorLeft && guardian.idle) {
+      guardian.velocity.x = CAMERA_SPEED;
+  } else if (guardian.anchorLeft && guardian.idle && guardian.position.x > width/2) {
+      background.cameraTransitionSpeed();
       parallax = PARALLAX_RIGHT;
-      guardian.velocity.x = -100;
+      guardian.velocity.x = -CAMERA_SPEED;
     } else if(guardian.right && guardian.anchorRight
       && !guardian.idle) {
-      parallax = PARALLAX_RIGHT;
+        if(guardian.velocity.x == 0) {
+          background.resetTransitionSpeed();
+        } else {
+          background.cameraTransitionSpeed();
+        }
+        parallax = PARALLAX_RIGHT;
   } else if (!guardian.right && guardian.anchorLeft
       && !guardian.idle){
+        if(guardian.velocity.x == 0) {
+          background.resetTransitionSpeed();
+        } else {
+          background.cameraTransitionSpeed();
+        }
       parallax = PARALLAX_LEFT;
   } else {
       parallax = PARALLAX_NONE;

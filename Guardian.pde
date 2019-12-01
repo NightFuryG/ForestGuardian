@@ -87,7 +87,7 @@ public class Guardian extends Entity {
     } else {
       anchorRight = true;
       anchorLeft = false;
-      velocity.x = -100;
+      velocity.x = -200;
       if(position.x <= anchorLeftPos) {
         velocity.x = 0;
       }
@@ -103,7 +103,7 @@ public class Guardian extends Entity {
     } else {
       anchorLeft = true;
       anchorRight = false;
-      velocity.x = 100;
+      velocity.x = 200;
       if(position.x >= anchorRightPos) {
           velocity.x = 0;
       }
@@ -141,7 +141,6 @@ public class Guardian extends Entity {
             velocity.x = 0;
           }
         }
-
         break;
       case 6:
         jump();
