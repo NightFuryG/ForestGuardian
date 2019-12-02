@@ -14,41 +14,36 @@ import java.io.IOException;
 
 public class ForestGuardian extends PApplet {
 
-Background background;
-Background backgroundtwo;
-Entity guardian;
-Entity pet;
 
 final int GUARDIAN_WIDTH = 20;
 final int ATTACK_WIDTH = 40;
 final int GUARDIAN_HEIGHT = 20;
 final int ATTACK_DISTANCE = 40;
-final float GROUND = height;
+
 final int BAR_WIDTH = 20;
 final int BAR_LEFT = 150;
 final int BAR_HEIGHT = 100;
 final int BAR_ABOVE = 80;
+
 final int LINE_ONE = 30;
 final int LINE_TWO = 100;
 final int LINE_HEIGHT = 100;
 final int LINE_SUCCESS = 200;
 final int LOWER_SUCCESS = 75;
 final int UPPER_SUCCESS = 85;
+
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
+final int PET_COOLDOWN_TIME = 3000;
 
 final int CAMERA_SPEED = 50;
-
 final int PARALLAX_RIGHT = 1;
 final int PARALLAX_LEFT = 2;
 final int PARALLAX_NONE = 0;
-
 final int CAMERA_ANCHOR = 10;
 
 final int BACKGROUND_ONE_LAYERS = 11;
 final int BACKGROUND_TWO_LAYERS = 1;
-
-final int PET_COOLDOWN_TIME = 3000;
 
 final String GUARDIAN_PATH = "animations/guardian/";
 final String WOLF_PATH = "animations/pet/1/";
@@ -58,7 +53,6 @@ final String ENEMY_THREE_PATH = "animations/enemy/3/";
 final String ENEMY_FOUR_PATH = "animations/enemy/4/";
 final String BACKGROUND_ONE_PATH = "background/0/";
 final String BACKGROUND_TWO_PATH = "background/1/";
-
 final String TILE_ZERO =  "tileset/0.png";
 final String TILE_ONE =  "tileset/1png";
 final String TILE_TWO =  "tileset/2.png";
@@ -68,19 +62,21 @@ final String TILE_FIVE =  "tileset/5.png";
 final String TILE_SIX =  "tileset/6.png";
 final String TILE_SEVEN =  "tileset/7.png";
 
-float ground;
 final float GROUND_PROP = 6.85f;
-
-float tileGround;
 final float GROUND_TILE = 12;
+
+Background background;
+Entity guardian;
+Entity pet;
+
 
 boolean w, a, s, d, j;
 boolean petAlive;
 boolean summon;
 boolean petCooldown;
 boolean attacking;
-
-
+float ground;
+float tileGround;
 int parallax;
 int summonCount;
 int petTimer;
@@ -92,31 +88,45 @@ Platform platform;
 ArrayList<Attack> attacks;
 ArrayList<Enemy> enemies;
 
-Enemy enemy;
+
 
 public void setup() {
   
+
   w = a = s = d = j = false;
+
   petAlive = false;
+
   petCooldown = false;
+
   summon = false;
+
   attacking = false;
+
   parallax = 0;
+
   summonCount = 0;
+
   petTimer = 0;
+
   petCooldownTimer = 0;
 
   ground = height - height/GROUND_PROP;
+
   tileGround = height - height/GROUND_TILE;
 
-
   background = new Background(BACKGROUND_ONE_PATH, BACKGROUND_ONE_LAYERS);
+
   guardian = new Guardian(GUARDIAN_PATH, width/4, ground);
+
   attacks = new ArrayList<Attack>();
+
   enemies = new ArrayList<Enemy>();
 
-  enemy = new Enemy(ENEMY_FOUR_PATH, width, ground);
-  enemies.add(enemy);
+  enemies.add(new Enemy(ENEMY_ONE_PATH , width, ground));
+  enemies.add(new Enemy(ENEMY_TWO_PATH, width - 200, ground));
+  enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, ground));
+  enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, ground));
 
   platform = new Platform(TILE_THREE, 0, tileGround);
 
@@ -145,13 +155,24 @@ public void draw() {
   bar();
   checkCooldowns();
   detectAttackCollision();
-  //platform.draw();
+  updateAnchor();
+  testJump();
 }
 
+public void testJump() {
+  if(guardian.jump) {
+    for(Enemy enemy : enemies) {
+      enemy.jump = true;
+    }
+  }
+}
+
+//checks for whether an enemy is attacking to stop parallax mode for combat
 public void checkAttacking() {
   for(Enemy enemy : enemies) {
     if(!enemy.idle) {
       attacking = true;
+
     }
   }
 
@@ -160,6 +181,14 @@ public void checkAttacking() {
   }
 }
 
+public void updateAnchor() {
+  if(attacking) {
+    guardian.anchorLeft = false;
+    guardian.anchorRight = false;
+  }
+}
+
+//mirrors pet movement when travelling
 public void updatePet() {
   pet.position.x = guardian.position.x;
   pet.position.y = guardian.position.y;
@@ -184,6 +213,7 @@ public void bar() {
   }
 }
 
+//pet is unsummoned after the duration has finished
 public void unsummonPet() {
   if(millis() > petTimer +  PET_MAX_LIFE) {
     petAlive = false;
@@ -192,6 +222,7 @@ public void unsummonPet() {
   }
 }
 
+//check ability cooldowns to see if can be used again
 public void checkCooldowns() {
   if(millis() > petCooldownTimer + PET_COOLDOWN_TIME) {
     petCooldown = true;
@@ -199,54 +230,62 @@ public void checkCooldowns() {
   }
 }
 
+//summon pet
 public void summonPet() {
   petAlive = true;
   pet = new Pet(WOLF_PATH, guardian.position.x, guardian.position.y);
   petTimer = millis();
 }
 
+//parallax method for adjusting guardian, enemis and background
+//uses a sliding window with in play area and uses hard and soft anchor points
 public void drawParallaxBackround() {
-  if(guardian.anchorRight && guardian.idle) {
-      background.cameraTransitionSpeed();
-      parallax = PARALLAX_LEFT;
-      guardian.velocity.x = CAMERA_SPEED;
-      positionEnemies(CAMERA_SPEED);
-  } else if (guardian.anchorLeft && guardian.idle) {
-      background.cameraTransitionSpeed();
-      parallax = PARALLAX_RIGHT;
-      guardian.velocity.x = -CAMERA_SPEED;
-      positionEnemies(-CAMERA_SPEED);
-    } else if(guardian.right && guardian.anchorRight
-      && !guardian.idle) {
-        if(guardian.velocity.x == 0) {
-          background.resetTransitionSpeed();
-        } else {
-          background.cameraTransitionSpeed();
-        }
-        positionEnemies(-20);
+  if(!attacking) {
+    if(guardian.anchorRight && guardian.idle) {
+        background.cameraTransitionSpeed();
+        parallax = PARALLAX_LEFT;
+        guardian.velocity.x = CAMERA_SPEED;
+        positionEnemies(CAMERA_SPEED);
+    } else if (guardian.anchorLeft && guardian.idle) {
+        background.cameraTransitionSpeed();
         parallax = PARALLAX_RIGHT;
-  } else if (!guardian.right && guardian.anchorLeft
-      && !guardian.idle){
-        if(guardian.velocity.x == 0) {
-          background.resetTransitionSpeed();
-        } else {
-          background.cameraTransitionSpeed();
-        }
-        positionEnemies(20);
-      parallax = PARALLAX_LEFT;
-  } else {
-      parallax = PARALLAX_NONE;
+        guardian.velocity.x = -CAMERA_SPEED;
+        positionEnemies(-CAMERA_SPEED);
+      } else if(guardian.right && guardian.anchorRight
+        && !guardian.idle) {
+          if(guardian.velocity.x == 0) {
+            background.resetTransitionSpeed();
+          } else {
+            background.cameraTransitionSpeed();
+          }
+          positionEnemies(-20);
+          parallax = PARALLAX_RIGHT;
+    } else if (!guardian.right && guardian.anchorLeft
+        && !guardian.idle){
+          if(guardian.velocity.x == 0) {
+            background.resetTransitionSpeed();
+          } else {
+            background.cameraTransitionSpeed();
+          }
+          positionEnemies(20);
+        parallax = PARALLAX_LEFT;
+    } else {
+        parallax = PARALLAX_NONE;
+    }
+    background.draw(parallax);
   }
-  background.draw(parallax);
 }
 
+//adjust enemis for parallax
 public void positionEnemies(int velocity) {
-  for(Enemy enemy : enemies) {
-    enemy.velocity.x = velocity;
-  }
+    for(Enemy enemy : enemies) {
+      enemy.velocity.x = velocity;
+    }
+
+
 }
 
-// movement
+// movement and abilites
 public void keyPressed() {
     if(key == 'w') {
       w = true;
@@ -265,7 +304,7 @@ public void keyPressed() {
     }
 }
 
-// movement
+// movement and abilities
 public void keyReleased() {
   if(key == 'w') {
     w = false;
@@ -291,7 +330,7 @@ public void keyReleased() {
 }
 
 
-// movement
+// movement for player and pet
 public void playerMove() {
   if(w) {
     guardian.move(1, attacking);
@@ -328,6 +367,8 @@ public void playerMove() {
   }
 }
 
+//guardian attack
+// fires and orients the attack depending on mouse click and direction
 public void mousePressed() {
   if(mouseButton == LEFT) {
     guardian.attack = true;
@@ -349,11 +390,13 @@ public void mousePressed() {
   }
 }
 
+//draw attacks();
 public void attack() {
   drawAttack();
   removeAttack();
 }
 
+//remove missed attacks
 public void removeAttack() {
   for(Attack attack : new ArrayList<Attack>(attacks)) {
     if(attack.distance > attack.MAX_DISTANCE || attack.position.y > height - height/10 ) {
@@ -362,43 +405,47 @@ public void removeAttack() {
   }
 }
 
+//draw attacks
 public void drawAttack() {
   for(Attack attack : attacks) {
     attack.draw();
   }
 }
 
+//enemy detection distance
+//enemy will pursue guardian and attack if close enough
 public void enemyAttack() {
   for(Enemy enemy : enemies) {
-  if(!enemy.attack) {
-    if(guardian.position.x < enemy.position.x) {
-      enemy.right = false;
-    } else {
-      enemy.right = true;
+    if(!enemy.attack) {
+      if(guardian.position.x < enemy.position.x) {
+        enemy.right = false;
+      } else {
+        enemy.right = true;
+      }
     }
+
+  if(enemy.right && guardian.position.x < enemy.position.x + width/ATTACK_DISTANCE) {
+    enemy.attack = true;
+    enemy.velocity.x = 0;
+  } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
+    enemy.attack = true;
+    enemy.velocity.x = 0;
+  } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
+    enemy.idle = true;
+    enemy.attack = false;
+  } else {
+    enemy.idle = false;
   }
-
-    if(enemy.right && guardian.position.x < enemy.position.x + width/ATTACK_DISTANCE) {
-      enemy.attack = true;
-      enemy.velocity.x = 0;
-    } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
-      enemy.attack = true;
-      enemy.velocity.x = 0;
-    } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
-      enemy.idle = true;
-      enemy.attack = false;
-    } else {
-      enemy.idle = false;
-    }
-
 
     if(!enemy.idle) {
     enemy.attack();
-
     }
   }
 }
 
+
+//detect whether guardian attack hits enemy
+//simplified to point rectangle collision
 public void detectAttackCollision() {
   for(Attack attack : new ArrayList<Attack>(attacks)) {
     float attackX = attack.position.x + attack.attackRight.width/2;
@@ -417,12 +464,13 @@ public void detectAttackCollision() {
   }
 }
 
-
+//Draw enemies
 public void drawEnemies() {
   for(Enemy enemy : enemies) {
     enemy.draw();
   }
 }
+//Animation class for loading in and setting animation speed
 public class Animation {
 
   final String EXTENSION = ".png";
@@ -435,6 +483,7 @@ public class Animation {
   int deltaTime;
   boolean animated;
 
+  //Animation contains a list of files and frame sequence time
   Animation(String filename) {
     this.animation = new ArrayList<PImage>();
     this.filename = filename;
@@ -445,6 +494,8 @@ public class Animation {
     this.animated = false;
   }
 
+  //load all images for an animation
+  //animation is in order and files named from 0-4.png
   public void loadAnimation() {
     for(int i = 0; i < TOTAL_FRAMES; i++) {
       String frameName = (filename + i + EXTENSION);
@@ -453,6 +504,7 @@ public class Animation {
   }
 
 
+  //animate by playing frames in order using a stopwatch
   public void draw(PVector position) {
     if(millis() > prevTime + deltaTime) {
       currentFrame++;
@@ -466,7 +518,8 @@ public class Animation {
   }
 
 }
-class Attack {
+//Attack class for projectile
+public class Attack {
 
   PImage attackRight = loadImage("animations/guardian/wolfAttack/0.png");
   PImage attackLeft = loadImage("animations/guardian/wolfAttack/1.png");
@@ -486,7 +539,7 @@ class Attack {
   float startX;
   float startY;
 
-  //Bullet act as a simple projectile towards a target
+  //attack act as a simple projectile towards a target
   Attack(float startX, float startY, float endX, float endY, boolean right) {
     this.startX = startX;
     this.startY = startY;
@@ -500,23 +553,25 @@ class Attack {
     scaleAttack();
   }
 
-  //calculate direction of travel
+  //calculate direction of travel using sub
   public PVector calculateDirection() {
     return PVector.sub(destination, position);
   }
 
-  //calculate acceleration
+  //calculate acceleration of attack
   public PVector calculateAcceleration() {
     PVector a = this.direction.normalize();
     a = this.direction.mult(5);
     return a;
   }
 
+  //change size of attack
   public void scaleAttack() {
     attackRight.resize(ATTACK_SIZE, 0);
     attackLeft.resize(ATTACK_SIZE, 0);
   }
 
+  //update position by adding acceleration to velocity and velocity to position
   public void update(){
     velocity.add(acceleration);
     velocity.limit(ATTACK_SPEED);
@@ -524,6 +579,7 @@ class Attack {
     distance = dist(startX, startY, position.x, position.y);
   }
 
+  //display differently depending on orientation
   public void display() {
     if(right) {
       image(attackRight, position.x, position.y);
@@ -537,6 +593,7 @@ class Attack {
     display();
   }
 }
+//Background class that loads in all layers for parallax
 public class Background {
 
   final String PNG = ".png";
@@ -551,9 +608,9 @@ public class Background {
 
   boolean reset;
 
-
   ArrayList<Layer> layers;
 
+  //Pass in background path and number of layers
   Background(String path, int layerTotal) {
     this.path = path;
     this.layerTotal = layerTotal;
@@ -563,18 +620,14 @@ public class Background {
     this.reset = true;
   }
 
+  //add all layers into the ArrayList of layers
   public void initialiseLayers() {
     for(int i = 0; i < layerTotal; i ++) {
-      if(layerTotal == 1) {
-        System.out.println("HELLO");
-        layers.add(new Layer(path + i + PNG, startX, startY, 20));
-      } else {
-        layers.add(new Layer(path + i + PNG, startX, startY, i*2));
-      }
-
+      layers.add(new Layer(path + i + PNG, startX, startY, i*2));
     }
   }
 
+  //transition speed of layers set to default
   public void resetTransitionSpeed() {
     if(!reset) {
       for(int i = 0; i < layerTotal; i++) {
@@ -583,13 +636,12 @@ public class Background {
         } else {
           layers.get(i).transition = i*2;
         }
-
       }
       reset = true;
     }
-
   }
 
+  //increase the transition speed for camera change
   public void cameraTransitionSpeed() {
     if(reset) {
       for(int i = 0; i < layerTotal; i++) {
@@ -599,15 +651,15 @@ public class Background {
     }
   }
 
+  //scale background so that they fit into the height of the display
   public void resizeLayers() {
-
     for(Layer layer: layers) {
       layer.image.resize(0, height);
     }
   }
 
+  //draw background with parallax if requested
   public void draw(int direction) {
-
     for(Layer layer : layers) {
       layer.draw();
       if(direction > 0) {
@@ -616,12 +668,33 @@ public class Background {
     }
   }
 }
+//Enemy class used for enemy entites
 public class Enemy extends Entity {
 
-  final int IDLE_RESIZE = width/30;
-  final int ATTACK_RESIZE = width/22;
-  final int JUMP_RESIZE = width/20;
-  final int RUN_RESIZE = width/25;
+  final String ENEMY_ONE_PATH = "animations/enemy/1/";
+  final String ENEMY_TWO_PATH = "animations/enemy/2/";
+  final String ENEMY_THREE_PATH = "animations/enemy/3/";
+  final String ENEMY_FOUR_PATH = "animations/enemy/4/";
+
+  final int IDLE_RESIZE_1 = width/27;
+  final int ATTACK_RESIZE_1 = width/22;
+  final int JUMP_RESIZE_1 = width/20;
+  final int RUN_RESIZE_1 = width/25;
+
+  final int IDLE_RESIZE_2 = width/25;
+  final int ATTACK_RESIZE_2 = width/22;
+  final int JUMP_RESIZE_2 = width/20;
+  final int RUN_RESIZE_2 = width/25;
+
+  final int IDLE_RESIZE_3 = width/15;
+  final int ATTACK_RESIZE_3 = width/10;
+  final int JUMP_RESIZE_3 = width/15;
+  final int RUN_RESIZE_3 = width/15;
+
+  final int IDLE_RESIZE_4 = width/15;
+  final int ATTACK_RESIZE_4 = width/10;
+  final int JUMP_RESIZE_4 = width/15;
+  final int RUN_RESIZE_4 = width/15;
 
   final int ENEMY_SPEED = 7;
   final int JUMP_SPEED = 20;
@@ -631,66 +704,166 @@ public class Enemy extends Entity {
 
   Enemy(String path, float x, float y) {
     super(path, x ,y);
-    resize();
+
+    resize(path);
   }
 
-  public void resize() {
-    resizeIdle();
-    resizeRun();
-    resizeJump();
-    resizeAttack();
+  //resize animations so all same size
+  public void resize(String path) {
+    resizeIdle(path);
+    resizeRun(path);
+    resizeJump(path);
+    resizeAttack(path);
   }
 
-  public void resizeAttack() {
-    for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
-      frame.resize(ATTACK_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(ATTACK_LEFT).animation) {
-      frame.resize(ATTACK_RESIZE, 0);
+  public void resizeAttack(String path) {
+
+    if(path.equals(ENEMY_ONE_PATH)) {
+      for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
+        frame.resize(ATTACK_RESIZE_1, 0);
+      }
+      for(PImage frame : animations.get(ATTACK_LEFT).animation) {
+        frame.resize(ATTACK_RESIZE_1, 0);
+      }
+    } else if (path.equals(ENEMY_TWO_PATH)) {
+        for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
+          frame.resize(ATTACK_RESIZE_2, 0);
+        }
+        for(PImage frame : animations.get(ATTACK_LEFT).animation) {
+          frame.resize(ATTACK_RESIZE_2, 0);
+        }
+    } else if (path.equals(ENEMY_THREE_PATH)) {
+        for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
+          frame.resize(ATTACK_RESIZE_3, 0);
+        }
+        for(PImage frame : animations.get(ATTACK_LEFT).animation) {
+          frame.resize(ATTACK_RESIZE_3, 0);
+        }
+    } else if (path.equals(ENEMY_FOUR_PATH)) {
+        for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
+          frame.resize(ATTACK_RESIZE_4, 0);
+        }
+        for(PImage frame : animations.get(ATTACK_LEFT).animation) {
+          frame.resize(ATTACK_RESIZE_4, 0);
+        }
     }
   }
 
-  public void resizeIdle() {
-    for(PImage frame : animations.get(IDLE_LEFT).animation) {
-      frame.resize(IDLE_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(IDLE_RIGHT).animation) {
-      frame.resize(IDLE_RESIZE, 0);
+  public void resizeIdle(String path) {
+    if(path.equals(ENEMY_ONE_PATH)) {
+      for(PImage frame : animations.get(IDLE_LEFT).animation) {
+        frame.resize(IDLE_RESIZE_1, 0);
+      }
+      for(PImage frame : animations.get(IDLE_RIGHT).animation) {
+        frame.resize(IDLE_RESIZE_1, 0);
+      }
+    } else if(path.equals(ENEMY_TWO_PATH)) {
+        for(PImage frame : animations.get(IDLE_LEFT).animation) {
+          frame.resize(IDLE_RESIZE_2, 0);
+        }
+        for(PImage frame : animations.get(IDLE_RIGHT).animation) {
+          frame.resize(IDLE_RESIZE_2, 0);
+        }
+    } else if(path.equals(ENEMY_THREE_PATH)) {
+        for(PImage frame : animations.get(IDLE_LEFT).animation) {
+          frame.resize(IDLE_RESIZE_3, 0);
+        }
+        for(PImage frame : animations.get(IDLE_RIGHT).animation) {
+          frame.resize(IDLE_RESIZE_3, 0);
+        }
+    } else if(path.equals(ENEMY_FOUR_PATH)) {
+        for(PImage frame : animations.get(IDLE_LEFT).animation) {
+          frame.resize(IDLE_RESIZE_4, 0);
+        }
+        for(PImage frame : animations.get(IDLE_RIGHT).animation) {
+          frame.resize(IDLE_RESIZE_4, 0);
+        }
     }
   }
 
-  public void resizeRun() {
-    for(PImage frame : animations.get(RUN_LEFT).animation) {
-      frame.resize(RUN_RESIZE, 0);
+  public void resizeRun(String path) {
+    if(path.equals(ENEMY_ONE_PATH)) {
+      for(PImage frame : animations.get(RUN_LEFT).animation) {
+        frame.resize(RUN_RESIZE_1, 0);
+      }
+      for(PImage frame : animations.get(RUN_RIGHT).animation) {
+        frame.resize(RUN_RESIZE_1, 0);
+      }
+    } else if(path.equals(ENEMY_TWO_PATH)) {
+      for(PImage frame : animations.get(RUN_LEFT).animation) {
+        frame.resize(RUN_RESIZE_2, 0);
+      }
+      for(PImage frame : animations.get(RUN_RIGHT).animation) {
+        frame.resize(RUN_RESIZE_2, 0);
+      }
+    } else if(path.equals(ENEMY_THREE_PATH)) {
+      for(PImage frame : animations.get(RUN_LEFT).animation) {
+        frame.resize(RUN_RESIZE_3, 0);
+      }
+      for(PImage frame : animations.get(RUN_RIGHT).animation) {
+        frame.resize(RUN_RESIZE_3, 0);
+      }
+    } else if(path.equals(ENEMY_FOUR_PATH)) {
+      for(PImage frame : animations.get(RUN_LEFT).animation) {
+        frame.resize(RUN_RESIZE_4, 0);
+      }
+      for(PImage frame : animations.get(RUN_RIGHT).animation) {
+        frame.resize(RUN_RESIZE_4, 0);
+      }
     }
-    for(PImage frame : animations.get(RUN_RIGHT).animation) {
-      frame.resize(RUN_RESIZE, 0);
-    }
+
   }
 
-  public void resizeJump() {
-    for(PImage frame : animations.get(JUMP_LEFT).animation) {
-      frame.resize(JUMP_RESIZE, 0);
+  public void resizeJump(String path) {
+    if(path.equals(ENEMY_ONE_PATH)) {
+      for(PImage frame : animations.get(JUMP_LEFT).animation) {
+        frame.resize(JUMP_RESIZE_1, 0);
+      }
+      for(PImage frame : animations.get(JUMP_RIGHT).animation) {
+        frame.resize(JUMP_RESIZE_1, 0);
+      }
+    } else if(path.equals(ENEMY_TWO_PATH)) {
+        for(PImage frame : animations.get(JUMP_LEFT).animation) {
+          frame.resize(JUMP_RESIZE_2, 0);
+        }
+        for(PImage frame : animations.get(JUMP_RIGHT).animation) {
+          frame.resize(JUMP_RESIZE_2, 0);
+        }
+    } else if(path.equals(ENEMY_THREE_PATH)) {
+        for(PImage frame : animations.get(JUMP_LEFT).animation) {
+          frame.resize(JUMP_RESIZE_3, 0);
+        }
+        for(PImage frame : animations.get(JUMP_RIGHT).animation) {
+          frame.resize(JUMP_RESIZE_3, 0);
+        }
+    } else if(path.equals(ENEMY_FOUR_PATH)) {
+        for(PImage frame : animations.get(JUMP_LEFT).animation) {
+          frame.resize(JUMP_RESIZE_4, 0);
+        }
+        for(PImage frame : animations.get(JUMP_RIGHT).animation) {
+          frame.resize(JUMP_RESIZE_4, 0);
+        }
     }
-    for(PImage frame : animations.get(JUMP_RIGHT).animation) {
-      frame.resize(JUMP_RESIZE, 0);
-    }
+
   }
 
+  //attack and pursue guardian
   public void attack() {
     if(!attack) {
       if(right) {
-        enemy.velocity.x = ENEMY_SPEED;
+        this.velocity.x = ENEMY_SPEED;
       } else {
-        enemy.velocity.x = -ENEMY_SPEED;
+        this.velocity.x = -ENEMY_SPEED;
       }
     }
 
   }
 
 }
+//General Entity class used for all animated entities
 public class Entity {
 
+  //Both paths and keys
   final String IDLE_RIGHT = "idleRight/";
   final String IDLE_LEFT = "idleLeft/";
   final String RUN_RIGHT = "runRight/";
@@ -729,6 +902,8 @@ public class Entity {
 
   HashMap<String, Animation> animations;
 
+  //Entity stalls all animations with HashMap
+  //Nifty path manipulation allows any entity to be created with a single path given
   Entity (String path, float x, float y) {
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
@@ -755,6 +930,7 @@ public class Entity {
 
   }
 
+  //add animations to HashMap
   public void initialiseAnimations() {
 
     Animation idleRight = new Animation(idleRightPath);
@@ -778,6 +954,8 @@ public class Entity {
   }
 
 
+  //add momentum to entites and friction
+  //gravity also added to entity movement
   public void update() {
     if(velocity.x > 1 || velocity.x < -1) {
       velocity.x *= 0.7f;
@@ -797,6 +975,7 @@ public class Entity {
     position.add(velocity);
   }
 
+  //Display method used to show the correct animation
   public void display() {
     if(attack && right) {
       animate(ATTACK_RIGHT);
@@ -825,20 +1004,23 @@ public class Entity {
     }
   }
 
+  //play an animation
   public void animate(String animation) {
     animations.get(animation).draw(position);
   }
 
+  //draw
   public void draw() {
     update();
     display();
   }
 
-  public void move(int i, boolean b){  
+  public void move(int i, boolean b){
   }
 }
+//Class representing the playable Guardian
+//contains the anchor positions for parallax;
 public class Guardian extends Entity {
-
 
   final int IDLE_RESIZE = width/23;
   final int ATTACK_RESIZE = width/22;
@@ -846,21 +1028,20 @@ public class Guardian extends Entity {
   final int RUN_RESIZE = width/20;
 
   final int VELOCITY_SWITCH = width/38;
-
   final int CAMERA_ANCHOR = 10;
 
-  float GROUND = height - height/6.85f;
-  float MIDDLE = width/2;
+  final float GROUND = height - height/6.85f;
+  final float MIDDLE = width/2;
   final int GUARDIAN_SPEED = 7;
   final int JUMP_SPEED = 30;
   final float GRAVITY = 3;
-  final int deltaTime = 100;
-  int prevTime = 0;
   final int GUARDIAN_WIDTH = 20;
+
   int anchorRightPos;
   int anchorLeftPos;
 
 
+  //path and position
   Guardian (String path, float x, float y) {
       super(path, x, y);
       this.anchorRight = false;
@@ -870,6 +1051,7 @@ public class Guardian extends Entity {
       resize();
   }
 
+  //get anchors
   public boolean getAnchorRight() {
     return anchorRight;
   }
@@ -878,6 +1060,7 @@ public class Guardian extends Entity {
     return anchorLeft;
   }
 
+  //resize animations()
   public void resize() {
     resizeIdle();
     resizeRun();
@@ -921,6 +1104,9 @@ public class Guardian extends Entity {
     }
   }
 
+  //  parallax move right
+  // logic for moving when moving right and anchoring
+  // if anchored on right move to left anchor to create more visual space
   public void moveRightParallax() {
     if(position.x < anchorRightPos && !anchorRight) {
       velocity.x += GUARDIAN_SPEED;
@@ -937,6 +1123,7 @@ public class Guardian extends Entity {
     idle = false;
   }
 
+  //basic move right
   public void moveRight() {
     if(position.x + width/GUARDIAN_WIDTH <= width) {
       velocity.x += GUARDIAN_SPEED;
@@ -948,6 +1135,7 @@ public class Guardian extends Entity {
     idle = false;
   }
 
+  //basic move left
   public void moveLeft() {
       if(position.x >= 0) {
         velocity.x -= GUARDIAN_SPEED;
@@ -959,6 +1147,7 @@ public class Guardian extends Entity {
       idle = false;
   }
 
+  //parallax move left
   public void moveLeftParallax() {
     if(position.x > anchorLeftPos && !anchorLeft) {
       velocity.x -= GUARDIAN_SPEED;
@@ -975,6 +1164,7 @@ public class Guardian extends Entity {
     idle = false;
   }
 
+  //jump - needs work
   public void jump() {
     if(position.y >= GROUND && !jump) {
       velocity.y = -JUMP_SPEED;
@@ -982,6 +1172,7 @@ public class Guardian extends Entity {
     }
   }
 
+  //move method needs more work done
   public @Override
   void move(int i, boolean b) {
     switch (i) {
@@ -990,23 +1181,22 @@ public class Guardian extends Entity {
       case 2:
         break;
       case 3:
-      if(b) {
-        moveRight();
-      } else {
-        moveRightParallax();
-      }
-
+        if(b) {
+          moveRight();
+        } else {
+          moveRightParallax();
+        }
         break;
       case 4:
-      if(b) {
-        moveLeft();
-      } else {
-        moveLeftParallax();
-      }
+        if(b) {
+          moveLeft();
+        } else {
+          moveLeftParallax();
+        }
         break;
       case 5:
         idle = true;
-
+        //NEED TO REFACTOR
         if(!b) {
           if(anchorLeft) {
             if(guardian.position.x < 1.5f*width/5) {
@@ -1022,7 +1212,6 @@ public class Guardian extends Entity {
             }
           }
         }
-
         break;
       case 6:
         jump();
@@ -1032,6 +1221,9 @@ public class Guardian extends Entity {
     }
   }
 }
+//class to represent each individual layer in a background
+//contains 3 images so that all screen filled
+//images loop past eachother depending on direction moving
 public class Layer {
 
   PImage image;
@@ -1041,6 +1233,7 @@ public class Layer {
   float y;
   float transition;
 
+  //takes filename, position and transition speed
   Layer(String filename, float x, float y, float transition) {
     this.image = loadImage(filename);
     this.y = y;
@@ -1050,6 +1243,7 @@ public class Layer {
     this.transition = transition;
   }
 
+  //shift left or right
   public void parallaxShift(int direction) {
     if(direction == 1) {
       shiftRight();
@@ -1058,6 +1252,10 @@ public class Layer {
     }
   }
 
+  //moving right
+  //image 1 loops after image 3
+  //image 2 loops after image 1
+  //image 3 loops after image 2
   public void shiftRight() {
     this.x1 -= transition;
     this.x2 -= transition;
@@ -1076,6 +1274,10 @@ public class Layer {
     }
   }
 
+  //moving left
+  //image 1 loops before image 2
+  //image 2 loops before image 3
+  //image 3 loops before image 1
   public void shiftLeft() {
     this.x1 += transition;
     this.x2 += transition;
@@ -1094,6 +1296,7 @@ public class Layer {
     }
   }
 
+  //draw images
   public void draw() {
     image(image, x1, y);
     image(image, x2, y);
@@ -1101,6 +1304,7 @@ public class Layer {
 
   }
 }
+//Pet class used for when successfully summoned
 public class Pet extends Entity {
 
   final int IDLE_RESIZE = width/15;
@@ -1120,6 +1324,7 @@ public class Pet extends Entity {
     this.attack = true;
   }
 
+  //resize Animations
   public void resize() {
     resizeIdle();
     resizeRun();
@@ -1206,6 +1411,7 @@ public class Pet extends Entity {
 
 
 }
+//Platform class used for each individual tile
 public class Platform {
 
   PVector position;

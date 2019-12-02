@@ -72,7 +72,7 @@ Platform platform;
 ArrayList<Attack> attacks;
 ArrayList<Enemy> enemies;
 
-Enemy enemy;
+
 
 void setup() {
   fullScreen();
@@ -107,9 +107,10 @@ void setup() {
 
   enemies = new ArrayList<Enemy>();
 
-  enemy = new Enemy(ENEMY_FOUR_PATH, width, ground);
-
-  enemies.add(enemy);
+  enemies.add(new Enemy(ENEMY_ONE_PATH , width, ground));
+  enemies.add(new Enemy(ENEMY_TWO_PATH, width - 200, ground));
+  enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, ground));
+  enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, ground));
 
   platform = new Platform(TILE_THREE, 0, tileGround);
 
@@ -138,6 +139,16 @@ void draw() {
   bar();
   checkCooldowns();
   detectAttackCollision();
+  updateAnchor();
+  testJump();
+}
+
+void testJump() {
+  if(guardian.jump) {
+    for(Enemy enemy : enemies) {
+      enemy.jump = true;
+    }
+  }
 }
 
 //checks for whether an enemy is attacking to stop parallax mode for combat
@@ -145,11 +156,19 @@ void checkAttacking() {
   for(Enemy enemy : enemies) {
     if(!enemy.idle) {
       attacking = true;
+
     }
   }
 
   if(enemies.size() == 0) {
     attacking = false;
+  }
+}
+
+void updateAnchor() {
+  if(attacking) {
+    guardian.anchorLeft = false;
+    guardian.anchorRight = false;
   }
 }
 
@@ -205,45 +224,49 @@ void summonPet() {
 //parallax method for adjusting guardian, enemis and background
 //uses a sliding window with in play area and uses hard and soft anchor points
 void drawParallaxBackround() {
-  if(guardian.anchorRight && guardian.idle) {
-      background.cameraTransitionSpeed();
-      parallax = PARALLAX_LEFT;
-      guardian.velocity.x = CAMERA_SPEED;
-      positionEnemies(CAMERA_SPEED);
-  } else if (guardian.anchorLeft && guardian.idle) {
-      background.cameraTransitionSpeed();
-      parallax = PARALLAX_RIGHT;
-      guardian.velocity.x = -CAMERA_SPEED;
-      positionEnemies(-CAMERA_SPEED);
-    } else if(guardian.right && guardian.anchorRight
-      && !guardian.idle) {
-        if(guardian.velocity.x == 0) {
-          background.resetTransitionSpeed();
-        } else {
-          background.cameraTransitionSpeed();
-        }
-        positionEnemies(-20);
+  if(!attacking) {
+    if(guardian.anchorRight && guardian.idle) {
+        background.cameraTransitionSpeed();
+        parallax = PARALLAX_LEFT;
+        guardian.velocity.x = CAMERA_SPEED;
+        positionEnemies(CAMERA_SPEED);
+    } else if (guardian.anchorLeft && guardian.idle) {
+        background.cameraTransitionSpeed();
         parallax = PARALLAX_RIGHT;
-  } else if (!guardian.right && guardian.anchorLeft
-      && !guardian.idle){
-        if(guardian.velocity.x == 0) {
-          background.resetTransitionSpeed();
-        } else {
-          background.cameraTransitionSpeed();
-        }
-        positionEnemies(20);
-      parallax = PARALLAX_LEFT;
-  } else {
-      parallax = PARALLAX_NONE;
+        guardian.velocity.x = -CAMERA_SPEED;
+        positionEnemies(-CAMERA_SPEED);
+      } else if(guardian.right && guardian.anchorRight
+        && !guardian.idle) {
+          if(guardian.velocity.x == 0) {
+            background.resetTransitionSpeed();
+          } else {
+            background.cameraTransitionSpeed();
+          }
+          positionEnemies(-20);
+          parallax = PARALLAX_RIGHT;
+    } else if (!guardian.right && guardian.anchorLeft
+        && !guardian.idle){
+          if(guardian.velocity.x == 0) {
+            background.resetTransitionSpeed();
+          } else {
+            background.cameraTransitionSpeed();
+          }
+          positionEnemies(20);
+        parallax = PARALLAX_LEFT;
+    } else {
+        parallax = PARALLAX_NONE;
+    }
+    background.draw(parallax);
   }
-  background.draw(parallax);
 }
 
 //adjust enemis for parallax
 void positionEnemies(int velocity) {
-  for(Enemy enemy : enemies) {
-    enemy.velocity.x = velocity;
-  }
+    for(Enemy enemy : enemies) {
+      enemy.velocity.x = velocity;
+    }
+
+
 }
 
 // movement and abilites
