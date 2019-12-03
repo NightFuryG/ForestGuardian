@@ -4,6 +4,9 @@ public class Attack {
   PImage attackRight = loadImage("animations/guardian/wolfAttack/0.png");
   PImage attackLeft = loadImage("animations/guardian/wolfAttack/1.png");
 
+  PImage rock = loadImage("animations/enemy/attack/rock.png");
+
+
 
   final int ATTACK_SPEED = width/100;
   final int ATTACK_SIZE = width/20;
@@ -15,12 +18,13 @@ public class Attack {
   PVector velocity;
   PVector acceleration;
   boolean right;
+  boolean enemy;
   float distance;
   float startX;
   float startY;
 
   //attack act as a simple projectile towards a target
-  Attack(float startX, float startY, float endX, float endY, boolean right) {
+  Attack(float startX, float startY, float endX, float endY, boolean right, boolean enemy) {
     this.startX = startX;
     this.startY = startY;
     this.position = new PVector(startX, startY);
@@ -30,7 +34,12 @@ public class Attack {
     this.acceleration = calculateAcceleration();
     this.right = right;
     this.distance = 0;
+    this.enemy = enemy;
     scaleAttack();
+  }
+
+  PVector addGravity() {
+    return new PVector(0, 0.3);
   }
 
   //calculate direction of travel using sub
@@ -41,7 +50,12 @@ public class Attack {
   //calculate acceleration of attack
   PVector calculateAcceleration() {
     PVector a = this.direction.normalize();
-    a = this.direction.mult(5);
+    if(enemy) {
+      a = this.direction.mult(5);
+    } else {
+      a = this.direction.mult(5);
+    }
+
     return a;
   }
 
@@ -49,22 +63,31 @@ public class Attack {
   void scaleAttack() {
     attackRight.resize(ATTACK_SIZE, 0);
     attackLeft.resize(ATTACK_SIZE, 0);
+    rock.resize(ATTACK_SIZE/10, 0);
   }
 
   //update position by adding acceleration to velocity and velocity to position
   void update(){
+    acceleration = calculateAcceleration();
+    if(enemy) {
+      acceleration.add(addGravity());
+    }
     velocity.add(acceleration);
     velocity.limit(ATTACK_SPEED);
+    this.distance = dist(startX, startY, position.x, position.y);
     position.add(velocity);
-    distance = dist(startX, startY, position.x, position.y);
   }
 
   //display differently depending on orientation
   void display() {
-    if(right) {
-      image(attackRight, position.x, position.y);
-    } else if (!right) {
-      image(attackLeft, position.x, position.y);
+    if(!enemy) {
+      if(right) {
+        image(attackRight, position.x, position.y);
+      } else  {
+        image(attackLeft, position.x, position.y);
+      }
+    } else {
+        image(rock, this.position.x, this.position.y);
     }
   }
 

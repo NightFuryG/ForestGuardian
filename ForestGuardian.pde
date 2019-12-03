@@ -3,6 +3,7 @@ final int GUARDIAN_WIDTH = 20;
 final int ATTACK_WIDTH = 40;
 final int GUARDIAN_HEIGHT = 20;
 final int ATTACK_DISTANCE = 40;
+final int RANGED_ATTACK_DISTANCE = 3;
 
 final int BAR_WIDTH = 20;
 final int BAR_LEFT = 150;
@@ -47,6 +48,7 @@ final String TILE_SIX =  "tileset/6.png";
 final String TILE_SEVEN =  "tileset/7.png";
 
 final float GROUND_PROP = 6.85;
+final float ENT_GROUND_PROP = 6;
 final float GROUND_TILE = 12;
 
 Background background;
@@ -61,11 +63,12 @@ boolean petCooldown;
 boolean attacking;
 float ground;
 float tileGround;
+float entGround;
 int parallax;
 int summonCount;
 int petTimer;
 int petCooldownTimer;
-
+int guardianAttacks;
 Platform platform;
 
 
@@ -91,11 +94,14 @@ void setup() {
 
   summonCount = 0;
 
+  guardianAttacks = 0;
+
   petTimer = 0;
 
   petCooldownTimer = 0;
 
   ground = height - height/GROUND_PROP;
+  entGround = height - height/ENT_GROUND_PROP;
 
   tileGround = height - height/GROUND_TILE;
 
@@ -109,8 +115,8 @@ void setup() {
 
   enemies.add(new Enemy(ENEMY_ONE_PATH , width, ground));
   enemies.add(new Enemy(ENEMY_TWO_PATH, width - 200, ground));
-  enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, ground));
-  enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, ground));
+  enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, entGround));
+  enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, entGround));
 
   platform = new Platform(TILE_THREE, 0, tileGround);
 
@@ -140,16 +146,10 @@ void draw() {
   checkCooldowns();
   detectAttackCollision();
   updateAnchor();
-  testJump();
+  //testJump();
 }
 
-void testJump() {
-  if(guardian.jump) {
-    for(Enemy enemy : enemies) {
-      enemy.jump = true;
-    }
-  }
-}
+
 
 //checks for whether an enemy is attacking to stop parallax mode for combat
 void checkAttacking() {
@@ -356,19 +356,19 @@ void playerMove() {
 void mousePressed() {
   if(mouseButton == LEFT) {
     guardian.attack = true;
-    if(attacks.size() == 0)
+    if(guardianAttacks == 0)
       if(guardian.right) {
         if(mouseX < guardian.position.x) {
-          attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false));
+          attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, false));
         } else {
-          attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true));
+          attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true, false));
         }
       } else {
         if(mouseX > guardian.position.x) {
 
-          attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true));
+          attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true, false));
         } else {
-          attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false));
+          attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, false));
         }
       }
   }
@@ -377,17 +377,23 @@ void mousePressed() {
 //draw attacks();
 void attack() {
   drawAttack();
-  removeAttack();
+  removeGuardianAttack();
 }
 
 //remove missed attacks
-void removeAttack() {
+void removeGuardianAttack() {
   for(Attack attack : new ArrayList<Attack>(attacks)) {
-    if(attack.distance > attack.MAX_DISTANCE || attack.position.y > height - height/10 ) {
-      attacks.remove(attack);
+    if(!attack.enemy) {
+      if(attack.distance > attack.MAX_DISTANCE || attack.position.y > height - height/10 ) {
+        attacks.remove(attack);
+        guardianAttacks = 0;
+      }
     }
+
   }
 }
+
+
 
 //draw attacks
 void drawAttack() {
@@ -407,24 +413,63 @@ void enemyAttack() {
         enemy.right = true;
       }
     }
-
-  if(enemy.right && guardian.position.x < enemy.position.x + width/ATTACK_DISTANCE) {
-    enemy.attack = true;
-    enemy.velocity.x = 0;
-  } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
-    enemy.attack = true;
-    enemy.velocity.x = 0;
-  } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
-    enemy.idle = true;
-    enemy.attack = false;
+  if(!enemy.ranged) {
+    if(enemy.right && guardian.position.x < enemy.position.x + width/ATTACK_DISTANCE) {
+      enemy.attack = true;
+      enemy.velocity.x = 0;
+    } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
+      enemy.attack = true;
+      enemy.velocity.x = 0;
+    } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
+      enemy.idle = true;
+      enemy.attack = false;
+    } else {
+      enemy.idle = false;
+    }
   } else {
-    enemy.idle = false;
+      if(enemy.right && guardian.position.x < enemy.position.x + width/RANGED_ATTACK_DISTANCE) {
+        enemy.attack = true;
+        enemy.velocity.x = 0;
+      } else if(!enemy.right && guardian.position.x > enemy.position.x - width/RANGED_ATTACK_DISTANCE) {
+        enemy.attack = true;
+        enemy.velocity.x = 0;
+      } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
+        enemy.idle = true;
+        enemy.attack = false;
+      } else {
+        enemy.idle = false;
+      }
+
+    if(enemy.attack) {
+      if(frameCount % 40 == 0) {
+        if(enemy.right) {
+          attacks.add(new Attack(enemy.position.x, enemy.position.y,
+            guardian.position.x, calculateAimHeight(enemy), true, true));
+        } else {
+          attacks.add(new Attack(enemy.position.x, enemy.position.y,
+            guardian.position.x, calculateAimHeight(enemy), true, true));
+        }
+      }
+
+    }
   }
+
 
     if(!enemy.idle) {
     enemy.attack();
     }
   }
+}
+
+float calculateAimHeight(Enemy enemy) {
+  float maxLaunchHeight = height - guardian.position.y;
+
+  float enemyGuardianDistance = dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y);
+
+  float optimalHeight = height - 0.85 * enemyGuardianDistance;
+
+  return optimalHeight;
+
 }
 
 
@@ -433,15 +478,17 @@ void enemyAttack() {
 void detectAttackCollision() {
   for(Attack attack : new ArrayList<Attack>(attacks)) {
     float attackX = attack.position.x + attack.attackRight.width/2;
-    float attackY = attack.position.y - attack.attackRight.height/2;
+    float attackY = attack.position.y + attack.attackRight.height/2;
 
     for(Enemy enemy : new ArrayList<Enemy>(enemies)) {
 
       float enemyX = enemy.position.x + width/GUARDIAN_WIDTH;
-      float enemyY = enemy.position.y - width/GUARDIAN_HEIGHT;
+      float enemyY = enemy.position.y + width/GUARDIAN_HEIGHT;
       if( attackX < enemyX && attackX > enemy.position.x ) {
-        if(attackY < enemy.position.y && attackY > enemyY) {
-          enemies.remove(enemy);
+        if(attackY < enemyY && attackY > enemy.position.y) {
+          if(!attack.enemy) {
+            enemies.remove(enemy);
+          }
         }
       }
     }

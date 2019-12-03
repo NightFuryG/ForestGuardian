@@ -7,35 +7,48 @@ public class Enemy extends Entity {
   final String ENEMY_FOUR_PATH = "animations/enemy/4/";
 
   final int IDLE_RESIZE_1 = width/27;
-  final int ATTACK_RESIZE_1 = width/22;
+  final int ATTACK_RESIZE_1 = width/23;
   final int JUMP_RESIZE_1 = width/20;
   final int RUN_RESIZE_1 = width/25;
 
   final int IDLE_RESIZE_2 = width/25;
-  final int ATTACK_RESIZE_2 = width/22;
+  final int ATTACK_RESIZE_2 = width/24;
   final int JUMP_RESIZE_2 = width/20;
   final int RUN_RESIZE_2 = width/25;
 
-  final int IDLE_RESIZE_3 = width/15;
-  final int ATTACK_RESIZE_3 = width/10;
+  final int IDLE_RESIZE_3 = width/20;
+  final int ATTACK_RESIZE_3 = width/20;
   final int JUMP_RESIZE_3 = width/15;
-  final int RUN_RESIZE_3 = width/15;
+  final int RUN_RESIZE_3 = width/18;
 
-  final int IDLE_RESIZE_4 = width/15;
-  final int ATTACK_RESIZE_4 = width/10;
+  final int IDLE_RESIZE_4 = width/20;
+  final int ATTACK_RESIZE_4 = width/17;
   final int JUMP_RESIZE_4 = width/15;
-  final int RUN_RESIZE_4 = width/15;
+  final int RUN_RESIZE_4 = width/19;
 
   final int ENEMY_SPEED = 7;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 2;
   final int ENEMY_WIDTH = 20;
 
+  boolean ranged;
+
 
   Enemy(String path, float x, float y) {
     super(path, x ,y);
+    this.ranged = checkType(path);
+
 
     resize(path);
+  }
+
+  boolean checkType(String path) {
+    if(path.equals(ENEMY_TWO_PATH) || path.equals(ENEMY_THREE_PATH)) {
+      return true;
+    }
+
+    return false;
+
   }
 
   //resize animations so all same size

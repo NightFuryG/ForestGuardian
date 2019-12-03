@@ -26,7 +26,7 @@ public class Entity {
   float GROUND = height - height/6.85;
   final int ENTITY_SPEED = 10;
   final int JUMP_SPEED = 20;
-  final float GRAVITY = 2;
+  final float GRAVITY = 3;
 
   boolean right;
   boolean idle;

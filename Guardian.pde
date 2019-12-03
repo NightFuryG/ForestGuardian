@@ -14,7 +14,6 @@ public class Guardian extends Entity {
   final float MIDDLE = width/2;
   final int GUARDIAN_SPEED = 7;
   final int JUMP_SPEED = 30;
-  final float GRAVITY = 3;
   final int GUARDIAN_WIDTH = 20;
 
   int anchorRightPos;
