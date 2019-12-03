@@ -457,7 +457,7 @@ public void enemyAttack() {
       }
 
     if(enemy.attack) {
-      if(frameCount % 50 == 0) {
+      if(frameCount % 40 == 0) {
         if(enemy.right) {
           attacks.add(new Attack(enemy.position.x, enemy.position.y,
             guardian.position.x, calculateAimHeight(enemy), true, true));
@@ -630,7 +630,7 @@ public class Attack {
   public void scaleAttack() {
     attackRight.resize(ATTACK_SIZE, 0);
     attackLeft.resize(ATTACK_SIZE, 0);
-    rock.resize(ATTACK_SIZE/10, 0);
+    rock.resize(ATTACK_SIZE/7, 0);
   }
 
   //update position by adding acceleration to velocity and velocity to position
