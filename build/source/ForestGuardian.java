@@ -630,7 +630,7 @@ public class Attack {
   public void scaleAttack() {
     attackRight.resize(ATTACK_SIZE, 0);
     attackLeft.resize(ATTACK_SIZE, 0);
-    rock.resize(ATTACK_SIZE/7, 0);
+    rock.resize(ATTACK_SIZE/4, 0);
   }
 
   //update position by adding acceleration to velocity and velocity to position
