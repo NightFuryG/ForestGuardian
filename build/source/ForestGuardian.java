@@ -125,6 +125,7 @@ public void setup() {
 
   guardian = new Guardian(GUARDIAN_PATH, width/4, ground);
 
+  pet = new Pet(WOLF_PATH, guardian.position.x, guardian.position.y);
   attacks = new ArrayList<Attack>();
 
   enemies = new ArrayList<Enemy>();
@@ -172,7 +173,6 @@ public void checkAttacking() {
   for(Enemy enemy : enemies) {
     if(!enemy.idle) {
       attacking = true;
-
     }
   }
 
@@ -217,7 +217,6 @@ public void bar() {
 public void unsummonPet() {
   if(millis() > petTimer +  PET_MAX_LIFE) {
     petAlive = false;
-    pet = null;
     petTimer = millis();
   }
 }
@@ -233,7 +232,6 @@ public void checkCooldowns() {
 //summon pet
 public void summonPet() {
   petAlive = true;
-  pet = new Pet(WOLF_PATH, guardian.position.x, guardian.position.y);
   petTimer = millis();
 }
 
@@ -457,7 +455,7 @@ public void enemyAttack() {
       }
 
     if(enemy.attack) {
-      if(frameCount % 40 == 0) {
+      if(frameCount % 10 == 0) {
         if(enemy.right) {
           attacks.add(new Attack(enemy.position.x, enemy.position.y,
             guardian.position.x, calculateAimHeight(enemy), true, true));
