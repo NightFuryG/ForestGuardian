@@ -70,6 +70,7 @@ int petTimer;
 int petCooldownTimer;
 int guardianAttacks;
 Platform platform;
+PlatformGenerator platGen;
 
 
 ArrayList<Attack> attacks;
@@ -119,7 +120,8 @@ void setup() {
   enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, entGround));
   enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, entGround));
 
-  platform = new Platform(TILE_THREE, 0, tileGround);
+  platGen = new PlatformGenerator();
+
 
 
 }
@@ -150,8 +152,6 @@ void draw() {
   //testJump();
 }
 
-
-
 //checks for whether an enemy is attacking to stop parallax mode for combat
 void checkAttacking() {
   for(Enemy enemy : enemies) {
@@ -159,7 +159,6 @@ void checkAttacking() {
       attacking = true;
     }
   }
-
   if(enemies.size() == 0) {
     attacking = false;
   }
@@ -255,16 +254,23 @@ void drawParallaxBackround() {
         parallax = PARALLAX_NONE;
     }
     background.draw(parallax);
+    platGen.draw(parallax);
   }
 }
+
+
 
 //adjust enemis for parallax
 void positionEnemies(int velocity) {
     for(Enemy enemy : enemies) {
       enemy.velocity.x = velocity;
     }
+}
 
+void positionPlatforms(int velocity) {
+    for(Platform platform : platGen.platforms) {
 
+    }
 }
 
 // movement and abilites
@@ -459,12 +465,8 @@ void enemyAttack() {
               guardian.position.x, calculateAimHeight(enemy), true, 2));
           }
         }
-
       }
-
     }
-
-
 
     if(!enemy.idle) {
     enemy.attack();

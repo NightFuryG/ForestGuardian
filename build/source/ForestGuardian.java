@@ -86,6 +86,7 @@ int petTimer;
 int petCooldownTimer;
 int guardianAttacks;
 Platform platform;
+PlatformGenerator platGen;
 
 
 ArrayList<Attack> attacks;
@@ -135,7 +136,8 @@ public void setup() {
   enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, entGround));
   enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, entGround));
 
-  platform = new Platform(TILE_THREE, 0, tileGround);
+  platGen = new PlatformGenerator();
+
 
 
 }
@@ -166,8 +168,6 @@ public void draw() {
   //testJump();
 }
 
-
-
 //checks for whether an enemy is attacking to stop parallax mode for combat
 public void checkAttacking() {
   for(Enemy enemy : enemies) {
@@ -175,7 +175,6 @@ public void checkAttacking() {
       attacking = true;
     }
   }
-
   if(enemies.size() == 0) {
     attacking = false;
   }
@@ -271,16 +270,23 @@ public void drawParallaxBackround() {
         parallax = PARALLAX_NONE;
     }
     background.draw(parallax);
+    platGen.draw(parallax);
   }
 }
+
+
 
 //adjust enemis for parallax
 public void positionEnemies(int velocity) {
     for(Enemy enemy : enemies) {
       enemy.velocity.x = velocity;
     }
+}
 
+public void positionPlatforms(int velocity) {
+    for(Platform platform : platGen.platforms) {
 
+    }
 }
 
 // movement and abilites
@@ -475,12 +481,8 @@ public void enemyAttack() {
               guardian.position.x, calculateAimHeight(enemy), true, 2));
           }
         }
-
       }
-
     }
-
-
 
     if(!enemy.idle) {
     enemy.attack();
@@ -646,8 +648,8 @@ public class Attack {
     attackRight.resize(ATTACK_SIZE, 0);
     attackLeft.resize(ATTACK_SIZE, 0);
     rock.resize(ATTACK_SIZE/4, 0);
-    arrowLeft.resize(ATTACK_SIZE, 0);
-    arrowLeft.resize(ATTACK_SIZE, 0);
+    arrowLeft.resize(ATTACK_SIZE/2, 0);
+    arrowLeft.resize(ATTACK_SIZE/2, 0);
   }
 
   //update position by adding acceleration to velocity and velocity to position
@@ -731,11 +733,7 @@ public class Background {
   public void resetTransitionSpeed() {
     if(!reset) {
       for(int i = 0; i < layerTotal; i++) {
-        if(layerTotal == 1) {
-          layers.get(i).transition = 20;
-        } else {
           layers.get(i).transition = i*2;
-        }
       }
       reset = true;
     }
@@ -1532,16 +1530,36 @@ public class Pet extends Entity {
 //Platform class used for each individual tile
 public class Platform {
 
+  final String imgPath = "data/tileset/3.png";
+
   PVector position;
   PImage tile;
+  int platformWidth;
 
-  final int RESIZE = 6;
+  final int RESIZE = 10;
 
-  Platform(String path, float x, float y) {
-    this.tile = loadImage(path);
+  Platform( float x, float y) {
+    this.tile = loadImage(imgPath);
     this.position = new PVector(x, y);
     this.tile.resize(width/RESIZE, 0);
+    this.platformWidth = tile.width;
+  }
 
+  public void platformShift(int direction) {
+    if (direction == 1) {
+      platformRight();
+    } else if (direction == 2) {
+      platformLeft();
+    }
+  }
+
+  public void platformRight() {
+    position.x -= 18;
+
+  }
+
+  public void platformLeft() {
+    position.x += 18;
   }
 
   public void draw() {
@@ -1550,6 +1568,43 @@ public class Platform {
 
 
 
+}
+class  PlatformGenerator {
+
+  final int PLATFORM_NUM = 50;
+
+  ArrayList<Platform> platforms;
+
+  int numberOfPlatforms;
+
+  PlatformGenerator() {
+   this.platforms  = new ArrayList<Platform>();
+    this.numberOfPlatforms = PLATFORM_NUM;
+    generatePlatforms();
+  }
+
+  public void generatePlatforms() {
+
+    platforms.add(new Platform(width, height - height/5));
+
+    for(int i = 0; i < PLATFORM_NUM; i++) {
+      float position = platforms.get(i).position.x + platforms.get(i).platformWidth;
+
+      float sky = random(0,height);
+      System.out.println(sky);
+
+      platforms.add(new Platform(position, sky));
+    }
+  }
+
+  public void draw(int direction) {
+    for(Platform platform : platforms) {
+      platform.draw();
+      if(direction > 0) {
+        platform.platformShift(direction);
+      }
+    }
+  }
 }
   public void settings() {  fullScreen(); }
   static public void main(String[] passedArgs) {

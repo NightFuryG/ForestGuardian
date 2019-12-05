@@ -67,8 +67,8 @@ public class Attack {
     attackRight.resize(ATTACK_SIZE, 0);
     attackLeft.resize(ATTACK_SIZE, 0);
     rock.resize(ATTACK_SIZE/4, 0);
-    arrowLeft.resize(ATTACK_SIZE, 0);
-    arrowLeft.resize(ATTACK_SIZE, 0);
+    arrowLeft.resize(ATTACK_SIZE/2, 0);
+    arrowLeft.resize(ATTACK_SIZE/2, 0);
   }
 
   //update position by adding acceleration to velocity and velocity to position

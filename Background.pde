@@ -36,11 +36,7 @@ public class Background {
   void resetTransitionSpeed() {
     if(!reset) {
       for(int i = 0; i < layerTotal; i++) {
-        if(layerTotal == 1) {
-          layers.get(i).transition = 20;
-        } else {
           layers.get(i).transition = i*2;
-        }
       }
       reset = true;
     }
