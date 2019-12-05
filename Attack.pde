@@ -6,11 +6,17 @@ public class Attack {
 
   PImage rock = loadImage("animations/enemy/attack/rock.png");
 
+  PImage arrowRight = loadImage("animations/enemy/attack/arrowRight.png");
+  PImage arrowLeft = loadImage("animations/enemy/attack/arrowLeft.png");
+
 
 
   final int ATTACK_SPEED = width/100;
   final int ATTACK_SIZE = width/20;
   final int MAX_DISTANCE = width/10;
+  final int GUARDIAN_WOLF_ATTACK = 0;
+  final int ENEMY_ARROW_ATTACK = 1;
+  final int ENEMY_ROCK_ATTACK = 2;
 
   PVector position;
   PVector destination;
@@ -18,13 +24,13 @@ public class Attack {
   PVector velocity;
   PVector acceleration;
   boolean right;
-  boolean enemy;
+  int attackType;
   float distance;
   float startX;
   float startY;
 
   //attack act as a simple projectile towards a target
-  Attack(float startX, float startY, float endX, float endY, boolean right, boolean enemy) {
+  Attack(float startX, float startY, float endX, float endY, boolean right, int attackType) {
     this.startX = startX;
     this.startY = startY;
     this.position = new PVector(startX, startY);
@@ -34,7 +40,7 @@ public class Attack {
     this.acceleration = calculateAcceleration();
     this.right = right;
     this.distance = 0;
-    this.enemy = enemy;
+    this.attackType = attackType;
     scaleAttack();
   }
 
@@ -50,11 +56,8 @@ public class Attack {
   //calculate acceleration of attack
   PVector calculateAcceleration() {
     PVector a = this.direction.normalize();
-    if(enemy) {
       a = this.direction.mult(5);
-    } else {
-      a = this.direction.mult(5);
-    }
+
 
     return a;
   }
@@ -64,12 +67,14 @@ public class Attack {
     attackRight.resize(ATTACK_SIZE, 0);
     attackLeft.resize(ATTACK_SIZE, 0);
     rock.resize(ATTACK_SIZE/4, 0);
+    arrowLeft.resize(ATTACK_SIZE, 0);
+    arrowLeft.resize(ATTACK_SIZE, 0);
   }
 
   //update position by adding acceleration to velocity and velocity to position
   void update(){
     acceleration = calculateAcceleration();
-    if(enemy) {
+    if(attackType == ENEMY_ROCK_ATTACK) {
       acceleration.add(addGravity());
     }
     velocity.add(acceleration);
@@ -80,16 +85,29 @@ public class Attack {
 
   //display differently depending on orientation
   void display() {
-    if(!enemy) {
-      if(right) {
-        image(attackRight, position.x, position.y);
-      } else  {
-        image(attackLeft, position.x, position.y);
-      }
-    } else {
+
+    switch(this.attackType) {
+      case GUARDIAN_WOLF_ATTACK:
+        if(right) {
+          image(attackRight, this.position.x, this.position.y);
+        } else  {
+          image(attackLeft, this.position.x, this.position.y);
+        }
+        break;
+      case ENEMY_ARROW_ATTACK:
+        if(!right) {
+          image(arrowRight, this.position.x, this.position.y);
+        } else {
+          image(arrowLeft, this.position.x, this.position.y);
+        }
+        break;
+      case ENEMY_ROCK_ATTACK:
         image(rock, this.position.x, this.position.y);
+        break;
+      default:
+          break;
     }
-  }
+}
 
   void draw(){
     update();

@@ -31,7 +31,11 @@ public class Enemy extends Entity {
   final float GRAVITY = 2;
   final int ENEMY_WIDTH = 20;
 
-  boolean ranged;
+  final int BOW = 1;
+  final int ROCK = 2;
+  final int MELEE = 0;
+
+  int ranged;
 
 
   Enemy(String path, float x, float y) {
@@ -42,12 +46,14 @@ public class Enemy extends Entity {
     resize(path);
   }
 
-  boolean checkType(String path) {
-    if(path.equals(ENEMY_TWO_PATH) || path.equals(ENEMY_THREE_PATH)) {
-      return true;
+  int checkType(String path) {
+    if(path.equals(ENEMY_TWO_PATH)  ) {
+      return BOW;
+    } else if (path.equals(ENEMY_THREE_PATH)) {
+      return ROCK;
     }
 
-    return false;
+    return MELEE;
 
   }
 
