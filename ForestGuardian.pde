@@ -17,6 +17,8 @@ final int LINE_SUCCESS = 200;
 final int LOWER_SUCCESS = 75;
 final int UPPER_SUCCESS = 85;
 
+final int ENEMY_PARALLAX_POSITION = 20;
+
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
 final int PET_COOLDOWN_TIME = 3000;
@@ -224,11 +226,13 @@ void drawParallaxBackround() {
   if(!attacking) {
     if(guardian.anchorRight && guardian.idle) {
         background.cameraTransitionSpeed();
+        platGen.cameraTransitionSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = CAMERA_SPEED;
         positionEnemies(CAMERA_SPEED);
     } else if (guardian.anchorLeft && guardian.idle) {
         background.cameraTransitionSpeed();
+        platGen.cameraTransitionSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -CAMERA_SPEED;
         positionEnemies(-CAMERA_SPEED);
@@ -236,19 +240,23 @@ void drawParallaxBackround() {
         && !guardian.idle) {
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
+            platGen.resetTransitionSpeed();
           } else {
             background.cameraTransitionSpeed();
+            platGen.cameraTransitionSpeed();
           }
-          positionEnemies(-20);
+          positionEnemies(-ENEMY_PARALLAX_POSITION);
           parallax = PARALLAX_RIGHT;
     } else if (!guardian.right && guardian.anchorLeft
         && !guardian.idle){
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
+            platGen.resetTransitionSpeed();
           } else {
             background.cameraTransitionSpeed();
+            platGen.cameraTransitionSpeed();
           }
-          positionEnemies(20);
+          positionEnemies(ENEMY_PARALLAX_POSITION);
         parallax = PARALLAX_LEFT;
     } else {
         parallax = PARALLAX_NONE;
@@ -473,6 +481,8 @@ void enemyAttack() {
     }
   }
 }
+
+
 
 
 float calculateAimHeight(Enemy enemy) {

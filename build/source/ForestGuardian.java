@@ -33,6 +33,8 @@ final int LINE_SUCCESS = 200;
 final int LOWER_SUCCESS = 75;
 final int UPPER_SUCCESS = 85;
 
+final int ENEMY_PARALLAX_POSITION = 20;
+
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
 final int PET_COOLDOWN_TIME = 3000;
@@ -240,11 +242,13 @@ public void drawParallaxBackround() {
   if(!attacking) {
     if(guardian.anchorRight && guardian.idle) {
         background.cameraTransitionSpeed();
+        platGen.cameraTransitionSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = CAMERA_SPEED;
         positionEnemies(CAMERA_SPEED);
     } else if (guardian.anchorLeft && guardian.idle) {
         background.cameraTransitionSpeed();
+        platGen.cameraTransitionSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -CAMERA_SPEED;
         positionEnemies(-CAMERA_SPEED);
@@ -252,19 +256,23 @@ public void drawParallaxBackround() {
         && !guardian.idle) {
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
+            platGen.resetTransitionSpeed();
           } else {
             background.cameraTransitionSpeed();
+            platGen.cameraTransitionSpeed();
           }
-          positionEnemies(-20);
+          positionEnemies(-ENEMY_PARALLAX_POSITION);
           parallax = PARALLAX_RIGHT;
     } else if (!guardian.right && guardian.anchorLeft
         && !guardian.idle){
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
+            platGen.resetTransitionSpeed();
           } else {
             background.cameraTransitionSpeed();
+            platGen.cameraTransitionSpeed();
           }
-          positionEnemies(20);
+          positionEnemies(ENEMY_PARALLAX_POSITION);
         parallax = PARALLAX_LEFT;
     } else {
         parallax = PARALLAX_NONE;
@@ -489,6 +497,8 @@ public void enemyAttack() {
     }
   }
 }
+
+
 
 
 public float calculateAimHeight(Enemy enemy) {
@@ -1532,34 +1542,40 @@ public class Platform {
 
   final String imgPath = "data/tileset/3.png";
 
+  final int PLAT_RIGHT = 1;
+  final int PLAT_LEFT = 2;
+
   PVector position;
   PImage tile;
+  float transition;
   int platformWidth;
 
   final int RESIZE = 10;
 
-  Platform( float x, float y) {
+  Platform( float x, float y, float transition) {
     this.tile = loadImage(imgPath);
     this.position = new PVector(x, y);
     this.tile.resize(width/RESIZE, 0);
     this.platformWidth = tile.width;
+    this.transition = transition;
   }
 
   public void platformShift(int direction) {
-    if (direction == 1) {
+    if (direction == PLAT_RIGHT) {
       platformRight();
-    } else if (direction == 2) {
+    } else if (direction == PLAT_LEFT) {
       platformLeft();
     }
   }
 
+
   public void platformRight() {
-    position.x -= 18;
+    position.x -= transition;
 
   }
 
   public void platformLeft() {
-    position.x += 18;
+    position.x += transition;
   }
 
   public void draw() {
@@ -1571,31 +1587,52 @@ public class Platform {
 }
 class  PlatformGenerator {
 
-  final int PLATFORM_NUM = 50;
+  final int PLATFORM_NUM = 10;
+  final int BASE_SPEED = 18;
+  final int CAMERA_SPEED = 25;
 
   ArrayList<Platform> platforms;
 
   int numberOfPlatforms;
+  boolean reset;
 
   PlatformGenerator() {
    this.platforms  = new ArrayList<Platform>();
     this.numberOfPlatforms = PLATFORM_NUM;
     generatePlatforms();
+    this.reset = true;
   }
 
   public void generatePlatforms() {
 
-    platforms.add(new Platform(width, height - height/5));
+    platforms.add(new Platform(width, height - height/5, BASE_SPEED));
 
     for(int i = 0; i < PLATFORM_NUM; i++) {
       float position = platforms.get(i).position.x + platforms.get(i).platformWidth;
-
       float sky = random(0,height);
-      System.out.println(sky);
 
-      platforms.add(new Platform(position, sky));
+      platforms.add(new Platform(position, sky, BASE_SPEED));
     }
   }
+
+  public void resetTransitionSpeed() {
+    if(!reset) {
+      for(Platform platform : platforms) {
+        platform.transition = BASE_SPEED;
+      }
+      reset = true;
+    }
+  }
+
+  public void cameraTransitionSpeed() {
+    if(reset) {
+      for(Platform platform : platforms) {
+        platform.transition = CAMERA_SPEED;
+      }
+      reset = false;
+    }
+  }
+
 
   public void draw(int direction) {
     for(Platform platform : platforms) {
