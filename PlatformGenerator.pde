@@ -1,6 +1,6 @@
 class  PlatformGenerator {
 
-  final int PLATFORM_NUM = 10;
+  final int PLATFORM_NUM = 3;
   final int BASE_SPEED = 18;
   final int CAMERA_SPEED = 25;
 
@@ -18,13 +18,14 @@ class  PlatformGenerator {
 
   void generatePlatforms() {
 
-    platforms.add(new Platform(width, height - height/5, BASE_SPEED));
+    platforms.add(new Platform(width, height - height/7, BASE_SPEED));
 
     for(int i = 0; i < PLATFORM_NUM; i++) {
-      float position = platforms.get(i).position.x + platforms.get(i).platformWidth;
-      float sky = random(0,height);
+      float positionX = platforms.get(i).position.x + platforms.get(i).platformWidth * 2;
+      float positionY = platforms.get(i).position.y - platforms.get(i).platformHeight;
 
-      platforms.add(new Platform(position, sky, BASE_SPEED));
+      platforms.add(new Platform(positionX, positionY, BASE_SPEED));
+
     }
   }
 

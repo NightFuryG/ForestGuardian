@@ -31,6 +31,7 @@ public class Entity {
   boolean right;
   boolean idle;
   boolean jump;
+  boolean grounded;
   boolean attack;
   boolean anchorRight;
   boolean anchorLeft;
@@ -62,6 +63,7 @@ public class Entity {
     this.idle = true;
     this.jump = false;
     this.attack = false;
+    this.grounded = true;
 
     this.anchorLeft = false;
     this.anchorRight = false;
@@ -101,15 +103,16 @@ public class Entity {
       velocity.x = 0;
     }
 
-    if(position.y < GROUND && jump) {
+    if(!grounded) {
       velocity.y += GRAVITY;
+    } else {
+      velocity.y = 0;
+      this.jump = false;
     }
 
-    if(jump && position.y >= GROUND - velocity.y) {
-      velocity.y = 0;
-      position.y = GROUND;
-      jump = false;
-    }
+
+
+
     position.add(velocity);
   }
 

@@ -3,6 +3,7 @@ public class Animation {
 
   final String EXTENSION = ".png";
   final int TOTAL_FRAMES = 5;
+  final int ANIM_TIME = 100;
 
   ArrayList<PImage> animation;
   String filename;
@@ -18,7 +19,7 @@ public class Animation {
     loadAnimation();
     this.currentFrame = 0;
     this.prevTime = 0;
-    this.deltaTime = 100;
+    this.deltaTime = ANIM_TIME;
     this.animated = false;
   }
 

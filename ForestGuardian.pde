@@ -1,7 +1,8 @@
 
-final int GUARDIAN_WIDTH = 20;
+final int GUARDIAN_WIDTH = 24;
 final int ATTACK_WIDTH = 40;
 final int GUARDIAN_HEIGHT = 20;
+final int GUARDIAN_FEET = 22;
 final int ATTACK_DISTANCE = 40;
 final int RANGED_ATTACK_DISTANCE = 3;
 
@@ -117,10 +118,10 @@ void setup() {
 
   enemies = new ArrayList<Enemy>();
 
-  enemies.add(new Enemy(ENEMY_ONE_PATH , width, ground));
-  enemies.add(new Enemy(ENEMY_TWO_PATH, width - 200, ground));
-  enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, entGround));
-  enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, entGround));
+  // enemies.add(new Enemy(ENEMY_ONE_PATH , width, ground));
+  // enemies.add(new Enemy(ENEMY_TWO_PATH, width - 200, ground));
+  // enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, entGround));
+  // enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, entGround));
 
   platGen = new PlatformGenerator();
 
@@ -152,6 +153,8 @@ void draw() {
   detectAttackCollision();
   updateAnchor();
   //testJump();
+  checkLanded();
+  checkGrounded();
 }
 
 //checks for whether an enemy is attacking to stop parallax mode for combat
@@ -495,6 +498,44 @@ float calculateAimHeight(Enemy enemy) {
   return optimalHeight;
 
 }
+
+void checkGrounded() {
+  if(guardian.position.y >= ground) {
+    guardian.grounded = true;
+  }
+}
+
+
+void checkLanded() {
+    float guardianVertPosition = guardian.position.y + width/GUARDIAN_FEET;
+    float guardianHoriPosition = guardian.position.x + width/(GUARDIAN_WIDTH);
+    int i = 0;
+
+    for(Platform platform : platGen.platforms) {
+
+      pushMatrix();
+        stroke(255,0,0);
+        line(platform.position.x, height, platform.position.x, 0);
+        line(platform.position.x + platform.platformWidth, height, platform.position.x + platform.platformWidth, 0);
+        line(guardian.position.x, height, guardian.position.x, 0);
+        line(guardianHoriPosition, height, guardianHoriPosition, 0);
+        line(0, guardianVertPosition, width,  guardianVertPosition );
+        popMatrix();
+
+
+        if(guardianVertPosition >= platform.position.y && guardian.position.y < platform.position.y + platform.platformHeight) {
+          if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
+            guardian.grounded = true;
+            i++;
+          }
+        }
+
+
+      }
+
+      if (i == 0) guardian.grounded = false;
+    }
+
 
 
 //detect whether guardian attack hits enemy

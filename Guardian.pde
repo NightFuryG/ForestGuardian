@@ -145,9 +145,10 @@ public class Guardian extends Entity {
 
   //jump - needs work
   void jump() {
-    if(position.y >= GROUND && !jump) {
+    if(!jump) {
       velocity.y = -JUMP_SPEED;
       jump = true;
+      grounded = false;
     }
   }
 

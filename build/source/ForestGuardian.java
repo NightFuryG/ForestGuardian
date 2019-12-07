@@ -15,9 +15,10 @@ import java.io.IOException;
 public class ForestGuardian extends PApplet {
 
 
-final int GUARDIAN_WIDTH = 20;
+final int GUARDIAN_WIDTH = 24;
 final int ATTACK_WIDTH = 40;
 final int GUARDIAN_HEIGHT = 20;
+final int GUARDIAN_FEET = 22;
 final int ATTACK_DISTANCE = 40;
 final int RANGED_ATTACK_DISTANCE = 3;
 
@@ -133,10 +134,10 @@ public void setup() {
 
   enemies = new ArrayList<Enemy>();
 
-  enemies.add(new Enemy(ENEMY_ONE_PATH , width, ground));
-  enemies.add(new Enemy(ENEMY_TWO_PATH, width - 200, ground));
-  enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, entGround));
-  enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, entGround));
+  // enemies.add(new Enemy(ENEMY_ONE_PATH , width, ground));
+  // enemies.add(new Enemy(ENEMY_TWO_PATH, width - 200, ground));
+  // enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, entGround));
+  // enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, entGround));
 
   platGen = new PlatformGenerator();
 
@@ -168,6 +169,8 @@ public void draw() {
   detectAttackCollision();
   updateAnchor();
   //testJump();
+  checkLanded();
+  checkGrounded();
 }
 
 //checks for whether an enemy is attacking to stop parallax mode for combat
@@ -512,6 +515,44 @@ public float calculateAimHeight(Enemy enemy) {
 
 }
 
+public void checkGrounded() {
+  if(guardian.position.y >= ground) {
+    guardian.grounded = true;
+  }
+}
+
+
+public void checkLanded() {
+    float guardianVertPosition = guardian.position.y + width/GUARDIAN_FEET;
+    float guardianHoriPosition = guardian.position.x + width/(GUARDIAN_WIDTH);
+    int i = 0;
+
+    for(Platform platform : platGen.platforms) {
+
+      pushMatrix();
+        stroke(255,0,0);
+        line(platform.position.x, height, platform.position.x, 0);
+        line(platform.position.x + platform.platformWidth, height, platform.position.x + platform.platformWidth, 0);
+        line(guardian.position.x, height, guardian.position.x, 0);
+        line(guardianHoriPosition, height, guardianHoriPosition, 0);
+        line(0, guardianVertPosition, width,  guardianVertPosition );
+        popMatrix();
+
+
+        if(guardianVertPosition >= platform.position.y && guardian.position.y < platform.position.y + platform.platformHeight) {
+          if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
+            guardian.grounded = true;
+            i++;
+          }
+        }
+
+
+      }
+
+      if (i == 0) guardian.grounded = false;
+    }
+
+
 
 //detect whether guardian attack hits enemy
 //simplified to point rectangle collision
@@ -546,6 +587,7 @@ public class Animation {
 
   final String EXTENSION = ".png";
   final int TOTAL_FRAMES = 5;
+  final int ANIM_TIME = 100;
 
   ArrayList<PImage> animation;
   String filename;
@@ -561,7 +603,7 @@ public class Animation {
     loadAnimation();
     this.currentFrame = 0;
     this.prevTime = 0;
-    this.deltaTime = 100;
+    this.deltaTime = ANIM_TIME;
     this.animated = false;
   }
 
@@ -1020,6 +1062,7 @@ public class Entity {
   boolean right;
   boolean idle;
   boolean jump;
+  boolean grounded;
   boolean attack;
   boolean anchorRight;
   boolean anchorLeft;
@@ -1051,6 +1094,7 @@ public class Entity {
     this.idle = true;
     this.jump = false;
     this.attack = false;
+    this.grounded = true;
 
     this.anchorLeft = false;
     this.anchorRight = false;
@@ -1090,15 +1134,16 @@ public class Entity {
       velocity.x = 0;
     }
 
-    if(position.y < GROUND && jump) {
+    if(!grounded) {
       velocity.y += GRAVITY;
+    } else {
+      velocity.y = 0;
+      this.jump = false;
     }
 
-    if(jump && position.y >= GROUND - velocity.y) {
-      velocity.y = 0;
-      position.y = GROUND;
-      jump = false;
-    }
+
+
+
     position.add(velocity);
   }
 
@@ -1292,9 +1337,10 @@ public class Guardian extends Entity {
 
   //jump - needs work
   public void jump() {
-    if(position.y >= GROUND && !jump) {
+    if(!jump) {
       velocity.y = -JUMP_SPEED;
       jump = true;
+      grounded = false;
     }
   }
 
@@ -1549,6 +1595,7 @@ public class Platform {
   PImage tile;
   float transition;
   int platformWidth;
+  int platformHeight;
 
   final int RESIZE = 10;
 
@@ -1557,6 +1604,7 @@ public class Platform {
     this.position = new PVector(x, y);
     this.tile.resize(width/RESIZE, 0);
     this.platformWidth = tile.width;
+    this.platformHeight = tile.height;
     this.transition = transition;
   }
 
@@ -1587,7 +1635,7 @@ public class Platform {
 }
 class  PlatformGenerator {
 
-  final int PLATFORM_NUM = 10;
+  final int PLATFORM_NUM = 3;
   final int BASE_SPEED = 18;
   final int CAMERA_SPEED = 25;
 
@@ -1605,13 +1653,14 @@ class  PlatformGenerator {
 
   public void generatePlatforms() {
 
-    platforms.add(new Platform(width, height - height/5, BASE_SPEED));
+    platforms.add(new Platform(width, height - height/7, BASE_SPEED));
 
     for(int i = 0; i < PLATFORM_NUM; i++) {
-      float position = platforms.get(i).position.x + platforms.get(i).platformWidth;
-      float sky = random(0,height);
+      float positionX = platforms.get(i).position.x + platforms.get(i).platformWidth * 2;
+      float positionY = platforms.get(i).position.y - platforms.get(i).platformHeight;
 
-      platforms.add(new Platform(position, sky, BASE_SPEED));
+      platforms.add(new Platform(positionX, positionY, BASE_SPEED));
+
     }
   }
 

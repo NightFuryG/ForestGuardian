@@ -10,6 +10,7 @@ public class Platform {
   PImage tile;
   float transition;
   int platformWidth;
+  int platformHeight;
 
   final int RESIZE = 10;
 
@@ -18,6 +19,7 @@ public class Platform {
     this.position = new PVector(x, y);
     this.tile.resize(width/RESIZE, 0);
     this.platformWidth = tile.width;
+    this.platformHeight = tile.height;
     this.transition = transition;
   }
 
