@@ -11,7 +11,7 @@ public class Platform {
   float transition;
   int platformWidth;
   int platformHeight;
-
+//
   final int RESIZE = 10;
 
   Platform( float x, float y, float transition) {
