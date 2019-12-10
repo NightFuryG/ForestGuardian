@@ -26,7 +26,8 @@ public class Guardian extends Entity {
       this.anchorRight = false;
       this.anchorLeft = false;
       this.anchorRightPos = width/3;
-      this.anchorLeftPos =  width/5 ;
+      this.anchorLeftPos =  width/5;
+      System.out.println(VELOCITY_SWITCH);
       resize();
   }
 

@@ -1,8 +1,8 @@
 class  PlatformGenerator {
 
   final int PLATFORM_NUM = 3;
-  final int BASE_SPEED = 18;
-  final int CAMERA_SPEED = 25;
+  final int BASE_SPEED = width/72;
+  final int CAMERA_SPEED = width/38;
 
   ArrayList<Platform> platforms;
 

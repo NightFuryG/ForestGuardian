@@ -2,8 +2,7 @@
 public class Background {
 
   final String PNG = ".png";
-  final int CAMERA = 25 ;
-  final int ONE_LAYER = 20;
+  final int CAMERA = width/72;
 
   int startX = 0;
   int startY = 0;

@@ -63,12 +63,14 @@ boolean w, a, s, d, j;
 boolean petAlive;
 boolean summon;
 boolean petCooldown;
+boolean colliding;
 boolean attacking;
 float ground;
 float tileGround;
 float entGround;
 int parallax;
 int summonCount;
+int camera;
 int petTimer;
 int petCooldownTimer;
 int guardianAttacks;
@@ -94,6 +96,10 @@ void setup() {
 
   attacking = false;
 
+  colliding = false;
+
+  camera = width/38;
+
   parallax = 0;
 
   summonCount = 0;
@@ -117,11 +123,6 @@ void setup() {
   attacks = new ArrayList<Attack>();
 
   enemies = new ArrayList<Enemy>();
-
-  // enemies.add(new Enemy(ENEMY_ONE_PATH , width, ground));
-  // enemies.add(new Enemy(ENEMY_TWO_PATH, width - 200, ground));
-  // enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, entGround));
-  // enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, entGround));
 
   platGen = new PlatformGenerator();
 
@@ -152,10 +153,11 @@ void draw() {
   checkCooldowns();
   detectAttackCollision();
   updateAnchor();
-  //testJump();
   checkLanded();
   checkGrounded();
-}
+  guardianCollision();
+  }
+
 
 //checks for whether an enemy is attacking to stop parallax mode for combat
 void checkAttacking() {
@@ -231,14 +233,14 @@ void drawParallaxBackround() {
         background.cameraTransitionSpeed();
         platGen.cameraTransitionSpeed();
         parallax = PARALLAX_LEFT;
-        guardian.velocity.x = CAMERA_SPEED;
-        positionEnemies(CAMERA_SPEED);
+        guardian.velocity.x = camera;
+        positionEnemies(camera);
     } else if (guardian.anchorLeft && guardian.idle) {
         background.cameraTransitionSpeed();
         platGen.cameraTransitionSpeed();
         parallax = PARALLAX_RIGHT;
-        guardian.velocity.x = -CAMERA_SPEED;
-        positionEnemies(-CAMERA_SPEED);
+        guardian.velocity.x = -camera;
+        positionEnemies(-camera);
       } else if(guardian.right && guardian.anchorRight
         && !guardian.idle) {
           if(guardian.velocity.x == 0) {
@@ -280,7 +282,7 @@ void positionEnemies(int velocity) {
 
 void positionPlatforms(int velocity) {
     for(Platform platform : platGen.platforms) {
-
+      platform.position.x += velocity;
     }
 }
 
@@ -341,12 +343,12 @@ void playerMove() {
     if(petAlive)
       pet.move(2, attacking);
   }
-  if(d) {
+  if(d && guardianCollision()) {
     guardian.move(3, attacking);
     if(petAlive)
       pet.move(3, attacking);
   }
-  if(a) {
+  if(a && guardianCollision()) {
     guardian.move(4, attacking);
     if(petAlive)
       pet.move(4, attacking);
@@ -500,8 +502,9 @@ float calculateAimHeight(Enemy enemy) {
 }
 
 void checkGrounded() {
-  if(guardian.position.y >= ground) {
+  if(guardian.position.y + guardian.velocity.y >= ground) {
     guardian.grounded = true;
+    guardian.position.y = ground;
   }
 }
 
@@ -520,30 +523,56 @@ void checkLanded() {
         line(guardian.position.x, height, guardian.position.x, 0);
         line(guardianHoriPosition, height, guardianHoriPosition, 0);
         line(0, guardianVertPosition, width,  guardianVertPosition );
-        popMatrix();
+      popMatrix();
 
 
         if(guardianVertPosition >= platform.position.y && guardian.position.y < platform.position.y + platform.platformHeight) {
           if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
             guardian.grounded = true;
+            guardian.position.y = platform.position.y - width/GUARDIAN_FEET;
             i++;
           }
         }
-
-
       }
-
       if (i == 0) guardian.grounded = false;
     }
+
+boolean guardianCollision() {
+
+  float guardWidth = width/GUARDIAN_WIDTH;
+  float guardHeight = width/GUARDIAN_FEET;
+
+  for (Platform platform : platGen.platforms) {
+
+    if (guardian.position.x + guardWidth + guardian.velocity.x > platform.position.x &&
+        guardian.position.x + guardian.velocity.x < platform.position.x + platform.platformWidth &&
+        guardian.position.y + guardHeight > platform.position.y &&
+        guardian.position.y < platform.position.y + platform.platformHeight) {
+          guardian.velocity.x = -guardian.velocity.x;
+          return false;
+
+        }
+
+    if (guardian.position.x + guardWidth > platform.position.x &&
+        guardian.position.x < platform.position.x + platform.platformWidth &&
+        guardian.position.y + guardHeight + guardian.velocity.y > platform.position.y &&
+        guardian.position.y + guardian.velocity.y < platform.position.y + platform.platformHeight) {
+          guardian.velocity.y = 0;
+          return false;
+    }
+  }
+  return true;
+}
+
 
 
 
 //detect whether guardian attack hits enemy
 //simplified to point rectangle collision
 void detectAttackCollision() {
-  for(Attack attack : new ArrayList<Attack>(attacks)) {
-    float attackX = attack.position.x + attack.attackRight.width/2;
-    float attackY = attack.position.y + attack.attackRight.height/2;
+  for (Attack attack : new ArrayList<Attack>(attacks)) {
+       float attackX = attack.position.x + attack.attackRight.width/2;
+       float attackY = attack.position.y + attack.attackRight.height/2;
 
     for(Enemy enemy : new ArrayList<Enemy>(enemies)) {
 

@@ -79,12 +79,14 @@ boolean w, a, s, d, j;
 boolean petAlive;
 boolean summon;
 boolean petCooldown;
+boolean colliding;
 boolean attacking;
 float ground;
 float tileGround;
 float entGround;
 int parallax;
 int summonCount;
+int camera;
 int petTimer;
 int petCooldownTimer;
 int guardianAttacks;
@@ -110,6 +112,10 @@ public void setup() {
 
   attacking = false;
 
+  colliding = false;
+
+  camera = width/38;
+
   parallax = 0;
 
   summonCount = 0;
@@ -133,11 +139,6 @@ public void setup() {
   attacks = new ArrayList<Attack>();
 
   enemies = new ArrayList<Enemy>();
-
-  // enemies.add(new Enemy(ENEMY_ONE_PATH , width, ground));
-  // enemies.add(new Enemy(ENEMY_TWO_PATH, width - 200, ground));
-  // enemies.add(new Enemy(ENEMY_THREE_PATH, width - 400, entGround));
-  // enemies.add(new Enemy(ENEMY_FOUR_PATH, width - 600, entGround));
 
   platGen = new PlatformGenerator();
 
@@ -168,10 +169,11 @@ public void draw() {
   checkCooldowns();
   detectAttackCollision();
   updateAnchor();
-  //testJump();
   checkLanded();
   checkGrounded();
-}
+  guardianCollision();
+  }
+
 
 //checks for whether an enemy is attacking to stop parallax mode for combat
 public void checkAttacking() {
@@ -247,14 +249,14 @@ public void drawParallaxBackround() {
         background.cameraTransitionSpeed();
         platGen.cameraTransitionSpeed();
         parallax = PARALLAX_LEFT;
-        guardian.velocity.x = CAMERA_SPEED;
-        positionEnemies(CAMERA_SPEED);
+        guardian.velocity.x = camera;
+        positionEnemies(camera);
     } else if (guardian.anchorLeft && guardian.idle) {
         background.cameraTransitionSpeed();
         platGen.cameraTransitionSpeed();
         parallax = PARALLAX_RIGHT;
-        guardian.velocity.x = -CAMERA_SPEED;
-        positionEnemies(-CAMERA_SPEED);
+        guardian.velocity.x = -camera;
+        positionEnemies(-camera);
       } else if(guardian.right && guardian.anchorRight
         && !guardian.idle) {
           if(guardian.velocity.x == 0) {
@@ -296,7 +298,7 @@ public void positionEnemies(int velocity) {
 
 public void positionPlatforms(int velocity) {
     for(Platform platform : platGen.platforms) {
-
+      platform.position.x += velocity;
     }
 }
 
@@ -357,12 +359,12 @@ public void playerMove() {
     if(petAlive)
       pet.move(2, attacking);
   }
-  if(d) {
+  if(d && guardianCollision()) {
     guardian.move(3, attacking);
     if(petAlive)
       pet.move(3, attacking);
   }
-  if(a) {
+  if(a && guardianCollision()) {
     guardian.move(4, attacking);
     if(petAlive)
       pet.move(4, attacking);
@@ -516,8 +518,9 @@ public float calculateAimHeight(Enemy enemy) {
 }
 
 public void checkGrounded() {
-  if(guardian.position.y >= ground) {
+  if(guardian.position.y + guardian.velocity.y >= ground) {
     guardian.grounded = true;
+    guardian.position.y = ground;
   }
 }
 
@@ -536,30 +539,56 @@ public void checkLanded() {
         line(guardian.position.x, height, guardian.position.x, 0);
         line(guardianHoriPosition, height, guardianHoriPosition, 0);
         line(0, guardianVertPosition, width,  guardianVertPosition );
-        popMatrix();
+      popMatrix();
 
 
         if(guardianVertPosition >= platform.position.y && guardian.position.y < platform.position.y + platform.platformHeight) {
           if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
             guardian.grounded = true;
+            guardian.position.y = platform.position.y - width/GUARDIAN_FEET;
             i++;
           }
         }
-
-
       }
-
       if (i == 0) guardian.grounded = false;
     }
+
+public boolean guardianCollision() {
+
+  float guardWidth = width/GUARDIAN_WIDTH;
+  float guardHeight = width/GUARDIAN_FEET;
+
+  for (Platform platform : platGen.platforms) {
+
+    if (guardian.position.x + guardWidth + guardian.velocity.x > platform.position.x &&
+        guardian.position.x + guardian.velocity.x < platform.position.x + platform.platformWidth &&
+        guardian.position.y + guardHeight > platform.position.y &&
+        guardian.position.y < platform.position.y + platform.platformHeight) {
+          guardian.velocity.x = -guardian.velocity.x;
+          return false;
+
+        }
+
+    if (guardian.position.x + guardWidth > platform.position.x &&
+        guardian.position.x < platform.position.x + platform.platformWidth &&
+        guardian.position.y + guardHeight + guardian.velocity.y > platform.position.y &&
+        guardian.position.y + guardian.velocity.y < platform.position.y + platform.platformHeight) {
+          guardian.velocity.y = 0;
+          return false;
+    }
+  }
+  return true;
+}
+
 
 
 
 //detect whether guardian attack hits enemy
 //simplified to point rectangle collision
 public void detectAttackCollision() {
-  for(Attack attack : new ArrayList<Attack>(attacks)) {
-    float attackX = attack.position.x + attack.attackRight.width/2;
-    float attackY = attack.position.y + attack.attackRight.height/2;
+  for (Attack attack : new ArrayList<Attack>(attacks)) {
+       float attackX = attack.position.x + attack.attackRight.width/2;
+       float attackY = attack.position.y + attack.attackRight.height/2;
 
     for(Enemy enemy : new ArrayList<Enemy>(enemies)) {
 
@@ -751,8 +780,7 @@ public class Attack {
 public class Background {
 
   final String PNG = ".png";
-  final int CAMERA = 25 ;
-  final int ONE_LAYER = 20;
+  final int CAMERA = width/72;
 
   int startX = 0;
   int startY = 0;
@@ -1218,7 +1246,8 @@ public class Guardian extends Entity {
       this.anchorRight = false;
       this.anchorLeft = false;
       this.anchorRightPos = width/3;
-      this.anchorLeftPos =  width/5 ;
+      this.anchorLeftPos =  width/5;
+      System.out.println(VELOCITY_SWITCH);
       resize();
   }
 
@@ -1592,11 +1621,12 @@ public class Platform {
   final int PLAT_LEFT = 2;
 
   PVector position;
+  
   PImage tile;
   float transition;
   int platformWidth;
   int platformHeight;
-
+//
   final int RESIZE = 10;
 
   Platform( float x, float y, float transition) {
@@ -1636,8 +1666,8 @@ public class Platform {
 class  PlatformGenerator {
 
   final int PLATFORM_NUM = 3;
-  final int BASE_SPEED = 18;
-  final int CAMERA_SPEED = 25;
+  final int BASE_SPEED = width/72;
+  final int CAMERA_SPEED = width/38;
 
   ArrayList<Platform> platforms;
 

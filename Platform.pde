@@ -7,6 +7,7 @@ public class Platform {
   final int PLAT_LEFT = 2;
 
   PVector position;
+  
   PImage tile;
   float transition;
   int platformWidth;
