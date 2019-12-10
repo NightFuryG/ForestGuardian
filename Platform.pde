@@ -7,7 +7,7 @@ public class Platform {
   final int PLAT_LEFT = 2;
 
   PVector position;
-  
+  PVector velocity;
   PImage tile;
   float transition;
   int platformWidth;
@@ -18,6 +18,7 @@ public class Platform {
   Platform( float x, float y, float transition) {
     this.tile = loadImage(imgPath);
     this.position = new PVector(x, y);
+    this.velocity = new PVector(0, 0);
     this.tile.resize(width/RESIZE, 0);
     this.platformWidth = tile.width;
     this.platformHeight = tile.height;

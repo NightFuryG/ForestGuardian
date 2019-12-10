@@ -35,6 +35,7 @@ public class Entity {
   boolean attack;
   boolean anchorRight;
   boolean anchorLeft;
+  boolean colliding;
 
   PVector velocity;
   PVector position;
@@ -68,6 +69,7 @@ public class Entity {
     this.anchorLeft = false;
     this.anchorRight = false;
 
+    this.colliding = false;
   }
 
   //add animations to HashMap

@@ -63,7 +63,6 @@ boolean w, a, s, d, j;
 boolean petAlive;
 boolean summon;
 boolean petCooldown;
-boolean colliding;
 boolean attacking;
 float ground;
 float tileGround;
@@ -85,6 +84,7 @@ ArrayList<Enemy> enemies;
 
 void setup() {
   fullScreen();
+  frameRate(60);
 
   w = a = s = d = j = false;
 
@@ -95,8 +95,6 @@ void setup() {
   summon = false;
 
   attacking = false;
-
-  colliding = false;
 
   camera = width/38;
 
@@ -157,14 +155,8 @@ void draw() {
   checkGrounded();
   guardianCollision();
 
-
-  // anchor lines
-  pushMatrix();
-  stroke(0,255,255);
-  line(guardian.getAnchorRightPos() + 0.5 *width/GUARDIAN_WIDTH, 0, guardian.getAnchorRightPos() + 0.5 * width/GUARDIAN_WIDTH, height);
-  line(guardian.getAnchorLeftPos() + 0.5 * width/GUARDIAN_WIDTH, 0, guardian.getAnchorLeftPos() +  0.5 * width/GUARDIAN_WIDTH, height);
-  popMatrix();
-  }
+  System.out.println(guardian.colliding);
+}
 
 
 //checks for whether an enemy is attacking to stop parallax mode for combat
@@ -238,13 +230,13 @@ void summonPet() {
 void drawParallaxBackround() {
   if(!attacking) {
     if(guardian.anchorRight && guardian.idle) {
-        background.cameraAnchorSpeed();
+        background.cameraTransitionSpeed();
         platGen.differentSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = camera;
         positionEnemies(camera);
     } else if (guardian.anchorLeft && guardian.idle) {
-        background.cameraAnchorSpeed();
+        background.cameraTransitionSpeed();
         platGen.differentSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -camera;
@@ -351,22 +343,32 @@ void playerMove() {
     if(petAlive)
       pet.move(2, attacking);
   }
-  if(d && guardianCollision()) {
-    guardian.move(3, attacking);
-    if(petAlive)
-      pet.move(3, attacking);
+  if(d) {
+    if(!guardian.colliding) {
+      guardian.move(3, attacking);
+      if(petAlive)
+        pet.move(3, attacking);
+    } else if (!guardian.right && guardian.colliding){
+      guardian.colliding = false;
+    }
   }
-  if(a && guardianCollision()) {
-    guardian.move(4, attacking);
-    if(petAlive)
-      pet.move(4, attacking);
+
+  if(a)  {
+    if(!guardian.colliding) {
+      guardian.move(4, attacking);
+      if(petAlive)
+        pet.move(4, attacking);
+    } else if (guardian.right && guardian.colliding) {
+      guardian.colliding = false;
+    }
   }
-  if(!w && !s && !d && !a) {
+      if(!w && !s && !d && !a) {
     guardian.move(5, attacking);
     if(petAlive)
       pet.move(5, attacking);
   }
   if(j) {
+    guardian.colliding = false;
     guardian.move(6, attacking);
     if(petAlive)
       pet.move(6, attacking);
@@ -524,14 +526,14 @@ void checkLanded() {
 
     for(Platform platform : platGen.platforms) {
 
-      pushMatrix();
-        stroke(255,0,0);
-        line(platform.position.x, height, platform.position.x, 0);
-        line(platform.position.x + platform.platformWidth, height, platform.position.x + platform.platformWidth, 0);
-        line(guardian.position.x, height, guardian.position.x, 0);
-        line(guardianHoriPosition, height, guardianHoriPosition, 0);
-        line(0, guardianVertPosition, width,  guardianVertPosition );
-      popMatrix();
+      // pushMatrix();
+      //   stroke(255,0,0);
+      //   line(platform.position.x, height, platform.position.x, 0);
+      //   line(platform.position.x + platform.platformWidth, height, platform.position.x + platform.platformWidth, 0);
+      //   line(guardian.position.x, height, guardian.position.x, 0);
+      //   line(guardianHoriPosition, height, guardianHoriPosition, 0);
+      //   line(0, guardianVertPosition, width,  guardianVertPosition );
+      // popMatrix();
 
 
         if(guardianVertPosition >= platform.position.y && guardian.position.y < platform.position.y + platform.platformHeight) {
@@ -545,7 +547,7 @@ void checkLanded() {
       if (i == 0) guardian.grounded = false;
     }
 
-boolean guardianCollision() {
+void guardianCollision() {
 
   float guardWidth = width/GUARDIAN_WIDTH;
   float guardHeight = width/GUARDIAN_FEET;
@@ -557,8 +559,7 @@ boolean guardianCollision() {
         guardian.position.y + guardHeight > platform.position.y &&
         guardian.position.y < platform.position.y + platform.platformHeight) {
           guardian.velocity.x = -guardian.velocity.x;
-          return false;
-
+          guardian.colliding = true;
         }
 
     if (guardian.position.x + guardWidth > platform.position.x &&
@@ -566,10 +567,9 @@ boolean guardianCollision() {
         guardian.position.y + guardHeight + guardian.velocity.y > platform.position.y &&
         guardian.position.y + guardian.velocity.y < platform.position.y + platform.platformHeight) {
           guardian.velocity.y = 0;
-          return false;
+
     }
   }
-  return true;
 }
 
 

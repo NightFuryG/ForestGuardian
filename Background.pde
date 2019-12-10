@@ -2,8 +2,12 @@
 public class Background {
 
   final String PNG = ".png";
-  final int CAMERA = width/38;
+  final int CAMERA = displayWidth/38;
   final int ANCHOR = width/72;
+
+  final int BASE_MULTIPLIER = 2;
+  final int CAMERA_MULTIPLIER = 5;
+
 
   int startX = 0;
   int startY = 0;
@@ -36,7 +40,7 @@ public class Background {
   void resetTransitionSpeed() {
     if(!reset) {
       for(int i = 0; i < layerTotal; i++) {
-          layers.get(i).transition = i*2;
+          layers.get(i).transition = i*BASE_MULTIPLIER;
       }
       reset = true;
     }
@@ -44,18 +48,10 @@ public class Background {
 
   //increase the transition speed for camera change
   void cameraTransitionSpeed() {
+    int split = CAMERA/(layerTotal);
     if(reset) {
       for(int i = 0; i < layerTotal; i++) {
-        layers.get(i).transition = i*4;
-      }
-      reset = false;
-    }
-  }
-
-  void cameraAnchorSpeed() {
-    if(reset) {
-      for(int i = 0; i < layerTotal; i++) {
-        layers.get(i).transition = i * 4;
+        layers.get(i).transition = i*split;
       }
       reset = false;
     }

@@ -113,10 +113,17 @@ public class Guardian extends Entity {
 
   //basic move right
   void moveRight() {
-    if(position.x + width/GUARDIAN_WIDTH <= width) {
-      velocity.x += GUARDIAN_SPEED;
-    } else {
-      velocity.x = -GUARDIAN_SPEED;
+
+    System.out.println("MEE2E");
+    if(!this.colliding) {
+      System.out.println("RIGHT COLLIDE" + this.colliding);
+      if(position.x + width/GUARDIAN_WIDTH <= displayWidth) {
+          velocity.x += GUARDIAN_SPEED;
+        } else{
+          velocity.x = -GUARDIAN_SPEED;
+        }
+    } else if(!right && this.colliding) {
+      this.colliding = false;
     }
 
     right = true;
@@ -125,14 +132,22 @@ public class Guardian extends Entity {
 
   //basic move left
   void moveLeft() {
-      if(position.x >= 0) {
+
+    System.out.println("MEEE");
+    if(!this.colliding) {
+
+      System.out.println("left");
+      if(position.x >= 0 ) {
         velocity.x -= GUARDIAN_SPEED;
       } else {
         velocity.x = GUARDIAN_SPEED;
       }
+    } else if(right && this.colliding) {
+        this.colliding = false;
+    }
 
-      right = false;
-      idle = false;
+    right = false;
+    idle = false;
   }
 
   //parallax move left
