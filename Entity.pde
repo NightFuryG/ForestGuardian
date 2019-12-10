@@ -158,4 +158,12 @@ public class Entity {
 
   void move(int i, boolean b){
   }
+
+  int getAnchorRightPos() {
+    return width/3;
+  }
+
+  int getAnchorLeftPos() {
+    return width/5;
+  }
 }

@@ -40,6 +40,14 @@ public class Guardian extends Entity {
     return anchorLeft;
   }
 
+  public int getAnchorRightPos() {
+    return anchorRightPos;
+  }
+
+  public int getAnchorLeftPos() {
+    return anchorLeftPos;
+  }
+
   //resize animations()
   void resize() {
     resizeIdle();

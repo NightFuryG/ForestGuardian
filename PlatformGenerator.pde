@@ -1,8 +1,9 @@
 class  PlatformGenerator {
 
   final int PLATFORM_NUM = 3;
-  final int BASE_SPEED = width/72;
+  final int BASE_SPEED = 20;
   final int CAMERA_SPEED = width/38;
+  final int ANCHOR_SPEED = width/72;
 
   ArrayList<Platform> platforms;
 
@@ -26,6 +27,14 @@ class  PlatformGenerator {
 
       platforms.add(new Platform(positionX, positionY, BASE_SPEED));
 
+    }
+  }
+
+  void differentSpeed() {
+    if(reset) {
+      for(Platform platform : platforms) {
+        platform.transition = ANCHOR_SPEED;
+      }
     }
   }
 

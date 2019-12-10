@@ -172,6 +172,14 @@ public void draw() {
   checkLanded();
   checkGrounded();
   guardianCollision();
+
+
+  // anchor lines
+  pushMatrix();
+  stroke(0,255,255);
+  line(guardian.getAnchorRightPos() + 0.5f *width/GUARDIAN_WIDTH, 0, guardian.getAnchorRightPos() + 0.5f * width/GUARDIAN_WIDTH, height);
+  line(guardian.getAnchorLeftPos() + 0.5f * width/GUARDIAN_WIDTH, 0, guardian.getAnchorLeftPos() +  0.5f * width/GUARDIAN_WIDTH, height);
+  popMatrix();
   }
 
 
@@ -246,14 +254,14 @@ public void summonPet() {
 public void drawParallaxBackround() {
   if(!attacking) {
     if(guardian.anchorRight && guardian.idle) {
-        background.cameraTransitionSpeed();
-        platGen.cameraTransitionSpeed();
+        background.cameraAnchorSpeed();
+        platGen.differentSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = camera;
         positionEnemies(camera);
     } else if (guardian.anchorLeft && guardian.idle) {
-        background.cameraTransitionSpeed();
-        platGen.cameraTransitionSpeed();
+        background.cameraAnchorSpeed();
+        platGen.differentSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -camera;
         positionEnemies(-camera);
@@ -780,7 +788,8 @@ public class Attack {
 public class Background {
 
   final String PNG = ".png";
-  final int CAMERA = width/72;
+  final int CAMERA = width/38;
+  final int ANCHOR = width/72;
 
   int startX = 0;
   int startY = 0;
@@ -823,7 +832,16 @@ public class Background {
   public void cameraTransitionSpeed() {
     if(reset) {
       for(int i = 0; i < layerTotal; i++) {
-        layers.get(i).transition = CAMERA;
+        layers.get(i).transition = i*4;
+      }
+      reset = false;
+    }
+  }
+
+  public void cameraAnchorSpeed() {
+    if(reset) {
+      for(int i = 0; i < layerTotal; i++) {
+        layers.get(i).transition = i * 4;
       }
       reset = false;
     }
@@ -1217,6 +1235,14 @@ public class Entity {
 
   public void move(int i, boolean b){
   }
+
+  public int getAnchorRightPos() {
+    return width/3;
+  }
+
+  public int getAnchorLeftPos() {
+    return width/5;
+  }
 }
 //Class representing the playable Guardian
 //contains the anchor positions for parallax;
@@ -1258,6 +1284,14 @@ public class Guardian extends Entity {
 
   public boolean getAnchorLeft() {
     return anchorLeft;
+  }
+
+  public int getAnchorRightPos() {
+    return anchorRightPos;
+  }
+
+  public int getAnchorLeftPos() {
+    return anchorLeftPos;
   }
 
   //resize animations()
@@ -1666,8 +1700,9 @@ public class Platform {
 class  PlatformGenerator {
 
   final int PLATFORM_NUM = 3;
-  final int BASE_SPEED = width/72;
+  final int BASE_SPEED = 20;
   final int CAMERA_SPEED = width/38;
+  final int ANCHOR_SPEED = width/72;
 
   ArrayList<Platform> platforms;
 
@@ -1691,6 +1726,14 @@ class  PlatformGenerator {
 
       platforms.add(new Platform(positionX, positionY, BASE_SPEED));
 
+    }
+  }
+
+  public void differentSpeed() {
+    if(reset) {
+      for(Platform platform : platforms) {
+        platform.transition = ANCHOR_SPEED;
+      }
     }
   }
 

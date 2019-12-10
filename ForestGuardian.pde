@@ -156,6 +156,14 @@ void draw() {
   checkLanded();
   checkGrounded();
   guardianCollision();
+
+
+  // anchor lines
+  pushMatrix();
+  stroke(0,255,255);
+  line(guardian.getAnchorRightPos() + 0.5 *width/GUARDIAN_WIDTH, 0, guardian.getAnchorRightPos() + 0.5 * width/GUARDIAN_WIDTH, height);
+  line(guardian.getAnchorLeftPos() + 0.5 * width/GUARDIAN_WIDTH, 0, guardian.getAnchorLeftPos() +  0.5 * width/GUARDIAN_WIDTH, height);
+  popMatrix();
   }
 
 
@@ -230,14 +238,14 @@ void summonPet() {
 void drawParallaxBackround() {
   if(!attacking) {
     if(guardian.anchorRight && guardian.idle) {
-        background.cameraTransitionSpeed();
-        platGen.cameraTransitionSpeed();
+        background.cameraAnchorSpeed();
+        platGen.differentSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = camera;
         positionEnemies(camera);
     } else if (guardian.anchorLeft && guardian.idle) {
-        background.cameraTransitionSpeed();
-        platGen.cameraTransitionSpeed();
+        background.cameraAnchorSpeed();
+        platGen.differentSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -camera;
         positionEnemies(-camera);
