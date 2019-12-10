@@ -171,7 +171,7 @@ public void draw() {
   checkGrounded();
   guardianCollision();
 
-  System.out.println(guardian.colliding);
+  System.out.println(guardian.velocity.x);
 }
 
 
@@ -552,7 +552,7 @@ public void checkLanded() {
       // popMatrix();
 
 
-        if(guardianVertPosition >= platform.position.y && guardian.position.y < platform.position.y + platform.platformHeight) {
+        if(guardianVertPosition >= platform.position.y && guardian.position.y < platform.position.y) {
           if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
             guardian.grounded = true;
             guardian.position.y = platform.position.y - width/GUARDIAN_FEET;
@@ -570,6 +570,8 @@ public void guardianCollision() {
 
   for (Platform platform : platGen.platforms) {
 
+    //try out simple rectangle collision;
+
     if (guardian.position.x + guardWidth + guardian.velocity.x > platform.position.x &&
         guardian.position.x + guardian.velocity.x < platform.position.x + platform.platformWidth &&
         guardian.position.y + guardHeight > platform.position.y &&
@@ -583,7 +585,6 @@ public void guardianCollision() {
         guardian.position.y + guardHeight + guardian.velocity.y > platform.position.y &&
         guardian.position.y + guardian.velocity.y < platform.position.y + platform.platformHeight) {
           guardian.velocity.y = 0;
-
     }
   }
 }
@@ -1716,7 +1717,7 @@ class  PlatformGenerator {
   final int PLATFORM_NUM = 3;
   final int BASE_SPEED = 20;
   final int CAMERA_SPEED = width/38;
-  final int ANCHOR_SPEED = width/90;
+  final int ANCHOR_SPEED = width/85;
 
   ArrayList<Platform> platforms;
 
@@ -1747,6 +1748,7 @@ class  PlatformGenerator {
     if(reset) {
       for(Platform platform : platforms) {
         platform.transition = ANCHOR_SPEED;
+        System.out.println(ANCHOR_SPEED);
       }
     }
   }

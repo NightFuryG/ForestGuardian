@@ -155,7 +155,7 @@ void draw() {
   checkGrounded();
   guardianCollision();
 
-  System.out.println(guardian.colliding);
+  System.out.println(guardian.velocity.x);
 }
 
 
@@ -536,7 +536,7 @@ void checkLanded() {
       // popMatrix();
 
 
-        if(guardianVertPosition >= platform.position.y && guardian.position.y < platform.position.y + platform.platformHeight) {
+        if(guardianVertPosition >= platform.position.y && guardian.position.y < platform.position.y) {
           if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
             guardian.grounded = true;
             guardian.position.y = platform.position.y - width/GUARDIAN_FEET;
@@ -554,6 +554,8 @@ void guardianCollision() {
 
   for (Platform platform : platGen.platforms) {
 
+    //try out simple rectangle collision;
+
     if (guardian.position.x + guardWidth + guardian.velocity.x > platform.position.x &&
         guardian.position.x + guardian.velocity.x < platform.position.x + platform.platformWidth &&
         guardian.position.y + guardHeight > platform.position.y &&
@@ -567,7 +569,6 @@ void guardianCollision() {
         guardian.position.y + guardHeight + guardian.velocity.y > platform.position.y &&
         guardian.position.y + guardian.velocity.y < platform.position.y + platform.platformHeight) {
           guardian.velocity.y = 0;
-
     }
   }
 }
