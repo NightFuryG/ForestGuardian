@@ -1733,39 +1733,36 @@ class  PlatformGenerator {
 
   public void generatePlatforms() {
 
-    System.out.println("hello1");
-
-    int count = 0;
-
-    System.out.println("hello2");
     platforms.add(new Platform(width, height - height/7, BASE_SPEED));
-
-    System.out.println("hello3");
     this.newPlatformWidth = platforms.get(0).platformWidth;
-
-    System.out.println("hello4");
     this.newPlatformHeight = platforms.get(0).platformHeight*2;
 
-    System.out.println("hello5");
+
+    int last;
     float ground = height - height/6.85f;
 
-    System.out.println("hello6");
     for(int i = 0; i < PLATFORM_NUM; i++) {
 
-    System.out.println("hello7");
-      float randomPlatforms = random(1, 20);
-    System.out.println("hello8");
-      float randomPlatformHeight = random(platforms.get(i).position.y - newPlatformHeight, ground);
-    System.out.println("hello9");
-      float positionX = platforms.get(i).position.x + newPlatformWidth;
-    System.out.println("hello10");
+      last = platforms.size() - 1;
 
-      for(int j = 0; j < randomPlatforms; j++)
-        platforms.add(new Platform(positionX, randomPlatformHeight, BASE_SPEED));
+      float randomPlatforms = random(0, 1);
+      float randomPlatformHeight = random(platforms.get(last).position.y - newPlatformHeight, ground);
+      float positionX = platforms.get(last).position.x + 2*newPlatformWidth;
 
-    System.out.println("hello11");
-        count++;
-        System.out.println(count);
+      int numPlat = 0;
+
+      if(randomPlatforms <= 0.4f) {
+          numPlat = 1;
+      } else if (randomPlatforms > 0.4f && randomPlatforms <= 0.7f) {
+          numPlat = 2;
+      } else if (randomPlatforms > 0.7f && randomPlatforms <= 0.95f) {
+          numPlat = 5;
+      } else {
+        numPlat = 15;
+      }
+
+      for(int j = 0; j < numPlat; j++)
+        platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, BASE_SPEED));
     }
   }
 
