@@ -50,7 +50,7 @@ final String TILE_FIVE =  "tileset/5.png";
 final String TILE_SIX =  "tileset/6.png";
 final String TILE_SEVEN =  "tileset/7.png";
 
-final float GROUND_PROP = 6.85;
+public final float GROUND_PROP = 6.85;
 final float ENT_GROUND_PROP = 6;
 final float GROUND_TILE = 12;
 
@@ -155,7 +155,6 @@ void draw() {
   checkGrounded();
   guardianCollision();
 
-  System.out.println(guardian.velocity.x);
 }
 
 

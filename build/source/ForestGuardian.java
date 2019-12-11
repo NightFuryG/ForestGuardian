@@ -66,7 +66,7 @@ final String TILE_FIVE =  "tileset/5.png";
 final String TILE_SIX =  "tileset/6.png";
 final String TILE_SEVEN =  "tileset/7.png";
 
-final float GROUND_PROP = 6.85f;
+public final float GROUND_PROP = 6.85f;
 final float ENT_GROUND_PROP = 6;
 final float GROUND_TILE = 12;
 
@@ -171,7 +171,6 @@ public void draw() {
   checkGrounded();
   guardianCollision();
 
-  System.out.println(guardian.velocity.x);
 }
 
 
@@ -1272,7 +1271,6 @@ public class Guardian extends Entity {
       this.anchorLeft = false;
       this.anchorRightPos = width/3;
       this.anchorLeftPos =  width/5;
-      System.out.println(VELOCITY_SWITCH);
       resize();
   }
 
@@ -1714,7 +1712,7 @@ public class Platform {
 }
 class  PlatformGenerator {
 
-  final int PLATFORM_NUM = 3;
+  final int PLATFORM_NUM = 50;
   final int BASE_SPEED = 20;
   final int CAMERA_SPEED = width/38;
   final int ANCHOR_SPEED = width/85;
@@ -1722,6 +1720,8 @@ class  PlatformGenerator {
   ArrayList<Platform> platforms;
 
   int numberOfPlatforms;
+  int newPlatformHeight;
+  int newPlatformWidth;
   boolean reset;
 
   PlatformGenerator() {
@@ -1733,14 +1733,39 @@ class  PlatformGenerator {
 
   public void generatePlatforms() {
 
+    System.out.println("hello1");
+
+    int count = 0;
+
+    System.out.println("hello2");
     platforms.add(new Platform(width, height - height/7, BASE_SPEED));
 
+    System.out.println("hello3");
+    this.newPlatformWidth = platforms.get(0).platformWidth;
+
+    System.out.println("hello4");
+    this.newPlatformHeight = platforms.get(0).platformHeight*2;
+
+    System.out.println("hello5");
+    float ground = height - height/6.85f;
+
+    System.out.println("hello6");
     for(int i = 0; i < PLATFORM_NUM; i++) {
-      float positionX = platforms.get(i).position.x + platforms.get(i).platformWidth * 2;
-      float positionY = platforms.get(i).position.y - platforms.get(i).platformHeight;
 
-      platforms.add(new Platform(positionX, positionY, BASE_SPEED));
+    System.out.println("hello7");
+      float randomPlatforms = random(1, 20);
+    System.out.println("hello8");
+      float randomPlatformHeight = random(platforms.get(i).position.y - newPlatformHeight, ground);
+    System.out.println("hello9");
+      float positionX = platforms.get(i).position.x + newPlatformWidth;
+    System.out.println("hello10");
 
+      for(int j = 0; j < randomPlatforms; j++)
+        platforms.add(new Platform(positionX, randomPlatformHeight, BASE_SPEED));
+
+    System.out.println("hello11");
+        count++;
+        System.out.println(count);
     }
   }
 
