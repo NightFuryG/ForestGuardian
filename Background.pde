@@ -57,6 +57,10 @@ public class Background {
     }
   }
 
+  void backgroundAnchorSpeed() {
+
+  }
+
   //scale background so that they fit into the height of the display
   void resizeLayers() {
     for(Layer layer: layers) {

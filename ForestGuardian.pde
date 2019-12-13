@@ -82,6 +82,8 @@ ArrayList<Enemy> enemies;
 
 
 
+
+
 void setup() {
   fullScreen();
   frameRate(60);
@@ -124,6 +126,7 @@ void setup() {
 
   platGen = new PlatformGenerator();
 
+  spawnEnemies();
 
 
 }
@@ -132,21 +135,24 @@ void draw() {
   imageMode(CORNER);
   background(255);
   checkAttacking();
-  if(!attacking) {
+  if(!attacking && !guardian.colliding) {
     drawParallaxBackround();
   } else {
     background.draw(PARALLAX_NONE);
+    platGen.draw(PARALLAX_NONE);
   }
 
   playerMove();
   if(petAlive) {
     pet.draw();
   }
+
   unsummonPet();
   guardian.draw();
   attack();
   drawEnemies();
   enemyAttack();
+  updateEnemies();
   bar();
   checkCooldowns();
   detectAttackCollision();
@@ -157,23 +163,30 @@ void draw() {
 
 }
 
-
-//checks for whether an enemy is attacking to stop parallax mode for combat
-void checkAttacking() {
-  for(Enemy enemy : enemies) {
-    if(!enemy.idle) {
-      attacking = true;
+void spawnEnemies() {
+  for(Platform platform : platGen.platforms) {
+    if(platform.enemy == true) {
+      enemies.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - 1.3 * platform.platformHeight, platform));
     }
   }
-  if(enemies.size() == 0) {
-    attacking = false;
+  System.out.println(enemies.size());
+}
+
+void updateEnemies() {
+  for(Enemy enemy : enemies ) {
+    if(!attacking) {
+      enemy.position.x = enemy.platform.position.x;
+    }
   }
 }
+
 
 void updateAnchor() {
   if(attacking) {
     guardian.anchorLeft = false;
     guardian.anchorRight = false;
+    platGen.resetTransitionSpeed();
+    background.resetTransitionSpeed();
   }
 }
 
@@ -227,19 +240,16 @@ void summonPet() {
 //parallax method for adjusting guardian, enemis and background
 //uses a sliding window with in play area and uses hard and soft anchor points
 void drawParallaxBackround() {
-  if(!attacking) {
     if(guardian.anchorRight && guardian.idle) {
         background.cameraTransitionSpeed();
-        platGen.differentSpeed();
+        platGen.anchorSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = camera;
-        positionEnemies(camera);
     } else if (guardian.anchorLeft && guardian.idle) {
         background.cameraTransitionSpeed();
-        platGen.differentSpeed();
+        platGen.anchorSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -camera;
-        positionEnemies(-camera);
       } else if(guardian.right && guardian.anchorRight
         && !guardian.idle) {
           if(guardian.velocity.x == 0) {
@@ -249,7 +259,7 @@ void drawParallaxBackround() {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
           }
-          positionEnemies(-ENEMY_PARALLAX_POSITION);
+          ;
           parallax = PARALLAX_RIGHT;
     } else if (!guardian.right && guardian.anchorLeft
         && !guardian.idle){
@@ -260,7 +270,6 @@ void drawParallaxBackround() {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
           }
-          positionEnemies(ENEMY_PARALLAX_POSITION);
         parallax = PARALLAX_LEFT;
     } else {
         parallax = PARALLAX_NONE;
@@ -268,14 +277,13 @@ void drawParallaxBackround() {
     background.draw(parallax);
     platGen.draw(parallax);
   }
-}
 
 
 
 //adjust enemis for parallax
 void positionEnemies(int velocity) {
     for(Enemy enemy : enemies) {
-      enemy.velocity.x = velocity;
+      enemy.position.x += velocity;
     }
 }
 
@@ -323,6 +331,7 @@ void keyReleased() {
     } else {
       petCooldown = false;
     }
+
     summonCount = 0;
     summon = false;
     petCooldownTimer = millis();
@@ -543,7 +552,26 @@ void checkLanded() {
           }
         }
       }
-      if (i == 0) guardian.grounded = false;
+      if (i == 0) {
+        guardian.grounded = false;
+      }
+    }
+
+
+
+    //checks for whether an enemy is attacking to stop parallax mode for combat
+    void checkAttacking() {
+
+      int i = 0;
+      for(Enemy enemy : enemies) {
+        if(!enemy.idle) {
+          attacking = true;
+          i++;
+        }
+      }
+      if(i == 0) {
+        attacking = false;
+      }
     }
 
 void guardianCollision() {

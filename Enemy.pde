@@ -36,13 +36,14 @@ public class Enemy extends Entity {
   final int MELEE = 0;
 
   int ranged;
+  Platform platform;
 
 
-  Enemy(String path, float x, float y) {
+  Enemy(String path, float x, float y, Platform platform) {
     super(path, x ,y);
     this.ranged = checkType(path);
-
-
+    this.grounded = true;
+    this.platform = platform;
     resize(path);
   }
 

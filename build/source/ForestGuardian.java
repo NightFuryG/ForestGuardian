@@ -98,6 +98,8 @@ ArrayList<Enemy> enemies;
 
 
 
+
+
 public void setup() {
   
   frameRate(60);
@@ -140,6 +142,7 @@ public void setup() {
 
   platGen = new PlatformGenerator();
 
+  spawnEnemies();
 
 
 }
@@ -148,21 +151,24 @@ public void draw() {
   imageMode(CORNER);
   background(255);
   checkAttacking();
-  if(!attacking) {
+  if(!attacking && !guardian.colliding) {
     drawParallaxBackround();
   } else {
     background.draw(PARALLAX_NONE);
+    platGen.draw(PARALLAX_NONE);
   }
 
   playerMove();
   if(petAlive) {
     pet.draw();
   }
+
   unsummonPet();
   guardian.draw();
   attack();
   drawEnemies();
   enemyAttack();
+  updateEnemies();
   bar();
   checkCooldowns();
   detectAttackCollision();
@@ -173,23 +179,30 @@ public void draw() {
 
 }
 
-
-//checks for whether an enemy is attacking to stop parallax mode for combat
-public void checkAttacking() {
-  for(Enemy enemy : enemies) {
-    if(!enemy.idle) {
-      attacking = true;
+public void spawnEnemies() {
+  for(Platform platform : platGen.platforms) {
+    if(platform.enemy == true) {
+      enemies.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - 1.3f * platform.platformHeight, platform));
     }
   }
-  if(enemies.size() == 0) {
-    attacking = false;
+  System.out.println(enemies.size());
+}
+
+public void updateEnemies() {
+  for(Enemy enemy : enemies ) {
+    if(!attacking) {
+      enemy.position.x = enemy.platform.position.x;
+    }
   }
 }
+
 
 public void updateAnchor() {
   if(attacking) {
     guardian.anchorLeft = false;
     guardian.anchorRight = false;
+    platGen.resetTransitionSpeed();
+    background.resetTransitionSpeed();
   }
 }
 
@@ -243,19 +256,16 @@ public void summonPet() {
 //parallax method for adjusting guardian, enemis and background
 //uses a sliding window with in play area and uses hard and soft anchor points
 public void drawParallaxBackround() {
-  if(!attacking) {
     if(guardian.anchorRight && guardian.idle) {
         background.cameraTransitionSpeed();
-        platGen.differentSpeed();
+        platGen.anchorSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = camera;
-        positionEnemies(camera);
     } else if (guardian.anchorLeft && guardian.idle) {
         background.cameraTransitionSpeed();
-        platGen.differentSpeed();
+        platGen.anchorSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -camera;
-        positionEnemies(-camera);
       } else if(guardian.right && guardian.anchorRight
         && !guardian.idle) {
           if(guardian.velocity.x == 0) {
@@ -265,7 +275,7 @@ public void drawParallaxBackround() {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
           }
-          positionEnemies(-ENEMY_PARALLAX_POSITION);
+          ;
           parallax = PARALLAX_RIGHT;
     } else if (!guardian.right && guardian.anchorLeft
         && !guardian.idle){
@@ -276,7 +286,6 @@ public void drawParallaxBackround() {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
           }
-          positionEnemies(ENEMY_PARALLAX_POSITION);
         parallax = PARALLAX_LEFT;
     } else {
         parallax = PARALLAX_NONE;
@@ -284,14 +293,13 @@ public void drawParallaxBackround() {
     background.draw(parallax);
     platGen.draw(parallax);
   }
-}
 
 
 
 //adjust enemis for parallax
 public void positionEnemies(int velocity) {
     for(Enemy enemy : enemies) {
-      enemy.velocity.x = velocity;
+      enemy.position.x += velocity;
     }
 }
 
@@ -339,6 +347,7 @@ public void keyReleased() {
     } else {
       petCooldown = false;
     }
+
     summonCount = 0;
     summon = false;
     petCooldownTimer = millis();
@@ -559,7 +568,26 @@ public void checkLanded() {
           }
         }
       }
-      if (i == 0) guardian.grounded = false;
+      if (i == 0) {
+        guardian.grounded = false;
+      }
+    }
+
+
+
+    //checks for whether an enemy is attacking to stop parallax mode for combat
+    public void checkAttacking() {
+
+      int i = 0;
+      for(Enemy enemy : enemies) {
+        if(!enemy.idle) {
+          attacking = true;
+          i++;
+        }
+      }
+      if(i == 0) {
+        attacking = false;
+      }
     }
 
 public void guardianCollision() {
@@ -843,6 +871,10 @@ public class Background {
     }
   }
 
+  public void backgroundAnchorSpeed() {
+
+  }
+
   //scale background so that they fit into the height of the display
   public void resizeLayers() {
     for(Layer layer: layers) {
@@ -898,13 +930,14 @@ public class Enemy extends Entity {
   final int MELEE = 0;
 
   int ranged;
+  Platform platform;
 
 
-  Enemy(String path, float x, float y) {
+  Enemy(String path, float x, float y, Platform platform) {
     super(path, x ,y);
     this.ranged = checkType(path);
-
-
+    this.grounded = true;
+    this.platform = platform;
     resize(path);
   }
 
@@ -1669,13 +1702,14 @@ public class Platform {
   PVector position;
   PVector velocity;
   PImage tile;
+  boolean enemy;
   float transition;
   int platformWidth;
   int platformHeight;
 //
   final int RESIZE = 10;
 
-  Platform( float x, float y, float transition) {
+  Platform( float x, float y, float transition, boolean enemy) {
     this.tile = loadImage(imgPath);
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
@@ -1683,6 +1717,7 @@ public class Platform {
     this.platformWidth = tile.width;
     this.platformHeight = tile.height;
     this.transition = transition;
+    this.enemy = enemy;
   }
 
   public void platformShift(int direction) {
@@ -1712,10 +1747,19 @@ public class Platform {
 }
 class  PlatformGenerator {
 
-  final int PLATFORM_NUM = 50;
+  final int PLATFORM_NUM = 100;
   final int BASE_SPEED = 20;
+  final int BLOCK_ONE = 1;
+  final int BLOCK_TWO = 2;
+  final int BLOCK_FIVE = 5;
+  final int BLOCK_MAX = 15;
+  final float PERCENT_FORTY = 0.4f;
+  final float PERCENT_SEVENTY = 0.7f;
+  final float PERCENT_NINETY = 0.9f;
+  final float PERCENT_TEN = 0.1f;
+
   final int CAMERA_SPEED = width/38;
-  final int ANCHOR_SPEED = width/85;
+  final int ANCHOR_SPEED = width/60;
 
   ArrayList<Platform> platforms;
 
@@ -1733,10 +1777,9 @@ class  PlatformGenerator {
 
   public void generatePlatforms() {
 
-    platforms.add(new Platform(width, height - height/7, BASE_SPEED));
+    platforms.add(new Platform(width, height - height/5, BASE_SPEED, true));
     this.newPlatformWidth = platforms.get(0).platformWidth;
     this.newPlatformHeight = platforms.get(0).platformHeight*2;
-
 
     int last;
     float ground = height - height/6.85f;
@@ -1751,27 +1794,33 @@ class  PlatformGenerator {
 
       int numPlat = 0;
 
-      if(randomPlatforms <= 0.4f) {
-          numPlat = 1;
-      } else if (randomPlatforms > 0.4f && randomPlatforms <= 0.7f) {
-          numPlat = 2;
-      } else if (randomPlatforms > 0.7f && randomPlatforms <= 0.95f) {
-          numPlat = 5;
+      if(randomPlatforms <= PERCENT_FORTY) {
+          numPlat = BLOCK_ONE;
+      } else if (randomPlatforms > PERCENT_FORTY && randomPlatforms <= PERCENT_SEVENTY) {
+          numPlat = BLOCK_TWO;
+      } else if (randomPlatforms > PERCENT_SEVENTY  && randomPlatforms <= PERCENT_NINETY) {
+          numPlat = BLOCK_FIVE;
       } else {
-        numPlat = 15;
+        numPlat = BLOCK_MAX;
       }
 
-      for(int j = 0; j < numPlat; j++)
-        platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, BASE_SPEED));
+      for(int j = 0; j < numPlat; j++) {
+        if (numPlat == BLOCK_MAX && j == numPlat - 1) {
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, BASE_SPEED, true));
+        } else {
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, BASE_SPEED, false));
+        }
+      }
     }
   }
 
-  public void differentSpeed() {
+  public void anchorSpeed() {
     if(reset) {
       for(Platform platform : platforms) {
         platform.transition = ANCHOR_SPEED;
-        System.out.println(ANCHOR_SPEED);
+        System.out.println("ANCHOR : " + ANCHOR_SPEED);
       }
+      reset = false;
     }
   }
 
@@ -1779,6 +1828,7 @@ class  PlatformGenerator {
     if(!reset) {
       for(Platform platform : platforms) {
         platform.transition = BASE_SPEED;
+        System.out.println("RESET : " + BASE_SPEED);
       }
       reset = true;
     }
@@ -1787,7 +1837,7 @@ class  PlatformGenerator {
   public void cameraTransitionSpeed() {
     if(reset) {
       for(Platform platform : platforms) {
-        platform.transition = CAMERA_SPEED;
+        platform.transition = width/38;
       }
       reset = false;
     }
