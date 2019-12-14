@@ -113,9 +113,7 @@ public class Guardian extends Entity {
   //basic move right
   void moveRight() {
 
-    System.out.println("MEE2E");
     if(!this.colliding) {
-      System.out.println("RIGHT COLLIDE" + this.colliding);
       if(position.x + width/GUARDIAN_WIDTH <= displayWidth) {
           velocity.x += GUARDIAN_SPEED;
         } else{
@@ -132,10 +130,8 @@ public class Guardian extends Entity {
   //basic move left
   void moveLeft() {
 
-    System.out.println("MEEE");
     if(!this.colliding) {
 
-      System.out.println("left");
       if(position.x >= 0 ) {
         velocity.x -= GUARDIAN_SPEED;
       } else {

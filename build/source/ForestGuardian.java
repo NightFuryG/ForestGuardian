@@ -20,7 +20,7 @@ final int ATTACK_WIDTH = 40;
 final int GUARDIAN_HEIGHT = 20;
 final int GUARDIAN_FEET = 22;
 final int ATTACK_DISTANCE = 40;
-final int RANGED_ATTACK_DISTANCE = 3;
+final float RANGED_ATTACK_DISTANCE = 1.6f;
 
 final int BAR_WIDTH = 20;
 final int BAR_LEFT = 150;
@@ -182,7 +182,7 @@ public void draw() {
 public void spawnEnemies() {
   for(Platform platform : platGen.platforms) {
     if(platform.enemy == true) {
-      enemies.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - 1.3f * platform.platformHeight, platform));
+      enemies.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - 1.3f * platform.platformHeight, platform));
     }
   }
   System.out.println(enemies.size());
@@ -480,21 +480,20 @@ public void enemyAttack() {
   } else {
       if(enemy.right && guardian.position.x < enemy.position.x + width/RANGED_ATTACK_DISTANCE) {
         enemy.attack = true;
+        enemy.idle = false;
         enemy.velocity.x = 0;
       } else if(!enemy.right && guardian.position.x > enemy.position.x - width/RANGED_ATTACK_DISTANCE) {
         enemy.attack = true;
-        enemy.velocity.x = 0;
-      } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
-        enemy.idle = true;
-        enemy.attack = false;
-      } else {
         enemy.idle = false;
+        enemy.velocity.x = 0;
+      } else {
+        enemy.idle = true;
       }
     }
 
     //change magic numbers
     if(enemy.attack) {
-      if(frameCount % 10 == 0) {
+      if(frameCount % 50 == 0) {
         if(enemy.ranged == 1) {
           if(enemy.right) {
             attacks.add(new Attack(enemy.position.x, enemy.position.y,
@@ -1093,7 +1092,7 @@ public class Enemy extends Entity {
 
   //attack and pursue guardian
   public void attack() {
-    if(!attack) {
+    if(!attack && ranged ==0) {
       if(right) {
         this.velocity.x = ENEMY_SPEED;
       } else {
@@ -1390,9 +1389,7 @@ public class Guardian extends Entity {
   //basic move right
   public void moveRight() {
 
-    System.out.println("MEE2E");
     if(!this.colliding) {
-      System.out.println("RIGHT COLLIDE" + this.colliding);
       if(position.x + width/GUARDIAN_WIDTH <= displayWidth) {
           velocity.x += GUARDIAN_SPEED;
         } else{
@@ -1409,10 +1406,8 @@ public class Guardian extends Entity {
   //basic move left
   public void moveLeft() {
 
-    System.out.println("MEEE");
     if(!this.colliding) {
 
-      System.out.println("left");
       if(position.x >= 0 ) {
         velocity.x -= GUARDIAN_SPEED;
       } else {
@@ -1818,7 +1813,6 @@ class  PlatformGenerator {
     if(reset) {
       for(Platform platform : platforms) {
         platform.transition = ANCHOR_SPEED;
-        System.out.println("ANCHOR : " + ANCHOR_SPEED);
       }
       reset = false;
     }
@@ -1828,7 +1822,6 @@ class  PlatformGenerator {
     if(!reset) {
       for(Platform platform : platforms) {
         platform.transition = BASE_SPEED;
-        System.out.println("RESET : " + BASE_SPEED);
       }
       reset = true;
     }

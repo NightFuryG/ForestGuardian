@@ -71,7 +71,6 @@ class  PlatformGenerator {
     if(reset) {
       for(Platform platform : platforms) {
         platform.transition = ANCHOR_SPEED;
-        System.out.println("ANCHOR : " + ANCHOR_SPEED);
       }
       reset = false;
     }
@@ -81,7 +80,6 @@ class  PlatformGenerator {
     if(!reset) {
       for(Platform platform : platforms) {
         platform.transition = BASE_SPEED;
-        System.out.println("RESET : " + BASE_SPEED);
       }
       reset = true;
     }

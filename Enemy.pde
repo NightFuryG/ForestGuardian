@@ -199,7 +199,7 @@ public class Enemy extends Entity {
 
   //attack and pursue guardian
   void attack() {
-    if(!attack) {
+    if(!attack && ranged ==0) {
       if(right) {
         this.velocity.x = ENEMY_SPEED;
       } else {

@@ -4,7 +4,7 @@ final int ATTACK_WIDTH = 40;
 final int GUARDIAN_HEIGHT = 20;
 final int GUARDIAN_FEET = 22;
 final int ATTACK_DISTANCE = 40;
-final int RANGED_ATTACK_DISTANCE = 3;
+final float RANGED_ATTACK_DISTANCE = 1.6;
 
 final int BAR_WIDTH = 20;
 final int BAR_LEFT = 150;
@@ -166,7 +166,7 @@ void draw() {
 void spawnEnemies() {
   for(Platform platform : platGen.platforms) {
     if(platform.enemy == true) {
-      enemies.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - 1.3 * platform.platformHeight, platform));
+      enemies.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - 1.3 * platform.platformHeight, platform));
     }
   }
   System.out.println(enemies.size());
@@ -464,21 +464,20 @@ void enemyAttack() {
   } else {
       if(enemy.right && guardian.position.x < enemy.position.x + width/RANGED_ATTACK_DISTANCE) {
         enemy.attack = true;
+        enemy.idle = false;
         enemy.velocity.x = 0;
       } else if(!enemy.right && guardian.position.x > enemy.position.x - width/RANGED_ATTACK_DISTANCE) {
         enemy.attack = true;
-        enemy.velocity.x = 0;
-      } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
-        enemy.idle = true;
-        enemy.attack = false;
-      } else {
         enemy.idle = false;
+        enemy.velocity.x = 0;
+      } else {
+        enemy.idle = true;
       }
     }
 
     //change magic numbers
     if(enemy.attack) {
-      if(frameCount % 10 == 0) {
+      if(frameCount % 50 == 0) {
         if(enemy.ranged == 1) {
           if(enemy.right) {
             attacks.add(new Attack(enemy.position.x, enemy.position.y,
