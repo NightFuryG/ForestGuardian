@@ -10,7 +10,7 @@ public class Enemy extends Entity {
   final int ATTACK_RESIZE_1 = width/23;
   final int JUMP_RESIZE_1 = width/20;
   final int RUN_RESIZE_1 = width/25;
-  final int DIE_RESIZE_1 = width/25;
+  final int DIE_RESIZE_1 = width/17;
 
   final int IDLE_RESIZE_2 = width/25;
   final int ATTACK_RESIZE_2 = width/24;

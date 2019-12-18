@@ -2,8 +2,9 @@
 public class Background {
 
   final String PNG = ".png";
-  final int CAMERA = displayWidth/38;
-  final int ANCHOR = width/72;
+  final int CAMERA = 34;
+  final int ANCHOR = 85;
+  final int BASE = 80;
 
   final int BASE_MULTIPLIER = 2;
   final int CAMERA_MULTIPLIER = 5;
@@ -14,6 +15,7 @@ public class Background {
   int resize = height + height/4;
   int layerTotal;
   String path;
+  int cameraType;
 
   boolean reset;
 
@@ -26,7 +28,7 @@ public class Background {
     this.layers = new ArrayList<Layer>();
     initialiseLayers();
     resizeLayers();
-    this.reset = true;
+    this.cameraType = BASE;
   }
 
   //add all layers into the ArrayList of layers
@@ -38,27 +40,33 @@ public class Background {
 
   //transition speed of layers set to default
   void resetTransitionSpeed() {
-    if(!reset) {
+    if(cameraType != BASE) {
       for(int i = 0; i < layerTotal; i++) {
           layers.get(i).transition = i*BASE_MULTIPLIER;
       }
-      reset = true;
+      cameraType = BASE;
     }
   }
 
   //increase the transition speed for camera change
   void cameraTransitionSpeed() {
     int split = CAMERA/(layerTotal);
-    if(reset) {
+    if(cameraType != CAMERA) {
       for(int i = 0; i < layerTotal; i++) {
         layers.get(i).transition = i*split;
       }
-      reset = false;
+      cameraType = CAMERA;
     }
   }
 
   void backgroundAnchorSpeed() {
-
+    int split = ANCHOR/(layerTotal);
+    if(cameraType != ANCHOR) {
+      for(int i = 0; i < layerTotal; i++) {
+        layers.get(i).transition = i*split;
+      }
+        cameraType = ANCHOR;
+    }
   }
 
   //scale background so that they fit into the height of the display

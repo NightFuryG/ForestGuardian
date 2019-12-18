@@ -34,7 +34,7 @@ public class Animation {
 
 
   //animate by playing frames in order using a stopwatch
-  void draw(PVector position) {
+  void draw(PVector position, int health) {
     if(millis() > prevTime + deltaTime) {
       currentFrame++;
       if(currentFrame > TOTAL_FRAMES - 1) {
@@ -43,10 +43,21 @@ public class Animation {
       }
       prevTime = millis();
     }
+
+    pushMatrix();
+
     image(animation.get(currentFrame), position.x, position.y );
+
+    if(health < 15) {
+    tint(255, 0, 0, 100);
+    image(animation.get(currentFrame), position.x, position.y );
+    tint(255,255);
+    }
+
+    popMatrix();
   }
 
-  void drawOnce(PVector position) {
+  void drawOnce(PVector position, int health) {
     if(millis() > prevTime + deltaTime) {
       if(!animated) {
         currentFrame++;
@@ -57,7 +68,13 @@ public class Animation {
       }
       prevTime = millis();
     }
+    pushMatrix();
+
     image(animation.get(currentFrame), position.x, position.y );
+    tint(255,0,0,100);
+    image(animation.get(currentFrame), position.x, position.y );
+    tint(255,255);
+    popMatrix();
   }
 
 }

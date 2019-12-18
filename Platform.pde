@@ -48,7 +48,4 @@ public class Platform {
   void draw() {
     image(tile, position.x, position.y);
   }
-
-
-
 }

@@ -183,11 +183,11 @@ public class Entity {
 
   //play an animation
   void animate(String animation) {
-    animations.get(animation).draw(position);
+    animations.get(animation).draw(position, this.health);
   }
 
   void animateOnce(String animation) {
-    animations.get(animation).drawOnce(position);
+    animations.get(animation).drawOnce(position, this.health);
   }
 
   //draw

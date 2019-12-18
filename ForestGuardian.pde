@@ -15,10 +15,14 @@ final int LINE_ONE = 30;
 final int LINE_TWO = 100;
 final int LINE_HEIGHT = 100;
 final int LINE_SUCCESS = 200;
-final int LOWER_SUCCESS = 75;
-final int UPPER_SUCCESS = 85;
+final int LOWER_SUCCESS = 70;
+final int UPPER_SUCCESS = 90;
 
 final int ENEMY_PARALLAX_POSITION = 20;
+
+final int START_GUARDIAN_ATTACK = 50;
+final int START_ENEMY_ATTACK = 10;
+final int START_ENEMY_MELEE = 1;
 
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
@@ -35,6 +39,8 @@ final float HEALTH_HEIGHT_SCALE = 0.925;
 final int HEALTH_DECREASE_SCALE = 4;
 final int HEALTH_HEIGHT = 41;
 final float HEALTH_WIDTH = 4.2;
+
+final int ARROW_HEIGHT_ADJUST = 60;
 
 final int BACKGROUND_ONE_LAYERS = 11;
 
@@ -60,7 +66,6 @@ final float ENT_GROUND_PROP = 6;
 final float GROUND_TILE = 12;
 
 
-
 Background background;
 Entity guardian;
 Entity pet;
@@ -80,6 +85,9 @@ int camera;
 int petTimer;
 int petCooldownTimer;
 int guardianAttacks;
+int guardianAttackDamage;
+int enemyAttackDamage;
+int enemyMeleeDamage;
 Platform platform;
 PlatformGenerator platGen;
 
@@ -112,6 +120,12 @@ void setup() {
   summonCount = 0;
 
   guardianAttacks = 0;
+
+  guardianAttackDamage = START_GUARDIAN_ATTACK;
+
+  enemyAttackDamage = START_ENEMY_ATTACK;
+
+  enemyMeleeDamage = START_ENEMY_MELEE;
 
   petTimer = 0;
 
@@ -172,7 +186,6 @@ void draw() {
   checkLanded();
   checkGrounded();
   guardianCollision();
-
   removeDeadEnemies();
 }
 
@@ -189,7 +202,7 @@ void showHealthBar() {
 void spawnEnemies() {
   for(Platform platform : platGen.platforms) {
     if(platform.enemy == true) {
-      enemies.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - 1.3 * platform.platformHeight, platform));
+      enemies.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - 1.3 * platform.platformHeight, platform));
     }
   }
 }
@@ -225,6 +238,8 @@ void updatePet() {
 */
 void bar() {
   if(!petAlive && summon) {
+    pushMatrix();
+    rectMode(CORNER);
     fill(255,255,255, 100);
     rect(guardian.position.x - width/BAR_LEFT, guardian.position.y - width/BAR_ABOVE, width/BAR_WIDTH, width/BAR_HEIGHT);
     fill(255 -  2 * summonCount,2 * summonCount, 0);
@@ -234,6 +249,7 @@ void bar() {
     fill(0,0,0,0);
     strokeWeight(3);
     rect(guardian.position.x + width/LINE_ONE, guardian.position.y - width/BAR_ABOVE, width/LINE_SUCCESS, width/BAR_HEIGHT);
+    popMatrix();
   }
 }
 
@@ -351,7 +367,7 @@ void keyReleased() {
     j = false;
   } else if (key == '1') {
 
-    if(summonCount > LOWER_SUCCESS && summonCount < UPPER_SUCCESS ) {
+    if(summonCount >= LOWER_SUCCESS && summonCount <= UPPER_SUCCESS ) {
       summonPet();
       System.out.println("success");
     } else {
@@ -454,7 +470,6 @@ void removeGuardianAttack() {
         guardianAttacks = 0;
       }
     }
-
   }
 }
 
@@ -484,9 +499,11 @@ void enemyAttack() {
     if(enemy.right && guardian.position.x < enemy.position.x + width/ATTACK_DISTANCE) {
       enemy.attack = true;
       enemy.velocity.x = 0;
+      detectMeleeAttack(enemy);
     } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
       enemy.attack = true;
       enemy.velocity.x = 0;
+      detectMeleeAttack(enemy);
     } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
       enemy.idle = true;
       enemy.attack = false;
@@ -512,11 +529,11 @@ void enemyAttack() {
       if(frameCount % 50 == 0) {
         if(enemy.ranged == 1) {
           if(enemy.right) {
-            attacks.add(new Attack(enemy.position.x, enemy.position.y,
-              guardian.position.x, guardian.position.y, true, 1));
+            attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
+              guardian.position.x, guardian.position.y + width/GUARDIAN_HEIGHT/2, true, 1));
           } else {
-            attacks.add(new Attack(enemy.position.x, enemy.position.y,
-              guardian.position.x, guardian.position.y, true, 1));
+            attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
+              guardian.position.x, guardian.position.y + width/GUARDIAN_HEIGHT/2, false, 1));
           }
         } else if(enemy.ranged == 2) {
           if(enemy.right) {
@@ -524,17 +541,23 @@ void enemyAttack() {
               guardian.position.x, calculateAimHeight(enemy), true, 2));
           } else {
             attacks.add(new Attack(enemy.position.x, enemy.position.y,
-              guardian.position.x, calculateAimHeight(enemy), true, 2));
+              guardian.position.x, calculateAimHeight(enemy), false, 2));
           }
         }
       }
     }
-
       if(!enemy.idle) {
       enemy.attack();
       }
     }
   }
+}
+
+void detectMeleeAttack(Enemy enemy) {
+  if(guardian.position.y + width/GUARDIAN_HEIGHT/2 > enemy.position.y &&
+     guardian.position.y < enemy.position.y + width/GUARDIAN_HEIGHT) {
+       guardian.health -= enemyMeleeDamage;
+     }
 }
 
 
@@ -577,7 +600,7 @@ void checkLanded() {
       // popMatrix();
 
 
-        if(guardianVertPosition >= platform.position.y && guardian.position.y < platform.position.y) {
+        if(guardianVertPosition >= platform.position.y && guardian.position.y + width/GUARDIAN_FEET/2 < platform.position.y) {
           if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
             guardian.grounded = true;
             guardian.position.y = platform.position.y - width/GUARDIAN_FEET;
@@ -660,24 +683,38 @@ void guardianCollision() {
 //simplified to point rectangle collision
 void detectAttackCollision() {
   for (Attack attack : new ArrayList<Attack>(attacks)) {
-
     float attackX = attack.position.x + attack.attackRight.width/2;
     float attackY = attack.position.y + attack.attackRight.height/2;
 
-    for(Enemy enemy : new ArrayList<Enemy>(enemies)) {
 
-      float enemyX = enemy.position.x + width/GUARDIAN_WIDTH;
-      float enemyY = enemy.position.y + width/GUARDIAN_HEIGHT;
 
-      if( attackX < enemyX && attackX > enemy.position.x ) {
-        if(attackY < enemyY && attackY > enemy.position.y) {
-          if(attack.attackType == 0) {
-            enemy.health -= 50;
-            attacks.remove(attack);
-            guardianAttacks--;
+    if(attack.attackType == 0) {
+
+      for(Enemy enemy : new ArrayList<Enemy>(enemies)) {
+
+        float enemyX = enemy.position.x + width/GUARDIAN_WIDTH;
+        float enemyY = enemy.position.y + width/GUARDIAN_FEET;
+
+        if( attackX < enemyX && attackX > enemy.position.x ) {
+          if(attackY < enemyY && attackY > enemy.position.y) {
+              enemy.health -= guardianAttackDamage;
+              attacks.remove(attack);
+              guardianAttacks--;
           }
         }
       }
+    } else {
+
+        float guardianX = guardian.position.x + width/GUARDIAN_WIDTH;
+        float guardianY = guardian.position.y + width/GUARDIAN_FEET;
+
+          if(attackX < guardianX && attackX > guardian.position.x ) {
+
+            if(attackY < guardianY && attackY > guardian.position.y) {
+              guardian.health -= enemyAttackDamage;
+              attacks.remove(attack);
+            }
+          }
     }
   }
 }

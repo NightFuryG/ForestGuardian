@@ -9,8 +9,6 @@ public class Attack {
   PImage arrowRight = loadImage("animations/enemy/attack/arrowRight.png");
   PImage arrowLeft = loadImage("animations/enemy/attack/arrowLeft.png");
 
-
-
   final int ATTACK_SPEED = width/100;
   final int ATTACK_SIZE = width/20;
   final int MAX_DISTANCE = width/10;
@@ -68,7 +66,7 @@ public class Attack {
     attackLeft.resize(ATTACK_SIZE, 0);
     rock.resize(ATTACK_SIZE/4, 0);
     arrowLeft.resize(ATTACK_SIZE/2, 0);
-    arrowLeft.resize(ATTACK_SIZE/2, 0);
+    arrowRight.resize(ATTACK_SIZE/2, 0);
   }
 
   //update position by adding acceleration to velocity and velocity to position
@@ -95,7 +93,7 @@ public class Attack {
         }
         break;
       case ENEMY_ARROW_ATTACK:
-        if(!right) {
+        if(right) {
           image(arrowRight, this.position.x, this.position.y);
         } else {
           image(arrowLeft, this.position.x, this.position.y);
