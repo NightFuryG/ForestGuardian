@@ -202,7 +202,9 @@ public void draw() {
   checkLanded();
   checkGrounded();
   guardianCollision();
+  stopEnemiesFalling();
   removeDeadEnemies();
+  drawPlatformEdges();
 }
 
 public void showHealthBar() {
@@ -385,10 +387,8 @@ public void keyReleased() {
 
     if(summonCount >= LOWER_SUCCESS && summonCount <= UPPER_SUCCESS ) {
       summonPet();
-      System.out.println("success");
     } else {
       petCooldown = false;
-      System.out.println("fail");
     }
 
     summonCount = 0;
@@ -452,22 +452,23 @@ public void playerMove() {
 public void mousePressed() {
   if(mouseButton == LEFT) {
     guardian.attack = true;
-    if(guardianAttacks == 0)
+    if(guardianAttacks == 0) {
       if(guardian.right) {
-        if(mouseX < guardian.position.x) {
-          attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
-        } else {
-          attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true, 0));
-        }
-      } else {
-        if(mouseX > guardian.position.x) {
+            if(mouseX < guardian.position.x) {
+              attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
+            } else {
+              attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true, 0));
+            }
+          } else {
+            if(mouseX > guardian.position.x) {
 
-          attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true, 0));
-        } else {
-          attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
+              attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true, 0));
+            } else {
+              attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
+            }
+          }
+          guardianAttacks++;
         }
-      }
-      guardianAttacks++;
   }
 }
 
@@ -514,10 +515,12 @@ public void enemyAttack() {
   if(enemy.ranged == 0) {
     if(enemy.right && guardian.position.x < enemy.position.x + width/ATTACK_DISTANCE) {
       enemy.attack = true;
+      enemy.idle = false;
       enemy.velocity.x = 0;
       detectMeleeAttack(enemy);
     } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
       enemy.attack = true;
+      enemy.idle = false;
       enemy.velocity.x = 0;
       detectMeleeAttack(enemy);
     } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
@@ -525,6 +528,7 @@ public void enemyAttack() {
       enemy.attack = false;
     } else {
       enemy.idle = false;
+      }
     }
   } else {
       if(enemy.right && guardian.position.x < enemy.position.x + width/RANGED_ATTACK_DISTANCE) {
@@ -566,12 +570,11 @@ public void enemyAttack() {
       enemy.attack();
       }
     }
-  }
 }
 
 public void detectMeleeAttack(Enemy enemy) {
-  if(guardian.position.y + width/GUARDIAN_HEIGHT/2 > enemy.position.y &&
-     guardian.position.y < enemy.position.y + width/GUARDIAN_HEIGHT) {
+  if(guardian.position.y + width/GUARDIAN_FEET/3 > enemy.position.y &&
+     guardian.position.y < enemy.position.y + width/GUARDIAN_FEET/3) {
        guardian.health -= enemyMeleeDamage;
      }
 }
@@ -628,6 +631,96 @@ public void checkLanded() {
         guardian.grounded = false;
       }
     }
+
+public void stopEnemiesFalling() {
+
+  if(attacking){
+
+    for(Enemy enemy : enemies) {
+
+      if(!enemy.idle) {
+
+        float enemyVertPosition = enemy.position.y + width/GUARDIAN_FEET;
+        float enemyHoriPosition = enemy.position.x + width/(GUARDIAN_WIDTH);
+        int i = 0;
+        int j = 0;
+
+
+      for(Platform platform : platGen.platforms) {
+
+        if(enemy.position.x > platform.position.x && enemyHoriPosition < platform.position.x + platform.platformWidth) {
+          if(enemy.right && platform.rightEdge) {
+            if(enemyHoriPosition + 2 * enemy.velocity.x > platform.position.x + platform.platformWidth) {
+              enemy.velocity.x = 0;
+              enemy.position.x = platform.position.x + platform.platformWidth - width/GUARDIAN_WIDTH;
+              i++;
+              System.out.println(
+                "me2"
+                );
+            }
+          }
+
+          if(!enemy.right && platform.leftEdge) {
+            if(enemy.position.x +  2 * enemy.velocity.x < platform.position.x) {
+              enemy.velocity.x = 0;
+              enemy.position.x = platform.position.x;
+              j++;
+
+              System.out.println("ME");
+            }
+          }
+
+          if(i > 0) {
+            enemy.onRightEdge = true;
+          } else {
+            enemy.onRightEdge = false;
+          }
+
+          if(j > 0) {
+            enemy.onLeftEdge = true;
+          } else {
+            enemy.onLeftEdge = false;
+          }
+
+
+
+        }
+
+
+
+
+
+
+        //   if(enemyVertPosition >= platform.position.y && enemy.position.y + width/GUARDIAN_FEET/2 < platform.position.y) {
+        //     if(enemy.position.x + 2 * enemy.velocity.x < platform.position.x && enemyHoriPosition  + 2 * enemy.velocity.x > platform.position.x + platform.platformWidth) {
+        //       enemy.onEdge = true;
+        //
+        //       i++;
+        //     }
+        //   }
+        // }
+        // if (i == 0) {
+        //   enemy.onEdge = false;
+        // }
+
+        }
+      }
+    }
+  }
+}
+
+
+public void drawPlatformEdges() {
+  for(Platform platform : platGen.platforms) {
+    if(platform.leftEdge){
+      line(platform.position.x, 0, platform.position.x, height);
+    }
+    if(platform.rightEdge) {
+      line(platform.position.x + platform.platformWidth, 0, platform.position.x + platform.platformWidth, height);
+    }
+
+  }
+}
 
 
 
@@ -701,8 +794,6 @@ public void detectAttackCollision() {
   for (Attack attack : new ArrayList<Attack>(attacks)) {
     float attackX = attack.position.x + attack.attackRight.width/2;
     float attackY = attack.position.y + attack.attackRight.height/2;
-
-
 
     if(attack.attackType == 0) {
 
@@ -1274,9 +1365,9 @@ public class Enemy extends Entity {
   //attack and pursue guardian
   public void attack() {
     if(!attack && ranged ==0) {
-      if(right) {
+      if(right && !this.onRightEdge) {
         this.velocity.x = ENEMY_SPEED;
-      } else {
+      } else if(!right && !this.onLeftEdge){
         this.velocity.x = -ENEMY_SPEED;
       }
     }
@@ -1327,6 +1418,8 @@ public class Entity {
   boolean alive;
   boolean colliding;
   boolean playDead;
+  boolean onLeftEdge;
+  boolean onRightEdge;
 
   int health;
 
@@ -1361,6 +1454,8 @@ public class Entity {
     this.attack = false;
     this.grounded = true;
 
+    this.onLeftEdge = false;
+    this.onRightEdge = false;
     this.anchorLeft = false;
     this.anchorRight = false;
 
@@ -1424,13 +1519,13 @@ public class Entity {
   public void display() {
 
     if(alive) {
-      if(attack && right) {
+      if(attack && right && !idle) {
         animate(ATTACK_RIGHT);
         if(animations.get(ATTACK_RIGHT).animated) {
             attack = false;
             animations.get(ATTACK_RIGHT).animated = false;
         }
-      } else if (attack && !right) {
+      } else if (attack && !right &&!idle) {
           animate(ATTACK_LEFT);
           if(animations.get(ATTACK_LEFT).animated) {
             attack = false;
@@ -1440,13 +1535,17 @@ public class Entity {
         animate(JUMP_RIGHT);
       } else if (jump && !right) {
         animate(JUMP_LEFT);
+      } else if ((onLeftEdge || onRightEdge) && right && !idle) {
+        animate(IDLE_RIGHT);
+      } else if ((onLeftEdge || onRightEdge)&& !right && !idle) {
+        animate(IDLE_LEFT);
       } else if (idle && right) {
         animate(IDLE_RIGHT);
       } else if(idle && !right) {
         animate(IDLE_LEFT);
-      } else if(!idle && right) {
+      } else if(!idle && right && !onRightEdge) {
         animate(RUN_RIGHT);
-      } else if(!idle && !right) {
+      } else if(!idle && !right && !onLeftEdge) {
         animate(RUN_LEFT);
       }
     } else {
@@ -1927,10 +2026,12 @@ public class Platform {
   float transition;
   int platformWidth;
   int platformHeight;
+  boolean leftEdge;
+  boolean rightEdge;
 //
   final int RESIZE = 10;
 
-  Platform( float x, float y, float transition, boolean enemy) {
+  Platform( float x, float y, float transition, boolean enemy, boolean leftEdge, boolean rightEdge) {
     this.tile = loadImage(imgPath);
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
@@ -1939,6 +2040,8 @@ public class Platform {
     this.platformHeight = tile.height;
     this.transition = transition;
     this.enemy = enemy;
+    this.leftEdge = leftEdge;
+    this.rightEdge = rightEdge;
   }
 
   public void platformShift(int direction) {
@@ -1997,7 +2100,7 @@ class  PlatformGenerator {
 
   public void generatePlatforms() {
 
-    platforms.add(new Platform(width, height - height/5, width/BASE_SPEED, true));
+    platforms.add(new Platform(width, height - height/5, width/BASE_SPEED, true, true, true));
     this.newPlatformWidth = platforms.get(0).platformWidth;
     this.newPlatformHeight = platforms.get(0).platformHeight*2;
 
@@ -2026,9 +2129,15 @@ class  PlatformGenerator {
 
       for(int j = 0; j < numPlat; j++) {
         if (numPlat == BLOCK_MAX && j == numPlat - 1) {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true));
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
+        } else if(j == 0 && numPlat == 1) {
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, true));
+        } else if (j == 0) {
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, false));
+        } else if(j == numPlat - 1) {
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, true));
         } else {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false));
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, false));
         }
       }
     }

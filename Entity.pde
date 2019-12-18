@@ -41,6 +41,8 @@ public class Entity {
   boolean alive;
   boolean colliding;
   boolean playDead;
+  boolean onLeftEdge;
+  boolean onRightEdge;
 
   int health;
 
@@ -75,6 +77,8 @@ public class Entity {
     this.attack = false;
     this.grounded = true;
 
+    this.onLeftEdge = false;
+    this.onRightEdge = false;
     this.anchorLeft = false;
     this.anchorRight = false;
 
@@ -138,13 +142,13 @@ public class Entity {
   void display() {
 
     if(alive) {
-      if(attack && right) {
+      if(attack && right && !idle) {
         animate(ATTACK_RIGHT);
         if(animations.get(ATTACK_RIGHT).animated) {
             attack = false;
             animations.get(ATTACK_RIGHT).animated = false;
         }
-      } else if (attack && !right) {
+      } else if (attack && !right &&!idle) {
           animate(ATTACK_LEFT);
           if(animations.get(ATTACK_LEFT).animated) {
             attack = false;
@@ -154,13 +158,17 @@ public class Entity {
         animate(JUMP_RIGHT);
       } else if (jump && !right) {
         animate(JUMP_LEFT);
+      } else if ((onLeftEdge || onRightEdge) && right && !idle) {
+        animate(IDLE_RIGHT);
+      } else if ((onLeftEdge || onRightEdge)&& !right && !idle) {
+        animate(IDLE_LEFT);
       } else if (idle && right) {
         animate(IDLE_RIGHT);
       } else if(idle && !right) {
         animate(IDLE_LEFT);
-      } else if(!idle && right) {
+      } else if(!idle && right && !onRightEdge) {
         animate(RUN_RIGHT);
-      } else if(!idle && !right) {
+      } else if(!idle && !right && !onLeftEdge) {
         animate(RUN_LEFT);
       }
     } else {

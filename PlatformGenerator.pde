@@ -32,7 +32,7 @@ class  PlatformGenerator {
 
   void generatePlatforms() {
 
-    platforms.add(new Platform(width, height - height/5, width/BASE_SPEED, true));
+    platforms.add(new Platform(width, height - height/5, width/BASE_SPEED, true, true, true));
     this.newPlatformWidth = platforms.get(0).platformWidth;
     this.newPlatformHeight = platforms.get(0).platformHeight*2;
 
@@ -61,9 +61,15 @@ class  PlatformGenerator {
 
       for(int j = 0; j < numPlat; j++) {
         if (numPlat == BLOCK_MAX && j == numPlat - 1) {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true));
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
+        } else if(j == 0 && numPlat == 1) {
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, true));
+        } else if (j == 0) {
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, false));
+        } else if(j == numPlat - 1) {
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, true));
         } else {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false));
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, false));
         }
       }
     }

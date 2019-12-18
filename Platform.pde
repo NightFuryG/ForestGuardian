@@ -13,10 +13,12 @@ public class Platform {
   float transition;
   int platformWidth;
   int platformHeight;
+  boolean leftEdge;
+  boolean rightEdge;
 //
   final int RESIZE = 10;
 
-  Platform( float x, float y, float transition, boolean enemy) {
+  Platform( float x, float y, float transition, boolean enemy, boolean leftEdge, boolean rightEdge) {
     this.tile = loadImage(imgPath);
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
@@ -25,6 +27,8 @@ public class Platform {
     this.platformHeight = tile.height;
     this.transition = transition;
     this.enemy = enemy;
+    this.leftEdge = leftEdge;
+    this.rightEdge = rightEdge;
   }
 
   void platformShift(int direction) {
