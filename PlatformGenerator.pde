@@ -1,7 +1,7 @@
 class  PlatformGenerator {
 
   final int PLATFORM_NUM = 100;
-  final int BASE_SPEED = 20;
+
   final int BLOCK_ONE = 1;
   final int BLOCK_TWO = 2;
   final int BLOCK_FIVE = 5;
@@ -11,26 +11,28 @@ class  PlatformGenerator {
   final float PERCENT_NINETY = 0.9;
   final float PERCENT_TEN = 0.1;
 
-  final int CAMERA_SPEED = width/38;
-  final int ANCHOR_SPEED = width/60;
+  final int CAMERA_SPEED = 34;
+  final int ANCHOR_SPEED = 85;
+  final int BASE_SPEED = 80;
 
   ArrayList<Platform> platforms;
 
   int numberOfPlatforms;
   int newPlatformHeight;
   int newPlatformWidth;
-  boolean reset;
+
+  int cameraType;
 
   PlatformGenerator() {
    this.platforms  = new ArrayList<Platform>();
     this.numberOfPlatforms = PLATFORM_NUM;
     generatePlatforms();
-    this.reset = true;
+    this.cameraType = BASE_SPEED;
   }
 
   void generatePlatforms() {
 
-    platforms.add(new Platform(width, height - height/5, BASE_SPEED, true));
+    platforms.add(new Platform(width, height - height/5, width/BASE_SPEED, true));
     this.newPlatformWidth = platforms.get(0).platformWidth;
     this.newPlatformHeight = platforms.get(0).platformHeight*2;
 
@@ -59,38 +61,47 @@ class  PlatformGenerator {
 
       for(int j = 0; j < numPlat; j++) {
         if (numPlat == BLOCK_MAX && j == numPlat - 1) {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, BASE_SPEED, true));
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true));
         } else {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, BASE_SPEED, false));
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false));
         }
       }
     }
   }
 
   void anchorSpeed() {
-    if(reset) {
+    if(cameraType == BASE_SPEED || cameraType == CAMERA_SPEED) {
       for(Platform platform : platforms) {
-        platform.transition = ANCHOR_SPEED;
+        platform.transition = width/ANCHOR_SPEED;
       }
-      reset = false;
+      System.out.println(
+          "ANCHOR" + width/ANCHOR_SPEED
+        );
+    cameraType = ANCHOR_SPEED;
     }
   }
 
   void resetTransitionSpeed() {
-    if(!reset) {
+    if(cameraType == ANCHOR_SPEED || cameraType == CAMERA_SPEED) {
       for(Platform platform : platforms) {
-        platform.transition = BASE_SPEED;
+        platform.transition = width/BASE_SPEED;
       }
-      reset = true;
+      System.out.println(
+          "RESET" + width/BASE_SPEED
+        );
+    cameraType = BASE_SPEED;
     }
   }
 
   void cameraTransitionSpeed() {
-    if(reset) {
+    if(cameraType == ANCHOR_SPEED || cameraType == BASE_SPEED) {
       for(Platform platform : platforms) {
-        platform.transition = width/38;
+        platform.transition = width/CAMERA_SPEED;
       }
-      reset = false;
+      System.out.println(
+        "CAMERA" + width/CAMERA_SPEED
+        );
+      cameraType = CAMERA_SPEED;
     }
   }
 

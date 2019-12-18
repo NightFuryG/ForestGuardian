@@ -142,7 +142,7 @@ public void setup() {
 
   platGen = new PlatformGenerator();
 
-  spawnEnemies();
+  //spawnEnemies();
 
 
 }
@@ -177,6 +177,7 @@ public void draw() {
   checkGrounded();
   guardianCollision();
 
+
 }
 
 public void spawnEnemies() {
@@ -185,7 +186,6 @@ public void spawnEnemies() {
       enemies.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - 1.3f * platform.platformHeight, platform));
     }
   }
-  System.out.println(enemies.size());
 }
 
 public void updateEnemies() {
@@ -261,34 +261,49 @@ public void drawParallaxBackround() {
         platGen.anchorSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = camera;
+        //System.out.println("1");
+      //  System.out.println(platGen.platforms.get(0).transition);
     } else if (guardian.anchorLeft && guardian.idle) {
         background.cameraTransitionSpeed();
         platGen.anchorSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -camera;
+       // System.out.println("2");
+        //System.out.println(platGen.platforms.get(0).transition);
       } else if(guardian.right && guardian.anchorRight
         && !guardian.idle) {
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
             platGen.resetTransitionSpeed();
+       //     System.out.println("3 - 1");
+      //  System.out.println(platGen.platforms.get(0).transition);
           } else {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
+         //   System.out.println("3 - 2");
+      //  System.out.println(platGen.platforms.get(0).transition);
           }
-          ;
           parallax = PARALLAX_RIGHT;
     } else if (!guardian.right && guardian.anchorLeft
         && !guardian.idle){
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
             platGen.resetTransitionSpeed();
+         //   System.out.println("4-1");
+        //System.out.println(platGen.platforms.get(0).transition);
           } else {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
+         //   System.out.println("4-2");
+        //System.out.println(platGen.platforms.get(0).transition);
           }
         parallax = PARALLAX_LEFT;
     } else {
         parallax = PARALLAX_NONE;
+        background.cameraTransitionSpeed();
+        platGen.cameraTransitionSpeed();
+        //System.out.println("5");
+        //System.out.println(platGen.platforms.get(0).transition);
     }
     background.draw(parallax);
     platGen.draw(parallax);
@@ -370,8 +385,9 @@ public void playerMove() {
   if(d) {
     if(!guardian.colliding) {
       guardian.move(3, attacking);
-      if(petAlive)
+      if(petAlive) {
         pet.move(3, attacking);
+      }
     } else if (!guardian.right && guardian.colliding){
       guardian.colliding = false;
     }
@@ -380,8 +396,9 @@ public void playerMove() {
   if(a)  {
     if(!guardian.colliding) {
       guardian.move(4, attacking);
-      if(petAlive)
+      if(petAlive) {
         pet.move(4, attacking);
+      }
     } else if (guardian.right && guardian.colliding) {
       guardian.colliding = false;
     }
@@ -594,6 +611,8 @@ public void guardianCollision() {
   float guardWidth = width/GUARDIAN_WIDTH;
   float guardHeight = width/GUARDIAN_FEET;
 
+  int platIndex = 0;
+
   for (Platform platform : platGen.platforms) {
 
     //try out simple rectangle collision;
@@ -604,6 +623,12 @@ public void guardianCollision() {
         guardian.position.y < platform.position.y + platform.platformHeight) {
           guardian.velocity.x = -guardian.velocity.x;
           guardian.colliding = true;
+          platIndex = platGen.platforms.indexOf(platform);
+          if(guardian.right) {
+            guardian.position.x = platform.position.x - guardWidth;
+          } else {
+            guardian.position.x = platform.position.x + platform.platformWidth;
+          }
         }
 
     if (guardian.position.x + guardWidth > platform.position.x &&
@@ -613,6 +638,18 @@ public void guardianCollision() {
           guardian.velocity.y = 0;
     }
   }
+
+  if(guardian.colliding) {
+
+    Platform platform = platGen.platforms.get(platIndex);
+
+    if(!(guardian.position.x + guardWidth + guardian.velocity.x > platform.position.x &&
+          guardian.position.x + guardian.velocity.x < platform.position.x + platform.platformWidth &&
+          guardian.position.y + guardHeight > platform.position.y &&
+          guardian.position.y < platform.position.y + platform.platformHeight)) {
+            guardian.colliding = false;
+          }
+    }
 }
 
 
@@ -1288,7 +1325,7 @@ public class Guardian extends Entity {
 
   final float GROUND = height - height/6.85f;
   final float MIDDLE = width/2;
-  final int GUARDIAN_SPEED = 7;
+  final int GUARDIAN_SPEED = width/150;
   final int JUMP_SPEED = 30;
   final int GUARDIAN_WIDTH = 20;
 
@@ -1304,6 +1341,7 @@ public class Guardian extends Entity {
       this.anchorRightPos = width/3;
       this.anchorLeftPos =  width/5;
       resize();
+      System.out.println(GUARDIAN_SPEED);
   }
 
   //get anchors
@@ -1372,7 +1410,9 @@ public class Guardian extends Entity {
   // if anchored on right move to left anchor to create more visual space
   public void moveRightParallax() {
     if(position.x < anchorRightPos && !anchorRight) {
-      velocity.x += GUARDIAN_SPEED;
+      if(velocity.x < 2 * GUARDIAN_SPEED) {
+        velocity.x += GUARDIAN_SPEED;
+      }
       anchorLeft = false;
     } else {
       anchorRight = true;
@@ -1391,6 +1431,7 @@ public class Guardian extends Entity {
 
     if(!this.colliding) {
       if(position.x + width/GUARDIAN_WIDTH <= displayWidth) {
+        if(velocity.x < 2 * GUARDIAN_SPEED)
           velocity.x += GUARDIAN_SPEED;
         } else{
           velocity.x = -GUARDIAN_SPEED;
@@ -1409,7 +1450,8 @@ public class Guardian extends Entity {
     if(!this.colliding) {
 
       if(position.x >= 0 ) {
-        velocity.x -= GUARDIAN_SPEED;
+        if(velocity.x > 2 * - GUARDIAN_SPEED)
+          velocity.x -= GUARDIAN_SPEED;
       } else {
         velocity.x = GUARDIAN_SPEED;
       }
@@ -1424,7 +1466,9 @@ public class Guardian extends Entity {
   //parallax move left
   public void moveLeftParallax() {
     if(position.x > anchorLeftPos && !anchorLeft) {
-      velocity.x -= GUARDIAN_SPEED;
+      if(velocity.x > 2 * - GUARDIAN_SPEED) {
+        velocity.x -= GUARDIAN_SPEED;
+      }
       anchorRight = false;
     } else {
       anchorLeft = true;
@@ -1743,7 +1787,7 @@ public class Platform {
 class  PlatformGenerator {
 
   final int PLATFORM_NUM = 100;
-  final int BASE_SPEED = 20;
+
   final int BLOCK_ONE = 1;
   final int BLOCK_TWO = 2;
   final int BLOCK_FIVE = 5;
@@ -1753,26 +1797,28 @@ class  PlatformGenerator {
   final float PERCENT_NINETY = 0.9f;
   final float PERCENT_TEN = 0.1f;
 
-  final int CAMERA_SPEED = width/38;
-  final int ANCHOR_SPEED = width/60;
+  final int CAMERA_SPEED = 34;
+  final int ANCHOR_SPEED = 85;
+  final int BASE_SPEED = 80;
 
   ArrayList<Platform> platforms;
 
   int numberOfPlatforms;
   int newPlatformHeight;
   int newPlatformWidth;
-  boolean reset;
+
+  int cameraType;
 
   PlatformGenerator() {
    this.platforms  = new ArrayList<Platform>();
     this.numberOfPlatforms = PLATFORM_NUM;
     generatePlatforms();
-    this.reset = true;
+    this.cameraType = BASE_SPEED;
   }
 
   public void generatePlatforms() {
 
-    platforms.add(new Platform(width, height - height/5, BASE_SPEED, true));
+    platforms.add(new Platform(width, height - height/5, width/BASE_SPEED, true));
     this.newPlatformWidth = platforms.get(0).platformWidth;
     this.newPlatformHeight = platforms.get(0).platformHeight*2;
 
@@ -1801,38 +1847,47 @@ class  PlatformGenerator {
 
       for(int j = 0; j < numPlat; j++) {
         if (numPlat == BLOCK_MAX && j == numPlat - 1) {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, BASE_SPEED, true));
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true));
         } else {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, BASE_SPEED, false));
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false));
         }
       }
     }
   }
 
   public void anchorSpeed() {
-    if(reset) {
+    if(cameraType == BASE_SPEED || cameraType == CAMERA_SPEED) {
       for(Platform platform : platforms) {
-        platform.transition = ANCHOR_SPEED;
+        platform.transition = width/ANCHOR_SPEED;
       }
-      reset = false;
+      System.out.println(
+          "ANCHOR" + width/ANCHOR_SPEED
+        );
+    cameraType = ANCHOR_SPEED;
     }
   }
 
   public void resetTransitionSpeed() {
-    if(!reset) {
+    if(cameraType == ANCHOR_SPEED || cameraType == CAMERA_SPEED) {
       for(Platform platform : platforms) {
-        platform.transition = BASE_SPEED;
+        platform.transition = width/BASE_SPEED;
       }
-      reset = true;
+      System.out.println(
+          "RESET" + width/BASE_SPEED
+        );
+    cameraType = BASE_SPEED;
     }
   }
 
   public void cameraTransitionSpeed() {
-    if(reset) {
+    if(cameraType == ANCHOR_SPEED || cameraType == BASE_SPEED) {
       for(Platform platform : platforms) {
-        platform.transition = width/38;
+        platform.transition = width/CAMERA_SPEED;
       }
-      reset = false;
+      System.out.println(
+        "CAMERA" + width/CAMERA_SPEED
+        );
+      cameraType = CAMERA_SPEED;
     }
   }
 

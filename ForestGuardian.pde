@@ -126,7 +126,7 @@ void setup() {
 
   platGen = new PlatformGenerator();
 
-  spawnEnemies();
+  //spawnEnemies();
 
 
 }
@@ -161,6 +161,7 @@ void draw() {
   checkGrounded();
   guardianCollision();
 
+
 }
 
 void spawnEnemies() {
@@ -169,7 +170,6 @@ void spawnEnemies() {
       enemies.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - 1.3 * platform.platformHeight, platform));
     }
   }
-  System.out.println(enemies.size());
 }
 
 void updateEnemies() {
@@ -245,34 +245,49 @@ void drawParallaxBackround() {
         platGen.anchorSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = camera;
+        //System.out.println("1");
+      //  System.out.println(platGen.platforms.get(0).transition);
     } else if (guardian.anchorLeft && guardian.idle) {
         background.cameraTransitionSpeed();
         platGen.anchorSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -camera;
+       // System.out.println("2");
+        //System.out.println(platGen.platforms.get(0).transition);
       } else if(guardian.right && guardian.anchorRight
         && !guardian.idle) {
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
             platGen.resetTransitionSpeed();
+       //     System.out.println("3 - 1");
+      //  System.out.println(platGen.platforms.get(0).transition);
           } else {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
+         //   System.out.println("3 - 2");
+      //  System.out.println(platGen.platforms.get(0).transition);
           }
-          ;
           parallax = PARALLAX_RIGHT;
     } else if (!guardian.right && guardian.anchorLeft
         && !guardian.idle){
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
             platGen.resetTransitionSpeed();
+         //   System.out.println("4-1");
+        //System.out.println(platGen.platforms.get(0).transition);
           } else {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
+         //   System.out.println("4-2");
+        //System.out.println(platGen.platforms.get(0).transition);
           }
         parallax = PARALLAX_LEFT;
     } else {
         parallax = PARALLAX_NONE;
+        background.cameraTransitionSpeed();
+        platGen.cameraTransitionSpeed();
+        //System.out.println("5");
+        //System.out.println(platGen.platforms.get(0).transition);
     }
     background.draw(parallax);
     platGen.draw(parallax);
@@ -354,8 +369,9 @@ void playerMove() {
   if(d) {
     if(!guardian.colliding) {
       guardian.move(3, attacking);
-      if(petAlive)
+      if(petAlive) {
         pet.move(3, attacking);
+      }
     } else if (!guardian.right && guardian.colliding){
       guardian.colliding = false;
     }
@@ -364,8 +380,9 @@ void playerMove() {
   if(a)  {
     if(!guardian.colliding) {
       guardian.move(4, attacking);
-      if(petAlive)
+      if(petAlive) {
         pet.move(4, attacking);
+      }
     } else if (guardian.right && guardian.colliding) {
       guardian.colliding = false;
     }
@@ -578,6 +595,8 @@ void guardianCollision() {
   float guardWidth = width/GUARDIAN_WIDTH;
   float guardHeight = width/GUARDIAN_FEET;
 
+  int platIndex = 0;
+
   for (Platform platform : platGen.platforms) {
 
     //try out simple rectangle collision;
@@ -588,6 +607,12 @@ void guardianCollision() {
         guardian.position.y < platform.position.y + platform.platformHeight) {
           guardian.velocity.x = -guardian.velocity.x;
           guardian.colliding = true;
+          platIndex = platGen.platforms.indexOf(platform);
+          if(guardian.right) {
+            guardian.position.x = platform.position.x - guardWidth;
+          } else {
+            guardian.position.x = platform.position.x + platform.platformWidth;
+          }
         }
 
     if (guardian.position.x + guardWidth > platform.position.x &&
@@ -597,6 +622,18 @@ void guardianCollision() {
           guardian.velocity.y = 0;
     }
   }
+
+  if(guardian.colliding) {
+
+    Platform platform = platGen.platforms.get(platIndex);
+
+    if(!(guardian.position.x + guardWidth + guardian.velocity.x > platform.position.x &&
+          guardian.position.x + guardian.velocity.x < platform.position.x + platform.platformWidth &&
+          guardian.position.y + guardHeight > platform.position.y &&
+          guardian.position.y < platform.position.y + platform.platformHeight)) {
+            guardian.colliding = false;
+          }
+    }
 }
 
 

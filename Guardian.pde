@@ -12,7 +12,7 @@ public class Guardian extends Entity {
 
   final float GROUND = height - height/6.85;
   final float MIDDLE = width/2;
-  final int GUARDIAN_SPEED = 7;
+  final int GUARDIAN_SPEED = width/150;
   final int JUMP_SPEED = 30;
   final int GUARDIAN_WIDTH = 20;
 
@@ -28,6 +28,7 @@ public class Guardian extends Entity {
       this.anchorRightPos = width/3;
       this.anchorLeftPos =  width/5;
       resize();
+      System.out.println(GUARDIAN_SPEED);
   }
 
   //get anchors
@@ -96,7 +97,9 @@ public class Guardian extends Entity {
   // if anchored on right move to left anchor to create more visual space
   void moveRightParallax() {
     if(position.x < anchorRightPos && !anchorRight) {
-      velocity.x += GUARDIAN_SPEED;
+      if(velocity.x < 2 * GUARDIAN_SPEED) {
+        velocity.x += GUARDIAN_SPEED;
+      }
       anchorLeft = false;
     } else {
       anchorRight = true;
@@ -115,6 +118,7 @@ public class Guardian extends Entity {
 
     if(!this.colliding) {
       if(position.x + width/GUARDIAN_WIDTH <= displayWidth) {
+        if(velocity.x < 2 * GUARDIAN_SPEED)
           velocity.x += GUARDIAN_SPEED;
         } else{
           velocity.x = -GUARDIAN_SPEED;
@@ -133,7 +137,8 @@ public class Guardian extends Entity {
     if(!this.colliding) {
 
       if(position.x >= 0 ) {
-        velocity.x -= GUARDIAN_SPEED;
+        if(velocity.x > 2 * - GUARDIAN_SPEED)
+          velocity.x -= GUARDIAN_SPEED;
       } else {
         velocity.x = GUARDIAN_SPEED;
       }
@@ -148,7 +153,9 @@ public class Guardian extends Entity {
   //parallax move left
   void moveLeftParallax() {
     if(position.x > anchorLeftPos && !anchorLeft) {
-      velocity.x -= GUARDIAN_SPEED;
+      if(velocity.x > 2 * - GUARDIAN_SPEED) {
+        velocity.x -= GUARDIAN_SPEED;
+      }
       anchorRight = false;
     } else {
       anchorLeft = true;
