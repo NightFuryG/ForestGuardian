@@ -11,7 +11,7 @@ public class Entity {
   final String ATTACK_RIGHT = "attackRight/";
   final String ATTACK_LEFT = "attackLeft/";
   final String DIE_RIGHT = "dieRight/";
-  final String DIE_LEFT = "dieLeft";
+  final String DIE_LEFT = "dieLeft/";
 
   String idleRightPath;
   String idleLeftPath;
@@ -21,12 +21,15 @@ public class Entity {
   String jumpLeftPath;
   String attackRightPath;
   String attackLeftPath;
+  String dieRightPath;
+  String dieLeftPath;
 
 
   float GROUND = height - height/6.85;
   final int ENTITY_SPEED = 10;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 3;
+  final int HEALTH = 100;
 
   boolean right;
   boolean idle;
@@ -35,7 +38,11 @@ public class Entity {
   boolean attack;
   boolean anchorRight;
   boolean anchorLeft;
+  boolean alive;
   boolean colliding;
+  boolean playDead;
+
+  int health;
 
   PVector velocity;
   PVector position;
@@ -57,6 +64,8 @@ public class Entity {
     this.jumpLeftPath = path + JUMP_LEFT;
     this.attackRightPath = path + ATTACK_RIGHT;
     this.attackLeftPath = path + ATTACK_LEFT;
+    this.dieRightPath = path + DIE_RIGHT;
+    this.dieLeftPath = path + DIE_LEFT;
 
     initialiseAnimations();
 
@@ -68,6 +77,10 @@ public class Entity {
 
     this.anchorLeft = false;
     this.anchorRight = false;
+
+    this.health = HEALTH;
+    this.alive = true;
+    this.playDead = false;
 
     this.colliding = false;
   }
@@ -83,6 +96,8 @@ public class Entity {
     Animation jumpLeft = new Animation(jumpLeftPath);
     Animation attackRight = new Animation(attackRightPath);
     Animation attackLeft = new Animation(attackLeftPath);
+    Animation dieRight = new Animation(dieRightPath);
+    Animation dieLeft = new Animation(dieLeftPath);
 
     animations.put(IDLE_RIGHT, idleRight);
     animations.put(IDLE_LEFT, idleLeft);
@@ -92,7 +107,8 @@ public class Entity {
     animations.put(JUMP_LEFT, jumpLeft);
     animations.put(ATTACK_RIGHT, attackRight);
     animations.put(ATTACK_LEFT, attackLeft);
-
+    animations.put(DIE_RIGHT, dieRight);
+    animations.put(DIE_LEFT, dieLeft);
   }
 
 
@@ -120,36 +136,58 @@ public class Entity {
 
   //Display method used to show the correct animation
   void display() {
-    if(attack && right) {
-      animate(ATTACK_RIGHT);
-      if(animations.get(ATTACK_RIGHT).animated) {
-          attack = false;
-          animations.get(ATTACK_RIGHT).animated = false;
-      }
-    } else if (attack && !right) {
-        animate(ATTACK_LEFT);
-        if(animations.get(ATTACK_LEFT).animated) {
-          attack = false;
-          animations.get(ATTACK_LEFT).animated = false;
+
+    if(alive) {
+      if(attack && right) {
+        animate(ATTACK_RIGHT);
+        if(animations.get(ATTACK_RIGHT).animated) {
+            attack = false;
+            animations.get(ATTACK_RIGHT).animated = false;
         }
-    } else if(jump && right) {
-      animate(JUMP_RIGHT);
-    } else if (jump && !right) {
-      animate(JUMP_LEFT);
-    } else if (idle && right) {
-      animate(IDLE_RIGHT);
-    } else if(idle && !right) {
-      animate(IDLE_LEFT);
-    } else if(!idle && right) {
-      animate(RUN_RIGHT);
-    } else if(!idle && !right) {
-      animate(RUN_LEFT);
+      } else if (attack && !right) {
+          animate(ATTACK_LEFT);
+          if(animations.get(ATTACK_LEFT).animated) {
+            attack = false;
+            animations.get(ATTACK_LEFT).animated = false;
+          }
+      } else if(jump && right) {
+        animate(JUMP_RIGHT);
+      } else if (jump && !right) {
+        animate(JUMP_LEFT);
+      } else if (idle && right) {
+        animate(IDLE_RIGHT);
+      } else if(idle && !right) {
+        animate(IDLE_LEFT);
+      } else if(!idle && right) {
+        animate(RUN_RIGHT);
+      } else if(!idle && !right) {
+        animate(RUN_LEFT);
+      }
+    } else {
+
+      if(!playDead) {
+        if(right) {
+          animateOnce(DIE_RIGHT);
+          if(animations.get(DIE_RIGHT).animated) {
+            playDead = true;
+          }
+        } else {
+          animateOnce(DIE_LEFT);
+          if(animations.get(DIE_LEFT).animated) {
+            playDead = true;
+          }
+        }
+      }
     }
   }
 
   //play an animation
   void animate(String animation) {
     animations.get(animation).draw(position);
+  }
+
+  void animateOnce(String animation) {
+    animations.get(animation).drawOnce(position);
   }
 
   //draw

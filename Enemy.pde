@@ -10,21 +10,25 @@ public class Enemy extends Entity {
   final int ATTACK_RESIZE_1 = width/23;
   final int JUMP_RESIZE_1 = width/20;
   final int RUN_RESIZE_1 = width/25;
+  final int DIE_RESIZE_1 = width/25;
 
   final int IDLE_RESIZE_2 = width/25;
   final int ATTACK_RESIZE_2 = width/24;
   final int JUMP_RESIZE_2 = width/20;
   final int RUN_RESIZE_2 = width/25;
+  final int DIE_RESIZE_2 = width/17;
 
   final int IDLE_RESIZE_3 = width/20;
   final int ATTACK_RESIZE_3 = width/20;
   final int JUMP_RESIZE_3 = width/15;
   final int RUN_RESIZE_3 = width/18;
+  final int DIE_RESIZE_3 = width/25;
 
   final int IDLE_RESIZE_4 = width/20;
   final int ATTACK_RESIZE_4 = width/17;
   final int JUMP_RESIZE_4 = width/15;
   final int RUN_RESIZE_4 = width/19;
+  final int DIE_RESIZE_4 = width/25;
 
   final int ENEMY_SPEED = 7;
   final int JUMP_SPEED = 20;
@@ -64,6 +68,7 @@ public class Enemy extends Entity {
     resizeRun(path);
     resizeJump(path);
     resizeAttack(path);
+    resizeDie(path);
   }
 
   void resizeAttack(String path) {
@@ -192,6 +197,38 @@ public class Enemy extends Entity {
         }
         for(PImage frame : animations.get(JUMP_RIGHT).animation) {
           frame.resize(JUMP_RESIZE_4, 0);
+        }
+    }
+
+  }
+  void resizeDie(String path) {
+    if(path.equals(ENEMY_ONE_PATH)) {
+      for(PImage frame : animations.get(DIE_LEFT).animation) {
+        frame.resize(DIE_RESIZE_1, 0);
+      }
+      for(PImage frame : animations.get(DIE_RIGHT).animation) {
+        frame.resize(DIE_RESIZE_1, 0);
+      }
+    } else if(path.equals(ENEMY_TWO_PATH)) {
+        for(PImage frame : animations.get(DIE_LEFT).animation) {
+          frame.resize(DIE_RESIZE_2, 0);
+        }
+        for(PImage frame : animations.get(DIE_RIGHT).animation) {
+          frame.resize(DIE_RESIZE_2, 0);
+        }
+    } else if(path.equals(ENEMY_THREE_PATH)) {
+        for(PImage frame : animations.get(DIE_LEFT).animation) {
+          frame.resize(DIE_RESIZE_3, 0);
+        }
+        for(PImage frame : animations.get(DIE_RIGHT).animation) {
+          frame.resize(DIE_RESIZE_3, 0);
+        }
+    } else if(path.equals(ENEMY_FOUR_PATH)) {
+        for(PImage frame : animations.get(DIE_LEFT).animation) {
+          frame.resize(DIE_RESIZE_4, 0);
+        }
+        for(PImage frame : animations.get(DIE_RIGHT).animation) {
+          frame.resize(DIE_RESIZE_4, 0);
         }
     }
 

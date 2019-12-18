@@ -46,4 +46,18 @@ public class Animation {
     image(animation.get(currentFrame), position.x, position.y );
   }
 
+  void drawOnce(PVector position) {
+    if(millis() > prevTime + deltaTime) {
+      if(!animated) {
+        currentFrame++;
+      }
+      if(currentFrame > TOTAL_FRAMES - 1) {
+        animated = true;
+        currentFrame--;
+      }
+      prevTime = millis();
+    }
+    image(animation.get(currentFrame), position.x, position.y );
+  }
+
 }

@@ -22,7 +22,7 @@ final int ENEMY_PARALLAX_POSITION = 20;
 
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
-final int PET_COOLDOWN_TIME = 3000;
+final int PET_COOLDOWN_TIME = 100;
 
 final int CAMERA_SPEED = 50;
 final int PARALLAX_RIGHT = 1;
@@ -30,8 +30,13 @@ final int PARALLAX_LEFT = 2;
 final int PARALLAX_NONE = 0;
 final int CAMERA_ANCHOR = 10;
 
+final float HEALTH_COLOUR_SCALE = 2.55;
+final float HEALTH_HEIGHT_SCALE = 0.925;
+final int HEALTH_DECREASE_SCALE = 4;
+final int HEALTH_HEIGHT = 41;
+final float HEALTH_WIDTH = 4.2;
+
 final int BACKGROUND_ONE_LAYERS = 11;
-final int BACKGROUND_TWO_LAYERS = 1;
 
 final String GUARDIAN_PATH = "animations/guardian/";
 final String WOLF_PATH = "animations/pet/1/";
@@ -53,6 +58,8 @@ final String TILE_SEVEN =  "tileset/7.png";
 public final float GROUND_PROP = 6.85;
 final float ENT_GROUND_PROP = 6;
 final float GROUND_TILE = 12;
+
+
 
 Background background;
 Entity guardian;
@@ -126,8 +133,11 @@ void setup() {
 
   platGen = new PlatformGenerator();
 
-  //spawnEnemies();
+  spawnEnemies();
 
+  System.out.println(width/HEALTH_HEIGHT);
+
+  System.out.println(width/HEALTH_WIDTH);
 
 }
 
@@ -135,6 +145,7 @@ void draw() {
   imageMode(CORNER);
   background(255);
   checkAttacking();
+
   if(!attacking && !guardian.colliding) {
     drawParallaxBackround();
   } else {
@@ -147,6 +158,7 @@ void draw() {
     pet.draw();
   }
 
+  showHealthBar();
   unsummonPet();
   guardian.draw();
   attack();
@@ -161,7 +173,17 @@ void draw() {
   checkGrounded();
   guardianCollision();
 
+  removeDeadEnemies();
+}
 
+void showHealthBar() {
+  pushMatrix();
+  rectMode(CENTER);
+  fill(0,0,0,100);
+  rect(width/2 , height/2 - HEALTH_HEIGHT_SCALE * height/2, width/HEALTH_WIDTH, width/HEALTH_HEIGHT);
+  fill(255 - HEALTH_COLOUR_SCALE * guardian.health, HEALTH_COLOUR_SCALE * guardian.health, 0);
+  rect(width/2, height/2 - HEALTH_HEIGHT_SCALE * height/2, HEALTH_DECREASE_SCALE * guardian.health, width/HEALTH_HEIGHT);
+  popMatrix();
 }
 
 void spawnEnemies() {
@@ -237,6 +259,8 @@ void summonPet() {
   petTimer = millis();
 }
 
+
+
 //parallax method for adjusting guardian, enemis and background
 //uses a sliding window with in play area and uses hard and soft anchor points
 void drawParallaxBackround() {
@@ -245,27 +269,19 @@ void drawParallaxBackround() {
         platGen.anchorSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = camera;
-        //System.out.println("1");
-      //  System.out.println(platGen.platforms.get(0).transition);
     } else if (guardian.anchorLeft && guardian.idle) {
         background.cameraTransitionSpeed();
         platGen.anchorSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -camera;
-       // System.out.println("2");
-        //System.out.println(platGen.platforms.get(0).transition);
       } else if(guardian.right && guardian.anchorRight
         && !guardian.idle) {
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
             platGen.resetTransitionSpeed();
-       //     System.out.println("3 - 1");
-      //  System.out.println(platGen.platforms.get(0).transition);
           } else {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
-         //   System.out.println("3 - 2");
-      //  System.out.println(platGen.platforms.get(0).transition);
           }
           parallax = PARALLAX_RIGHT;
     } else if (!guardian.right && guardian.anchorLeft
@@ -273,21 +289,15 @@ void drawParallaxBackround() {
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
             platGen.resetTransitionSpeed();
-         //   System.out.println("4-1");
-        //System.out.println(platGen.platforms.get(0).transition);
           } else {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
-         //   System.out.println("4-2");
-        //System.out.println(platGen.platforms.get(0).transition);
           }
         parallax = PARALLAX_LEFT;
     } else {
         parallax = PARALLAX_NONE;
         background.cameraTransitionSpeed();
         platGen.cameraTransitionSpeed();
-        //System.out.println("5");
-        //System.out.println(platGen.platforms.get(0).transition);
     }
     background.draw(parallax);
     platGen.draw(parallax);
@@ -343,8 +353,10 @@ void keyReleased() {
 
     if(summonCount > LOWER_SUCCESS && summonCount < UPPER_SUCCESS ) {
       summonPet();
+      System.out.println("success");
     } else {
       petCooldown = false;
+      System.out.println("fail");
     }
 
     summonCount = 0;
@@ -423,6 +435,7 @@ void mousePressed() {
           attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
         }
       }
+      guardianAttacks++;
   }
 }
 
@@ -458,6 +471,8 @@ void drawAttack() {
 //enemy will pursue guardian and attack if close enough
 void enemyAttack() {
   for(Enemy enemy : enemies) {
+    if(enemy.alive) {
+
     if(!enemy.attack) {
       if(guardian.position.x < enemy.position.x) {
         enemy.right = false;
@@ -515,11 +530,13 @@ void enemyAttack() {
       }
     }
 
-    if(!enemy.idle) {
-    enemy.attack();
+      if(!enemy.idle) {
+      enemy.attack();
+      }
     }
   }
 }
+
 
 
 
@@ -643,22 +660,38 @@ void guardianCollision() {
 //simplified to point rectangle collision
 void detectAttackCollision() {
   for (Attack attack : new ArrayList<Attack>(attacks)) {
-       float attackX = attack.position.x + attack.attackRight.width/2;
-       float attackY = attack.position.y + attack.attackRight.height/2;
+
+    float attackX = attack.position.x + attack.attackRight.width/2;
+    float attackY = attack.position.y + attack.attackRight.height/2;
 
     for(Enemy enemy : new ArrayList<Enemy>(enemies)) {
 
       float enemyX = enemy.position.x + width/GUARDIAN_WIDTH;
       float enemyY = enemy.position.y + width/GUARDIAN_HEIGHT;
+
       if( attackX < enemyX && attackX > enemy.position.x ) {
         if(attackY < enemyY && attackY > enemy.position.y) {
           if(attack.attackType == 0) {
-            enemies.remove(enemy);
+            enemy.health -= 50;
+            attacks.remove(attack);
+            guardianAttacks--;
           }
         }
       }
     }
   }
+}
+
+void removeDeadEnemies() {
+    for(Enemy enemy : new ArrayList<Enemy>(enemies)) {
+      if(enemy.health <= 0) {
+        enemy.attack = false;
+        enemy.alive = false;
+        if(enemy.playDead) {
+          enemies.remove(enemy);
+        }
+      }
+    }
 }
 
 //Draw enemies

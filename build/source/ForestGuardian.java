@@ -38,7 +38,7 @@ final int ENEMY_PARALLAX_POSITION = 20;
 
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
-final int PET_COOLDOWN_TIME = 3000;
+final int PET_COOLDOWN_TIME = 100;
 
 final int CAMERA_SPEED = 50;
 final int PARALLAX_RIGHT = 1;
@@ -46,8 +46,13 @@ final int PARALLAX_LEFT = 2;
 final int PARALLAX_NONE = 0;
 final int CAMERA_ANCHOR = 10;
 
+final float HEALTH_COLOUR_SCALE = 2.55f;
+final float HEALTH_HEIGHT_SCALE = 0.925f;
+final int HEALTH_DECREASE_SCALE = 4;
+final int HEALTH_HEIGHT = 41;
+final float HEALTH_WIDTH = 4.2f;
+
 final int BACKGROUND_ONE_LAYERS = 11;
-final int BACKGROUND_TWO_LAYERS = 1;
 
 final String GUARDIAN_PATH = "animations/guardian/";
 final String WOLF_PATH = "animations/pet/1/";
@@ -69,6 +74,8 @@ final String TILE_SEVEN =  "tileset/7.png";
 public final float GROUND_PROP = 6.85f;
 final float ENT_GROUND_PROP = 6;
 final float GROUND_TILE = 12;
+
+
 
 Background background;
 Entity guardian;
@@ -142,8 +149,11 @@ public void setup() {
 
   platGen = new PlatformGenerator();
 
-  //spawnEnemies();
+  spawnEnemies();
 
+  System.out.println(width/HEALTH_HEIGHT);
+
+  System.out.println(width/HEALTH_WIDTH);
 
 }
 
@@ -151,6 +161,7 @@ public void draw() {
   imageMode(CORNER);
   background(255);
   checkAttacking();
+
   if(!attacking && !guardian.colliding) {
     drawParallaxBackround();
   } else {
@@ -163,6 +174,7 @@ public void draw() {
     pet.draw();
   }
 
+  showHealthBar();
   unsummonPet();
   guardian.draw();
   attack();
@@ -177,7 +189,17 @@ public void draw() {
   checkGrounded();
   guardianCollision();
 
+  removeDeadEnemies();
+}
 
+public void showHealthBar() {
+  pushMatrix();
+  rectMode(CENTER);
+  fill(0,0,0,100);
+  rect(width/2 , height/2 - HEALTH_HEIGHT_SCALE * height/2, width/HEALTH_WIDTH, width/HEALTH_HEIGHT);
+  fill(255 - HEALTH_COLOUR_SCALE * guardian.health, HEALTH_COLOUR_SCALE * guardian.health, 0);
+  rect(width/2, height/2 - HEALTH_HEIGHT_SCALE * height/2, HEALTH_DECREASE_SCALE * guardian.health, width/HEALTH_HEIGHT);
+  popMatrix();
 }
 
 public void spawnEnemies() {
@@ -253,6 +275,8 @@ public void summonPet() {
   petTimer = millis();
 }
 
+
+
 //parallax method for adjusting guardian, enemis and background
 //uses a sliding window with in play area and uses hard and soft anchor points
 public void drawParallaxBackround() {
@@ -261,27 +285,19 @@ public void drawParallaxBackround() {
         platGen.anchorSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = camera;
-        //System.out.println("1");
-      //  System.out.println(platGen.platforms.get(0).transition);
     } else if (guardian.anchorLeft && guardian.idle) {
         background.cameraTransitionSpeed();
         platGen.anchorSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -camera;
-       // System.out.println("2");
-        //System.out.println(platGen.platforms.get(0).transition);
       } else if(guardian.right && guardian.anchorRight
         && !guardian.idle) {
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
             platGen.resetTransitionSpeed();
-       //     System.out.println("3 - 1");
-      //  System.out.println(platGen.platforms.get(0).transition);
           } else {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
-         //   System.out.println("3 - 2");
-      //  System.out.println(platGen.platforms.get(0).transition);
           }
           parallax = PARALLAX_RIGHT;
     } else if (!guardian.right && guardian.anchorLeft
@@ -289,21 +305,15 @@ public void drawParallaxBackround() {
           if(guardian.velocity.x == 0) {
             background.resetTransitionSpeed();
             platGen.resetTransitionSpeed();
-         //   System.out.println("4-1");
-        //System.out.println(platGen.platforms.get(0).transition);
           } else {
             background.cameraTransitionSpeed();
             platGen.cameraTransitionSpeed();
-         //   System.out.println("4-2");
-        //System.out.println(platGen.platforms.get(0).transition);
           }
         parallax = PARALLAX_LEFT;
     } else {
         parallax = PARALLAX_NONE;
         background.cameraTransitionSpeed();
         platGen.cameraTransitionSpeed();
-        //System.out.println("5");
-        //System.out.println(platGen.platforms.get(0).transition);
     }
     background.draw(parallax);
     platGen.draw(parallax);
@@ -359,8 +369,10 @@ public void keyReleased() {
 
     if(summonCount > LOWER_SUCCESS && summonCount < UPPER_SUCCESS ) {
       summonPet();
+      System.out.println("success");
     } else {
       petCooldown = false;
+      System.out.println("fail");
     }
 
     summonCount = 0;
@@ -439,6 +451,7 @@ public void mousePressed() {
           attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
         }
       }
+      guardianAttacks++;
   }
 }
 
@@ -474,6 +487,8 @@ public void drawAttack() {
 //enemy will pursue guardian and attack if close enough
 public void enemyAttack() {
   for(Enemy enemy : enemies) {
+    if(enemy.alive) {
+
     if(!enemy.attack) {
       if(guardian.position.x < enemy.position.x) {
         enemy.right = false;
@@ -531,11 +546,13 @@ public void enemyAttack() {
       }
     }
 
-    if(!enemy.idle) {
-    enemy.attack();
+      if(!enemy.idle) {
+      enemy.attack();
+      }
     }
   }
 }
+
 
 
 
@@ -659,22 +676,38 @@ public void guardianCollision() {
 //simplified to point rectangle collision
 public void detectAttackCollision() {
   for (Attack attack : new ArrayList<Attack>(attacks)) {
-       float attackX = attack.position.x + attack.attackRight.width/2;
-       float attackY = attack.position.y + attack.attackRight.height/2;
+
+    float attackX = attack.position.x + attack.attackRight.width/2;
+    float attackY = attack.position.y + attack.attackRight.height/2;
 
     for(Enemy enemy : new ArrayList<Enemy>(enemies)) {
 
       float enemyX = enemy.position.x + width/GUARDIAN_WIDTH;
       float enemyY = enemy.position.y + width/GUARDIAN_HEIGHT;
+
       if( attackX < enemyX && attackX > enemy.position.x ) {
         if(attackY < enemyY && attackY > enemy.position.y) {
           if(attack.attackType == 0) {
-            enemies.remove(enemy);
+            enemy.health -= 50;
+            attacks.remove(attack);
+            guardianAttacks--;
           }
         }
       }
     }
   }
+}
+
+public void removeDeadEnemies() {
+    for(Enemy enemy : new ArrayList<Enemy>(enemies)) {
+      if(enemy.health <= 0) {
+        enemy.attack = false;
+        enemy.alive = false;
+        if(enemy.playDead) {
+          enemies.remove(enemy);
+        }
+      }
+    }
 }
 
 //Draw enemies
@@ -725,6 +758,20 @@ public class Animation {
       if(currentFrame > TOTAL_FRAMES - 1) {
         animated = true;
         currentFrame = 0;
+      }
+      prevTime = millis();
+    }
+    image(animation.get(currentFrame), position.x, position.y );
+  }
+
+  public void drawOnce(PVector position) {
+    if(millis() > prevTime + deltaTime) {
+      if(!animated) {
+        currentFrame++;
+      }
+      if(currentFrame > TOTAL_FRAMES - 1) {
+        animated = true;
+        currentFrame--;
       }
       prevTime = millis();
     }
@@ -940,21 +987,25 @@ public class Enemy extends Entity {
   final int ATTACK_RESIZE_1 = width/23;
   final int JUMP_RESIZE_1 = width/20;
   final int RUN_RESIZE_1 = width/25;
+  final int DIE_RESIZE_1 = width/25;
 
   final int IDLE_RESIZE_2 = width/25;
   final int ATTACK_RESIZE_2 = width/24;
   final int JUMP_RESIZE_2 = width/20;
   final int RUN_RESIZE_2 = width/25;
+  final int DIE_RESIZE_2 = width/17;
 
   final int IDLE_RESIZE_3 = width/20;
   final int ATTACK_RESIZE_3 = width/20;
   final int JUMP_RESIZE_3 = width/15;
   final int RUN_RESIZE_3 = width/18;
+  final int DIE_RESIZE_3 = width/25;
 
   final int IDLE_RESIZE_4 = width/20;
   final int ATTACK_RESIZE_4 = width/17;
   final int JUMP_RESIZE_4 = width/15;
   final int RUN_RESIZE_4 = width/19;
+  final int DIE_RESIZE_4 = width/25;
 
   final int ENEMY_SPEED = 7;
   final int JUMP_SPEED = 20;
@@ -994,6 +1045,7 @@ public class Enemy extends Entity {
     resizeRun(path);
     resizeJump(path);
     resizeAttack(path);
+    resizeDie(path);
   }
 
   public void resizeAttack(String path) {
@@ -1126,6 +1178,38 @@ public class Enemy extends Entity {
     }
 
   }
+  public void resizeDie(String path) {
+    if(path.equals(ENEMY_ONE_PATH)) {
+      for(PImage frame : animations.get(DIE_LEFT).animation) {
+        frame.resize(DIE_RESIZE_1, 0);
+      }
+      for(PImage frame : animations.get(DIE_RIGHT).animation) {
+        frame.resize(DIE_RESIZE_1, 0);
+      }
+    } else if(path.equals(ENEMY_TWO_PATH)) {
+        for(PImage frame : animations.get(DIE_LEFT).animation) {
+          frame.resize(DIE_RESIZE_2, 0);
+        }
+        for(PImage frame : animations.get(DIE_RIGHT).animation) {
+          frame.resize(DIE_RESIZE_2, 0);
+        }
+    } else if(path.equals(ENEMY_THREE_PATH)) {
+        for(PImage frame : animations.get(DIE_LEFT).animation) {
+          frame.resize(DIE_RESIZE_3, 0);
+        }
+        for(PImage frame : animations.get(DIE_RIGHT).animation) {
+          frame.resize(DIE_RESIZE_3, 0);
+        }
+    } else if(path.equals(ENEMY_FOUR_PATH)) {
+        for(PImage frame : animations.get(DIE_LEFT).animation) {
+          frame.resize(DIE_RESIZE_4, 0);
+        }
+        for(PImage frame : animations.get(DIE_RIGHT).animation) {
+          frame.resize(DIE_RESIZE_4, 0);
+        }
+    }
+
+  }
 
   //attack and pursue guardian
   public void attack() {
@@ -1153,7 +1237,7 @@ public class Entity {
   final String ATTACK_RIGHT = "attackRight/";
   final String ATTACK_LEFT = "attackLeft/";
   final String DIE_RIGHT = "dieRight/";
-  final String DIE_LEFT = "dieLeft";
+  final String DIE_LEFT = "dieLeft/";
 
   String idleRightPath;
   String idleLeftPath;
@@ -1163,12 +1247,15 @@ public class Entity {
   String jumpLeftPath;
   String attackRightPath;
   String attackLeftPath;
+  String dieRightPath;
+  String dieLeftPath;
 
 
   float GROUND = height - height/6.85f;
   final int ENTITY_SPEED = 10;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 3;
+  final int HEALTH = 100;
 
   boolean right;
   boolean idle;
@@ -1177,7 +1264,11 @@ public class Entity {
   boolean attack;
   boolean anchorRight;
   boolean anchorLeft;
+  boolean alive;
   boolean colliding;
+  boolean playDead;
+
+  int health;
 
   PVector velocity;
   PVector position;
@@ -1199,6 +1290,8 @@ public class Entity {
     this.jumpLeftPath = path + JUMP_LEFT;
     this.attackRightPath = path + ATTACK_RIGHT;
     this.attackLeftPath = path + ATTACK_LEFT;
+    this.dieRightPath = path + DIE_RIGHT;
+    this.dieLeftPath = path + DIE_LEFT;
 
     initialiseAnimations();
 
@@ -1210,6 +1303,10 @@ public class Entity {
 
     this.anchorLeft = false;
     this.anchorRight = false;
+
+    this.health = HEALTH;
+    this.alive = true;
+    this.playDead = false;
 
     this.colliding = false;
   }
@@ -1225,6 +1322,8 @@ public class Entity {
     Animation jumpLeft = new Animation(jumpLeftPath);
     Animation attackRight = new Animation(attackRightPath);
     Animation attackLeft = new Animation(attackLeftPath);
+    Animation dieRight = new Animation(dieRightPath);
+    Animation dieLeft = new Animation(dieLeftPath);
 
     animations.put(IDLE_RIGHT, idleRight);
     animations.put(IDLE_LEFT, idleLeft);
@@ -1234,7 +1333,8 @@ public class Entity {
     animations.put(JUMP_LEFT, jumpLeft);
     animations.put(ATTACK_RIGHT, attackRight);
     animations.put(ATTACK_LEFT, attackLeft);
-
+    animations.put(DIE_RIGHT, dieRight);
+    animations.put(DIE_LEFT, dieLeft);
   }
 
 
@@ -1262,36 +1362,58 @@ public class Entity {
 
   //Display method used to show the correct animation
   public void display() {
-    if(attack && right) {
-      animate(ATTACK_RIGHT);
-      if(animations.get(ATTACK_RIGHT).animated) {
-          attack = false;
-          animations.get(ATTACK_RIGHT).animated = false;
-      }
-    } else if (attack && !right) {
-        animate(ATTACK_LEFT);
-        if(animations.get(ATTACK_LEFT).animated) {
-          attack = false;
-          animations.get(ATTACK_LEFT).animated = false;
+
+    if(alive) {
+      if(attack && right) {
+        animate(ATTACK_RIGHT);
+        if(animations.get(ATTACK_RIGHT).animated) {
+            attack = false;
+            animations.get(ATTACK_RIGHT).animated = false;
         }
-    } else if(jump && right) {
-      animate(JUMP_RIGHT);
-    } else if (jump && !right) {
-      animate(JUMP_LEFT);
-    } else if (idle && right) {
-      animate(IDLE_RIGHT);
-    } else if(idle && !right) {
-      animate(IDLE_LEFT);
-    } else if(!idle && right) {
-      animate(RUN_RIGHT);
-    } else if(!idle && !right) {
-      animate(RUN_LEFT);
+      } else if (attack && !right) {
+          animate(ATTACK_LEFT);
+          if(animations.get(ATTACK_LEFT).animated) {
+            attack = false;
+            animations.get(ATTACK_LEFT).animated = false;
+          }
+      } else if(jump && right) {
+        animate(JUMP_RIGHT);
+      } else if (jump && !right) {
+        animate(JUMP_LEFT);
+      } else if (idle && right) {
+        animate(IDLE_RIGHT);
+      } else if(idle && !right) {
+        animate(IDLE_LEFT);
+      } else if(!idle && right) {
+        animate(RUN_RIGHT);
+      } else if(!idle && !right) {
+        animate(RUN_LEFT);
+      }
+    } else {
+
+      if(!playDead) {
+        if(right) {
+          animateOnce(DIE_RIGHT);
+          if(animations.get(DIE_RIGHT).animated) {
+            playDead = true;
+          }
+        } else {
+          animateOnce(DIE_LEFT);
+          if(animations.get(DIE_LEFT).animated) {
+            playDead = true;
+          }
+        }
+      }
     }
   }
 
   //play an animation
   public void animate(String animation) {
     animations.get(animation).draw(position);
+  }
+
+  public void animateOnce(String animation) {
+    animations.get(animation).drawOnce(position);
   }
 
   //draw

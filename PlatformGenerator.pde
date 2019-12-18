@@ -74,9 +74,6 @@ class  PlatformGenerator {
       for(Platform platform : platforms) {
         platform.transition = width/ANCHOR_SPEED;
       }
-      System.out.println(
-          "ANCHOR" + width/ANCHOR_SPEED
-        );
     cameraType = ANCHOR_SPEED;
     }
   }
@@ -86,9 +83,6 @@ class  PlatformGenerator {
       for(Platform platform : platforms) {
         platform.transition = width/BASE_SPEED;
       }
-      System.out.println(
-          "RESET" + width/BASE_SPEED
-        );
     cameraType = BASE_SPEED;
     }
   }
@@ -98,9 +92,6 @@ class  PlatformGenerator {
       for(Platform platform : platforms) {
         platform.transition = width/CAMERA_SPEED;
       }
-      System.out.println(
-        "CAMERA" + width/CAMERA_SPEED
-        );
       cameraType = CAMERA_SPEED;
     }
   }
