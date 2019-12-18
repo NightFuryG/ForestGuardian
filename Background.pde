@@ -2,8 +2,8 @@
 public class Background {
 
   final String PNG = ".png";
-  final int CAMERA = 34;
-  final int ANCHOR = 85;
+  final int CAMERA = width/38;
+  final int ANCHOR = width/50;
   final int BASE = 80;
 
   final int BASE_MULTIPLIER = 2;

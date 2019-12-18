@@ -281,12 +281,12 @@ void summonPet() {
 //uses a sliding window with in play area and uses hard and soft anchor points
 void drawParallaxBackround() {
     if(guardian.anchorRight && guardian.idle) {
-        background.cameraTransitionSpeed();
+        background.backgroundAnchorSpeed();
         platGen.anchorSpeed();
         parallax = PARALLAX_LEFT;
         guardian.velocity.x = camera;
     } else if (guardian.anchorLeft && guardian.idle) {
-        background.cameraTransitionSpeed();
+        background.backgroundAnchorSpeed();
         platGen.anchorSpeed();
         parallax = PARALLAX_RIGHT;
         guardian.velocity.x = -camera;
