@@ -15,14 +15,15 @@ final int LINE_ONE = 30;
 final int LINE_TWO = 100;
 final int LINE_HEIGHT = 100;
 final int LINE_SUCCESS = 200;
-final int LOWER_SUCCESS = 70;
-final int UPPER_SUCCESS = 90;
+final int LOWER_SUCCESS = 65;
+final int UPPER_SUCCESS = 85;
 
 final int ENEMY_PARALLAX_POSITION = 20;
 
-final int START_GUARDIAN_ATTACK = 50;
+final int START_GUARDIAN_ATTACK = 25;
 final int START_ENEMY_ATTACK = 10;
 final int START_ENEMY_MELEE = 1;
+final int START_PET_MELEE = 1;
 
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
@@ -89,6 +90,7 @@ int guardianAttacks;
 int guardianAttackDamage;
 int enemyAttackDamage;
 int enemyMeleeDamage;
+int petMeleeDamage;
 Platform platform;
 PlatformGenerator platGen;
 
@@ -129,6 +131,8 @@ void setup() {
   enemyAttackDamage = START_ENEMY_ATTACK;
 
   enemyMeleeDamage = START_ENEMY_MELEE;
+
+  petMeleeDamage = START_PET_MELEE;
 
   petTimer = 0;
 
@@ -262,16 +266,17 @@ void petAttack() {
       }
 
 
-      if(pet.right && pet.target.position.x < pet.position.x + width/ATTACK_DISTANCE) {
+      if(pet.right && pet.target.position.x + (width/GUARDIAN_WIDTH)/2 < pet.position.x + width/GUARDIAN_WIDTH + width/ATTACK_DISTANCE/4) {
         pet.attack = true;
         pet.idle = false;
         pet.velocity.x = 0;
         System.out.println("ATTACK R");
-        //addmellee damage here
-      } else if(!pet.right && pet.target.position.x > pet.position.x - width/ATTACK_DISTANCE) {
+        petMeleeDamage();
+      } else if(!pet.right && pet.target.position.x + (width/GUARDIAN_WIDTH)/2 > pet.position.x - width/ATTACK_DISTANCE/4) {
         pet.attack = true;
         pet.idle = false;
         pet.velocity.x = 0;
+        petMeleeDamage();
         System.out.println("ATTACK L");
       } else if (dist(pet.position.x, pet.position.y, pet.target.position.x, pet.target.position.y) > width/2) {
         pet.idle = true;
@@ -283,11 +288,13 @@ void petAttack() {
         System.out.println("pursue");
       }
 
+
+
       stroke(255,0,0);
       line(pet.position.x, 0, pet.position.x, height);
       line(pet.target.position.x, 0, pet.target.position.x, height);
-      line(pet.target.position.x + width/ATTACK_DISTANCE, 0, pet.target.position.x + width/ATTACK_DISTANCE, height);
-      line(pet.target.position.x - width/ATTACK_DISTANCE, 0, pet.target.position.x - width/ATTACK_DISTANCE, height);
+      line(pet.target.position.x + 0.25 * width/ATTACK_DISTANCE + (width/GUARDIAN_WIDTH)/2, 0, pet.target.position.x + width/ATTACK_DISTANCE/4 + (width/GUARDIAN_WIDTH)/2, height);
+      line(pet.target.position.x - 0.25 * width/ATTACK_DISTANCE + (width/GUARDIAN_WIDTH)/2, 0, pet.target.position.x - width/ATTACK_DISTANCE/4 + (width/GUARDIAN_WIDTH)/2, height);
 
 
       if(!pet.idle) {
@@ -295,6 +302,10 @@ void petAttack() {
       }
     }
   }
+}
+
+void petMeleeDamage() {
+  pet.target.health -= petMeleeDamage;
 }
 
 /*
