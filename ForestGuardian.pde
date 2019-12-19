@@ -263,8 +263,6 @@ void spawnEnemies() {
 
       float r = random (0,1);
 
-      r= 0.6;
-
       if(r < 0.25) {
         enemies.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if ( r >= 0.25 && r < 0.5) {
@@ -656,6 +654,9 @@ void enemyAttack() {
           enemy.attack = true;
           enemy.idle = false;
           enemy.velocity.x = 0;
+        } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
+          enemy.idle = true;
+          enemy.attack = false;
         } else {
           enemy.idle = true;
         }
