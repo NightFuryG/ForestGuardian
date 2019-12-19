@@ -48,7 +48,7 @@ public class Animation {
 
     image(animation.get(currentFrame), position.x, position.y );
 
-    if(health < 50) {
+    if(health < 15) {
     tint(255, 0, 0, 100);
     image(animation.get(currentFrame), position.x, position.y );
     tint(255,255);

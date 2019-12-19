@@ -22,13 +22,13 @@ public class Enemy extends Entity {
   final int ATTACK_RESIZE_3 = width/20;
   final int JUMP_RESIZE_3 = width/15;
   final int RUN_RESIZE_3 = width/18;
-  final int DIE_RESIZE_3 = width/25;
+  final int DIE_RESIZE_3 = width/18;
 
   final int IDLE_RESIZE_4 = width/20;
   final int ATTACK_RESIZE_4 = width/17;
   final int JUMP_RESIZE_4 = width/15;
   final int RUN_RESIZE_4 = width/19;
-  final int DIE_RESIZE_4 = width/25;
+  final int DIE_RESIZE_4 = width/18;
 
   final int ENEMY_SPEED = 7;
   final int JUMP_SPEED = 20;
