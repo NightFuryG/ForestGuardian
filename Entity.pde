@@ -49,6 +49,7 @@ public class Entity {
   PVector velocity;
   PVector position;
 
+  Entity target;
   HashMap<String, Animation> animations;
 
   //Entity stalls all animations with HashMap
@@ -87,6 +88,7 @@ public class Entity {
     this.playDead = false;
 
     this.colliding = false;
+    this.target = null;
   }
 
   //add animations to HashMap
@@ -166,9 +168,9 @@ public class Entity {
         animate(IDLE_RIGHT);
       } else if(idle && !right) {
         animate(IDLE_LEFT);
-      } else if(!idle && right && !onRightEdge) {
+      } else if(!idle && right ) {
         animate(RUN_RIGHT);
-      } else if(!idle && !right && !onLeftEdge) {
+      } else if(!idle && !right) {
         animate(RUN_LEFT);
       }
     } else {
@@ -213,5 +215,9 @@ public class Entity {
 
   int getAnchorLeftPos() {
     return width/5;
+  }
+
+  void attackTarget() {
+
   }
 }

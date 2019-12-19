@@ -92,6 +92,7 @@ boolean petAlive;
 boolean summon;
 boolean petCooldown;
 boolean attacking;
+boolean petTargetChosen;
 float ground;
 float tileGround;
 float entGround;
@@ -124,6 +125,8 @@ public void setup() {
   petAlive = false;
 
   petCooldown = false;
+
+  petTargetChosen = false;
 
   summon = false;
 
@@ -245,8 +248,69 @@ public void updateAnchor() {
 
 //mirrors pet movement when travelling
 public void updatePet() {
-  pet.position.x = guardian.position.x;
-  pet.position.y = guardian.position.y;
+  if(!attacking) {
+    pet.position.x = guardian.position.x;
+    pet.position.y = guardian.position.y;
+  } else {
+    if(!petTargetChosen) {
+      for(Enemy enemy : enemies) {
+        if(!enemy.idle) {
+          pet.target = enemy;
+          petTargetChosen = true;
+        }
+      }
+    }
+  }
+}
+
+
+
+public void petAttack() {
+  if(attacking && petTargetChosen) {
+    if(pet.target != null) {
+
+      if(!pet.attack) {
+        if(pet.position.x < pet.target.position.x) {
+          pet.right = true;
+        } else {
+          pet.right = false;
+        }
+      }
+
+
+      if(pet.right && pet.target.position.x < pet.position.x + width/ATTACK_DISTANCE) {
+        pet.attack = true;
+        pet.idle = false;
+        pet.velocity.x = 0;
+        System.out.println("ATTACK R");
+        //addmellee damage here
+      } else if(!pet.right && pet.target.position.x > pet.position.x - width/ATTACK_DISTANCE) {
+        pet.attack = true;
+        pet.idle = false;
+        pet.velocity.x = 0;
+        System.out.println("ATTACK L");
+      } else if (dist(pet.position.x, pet.position.y, pet.target.position.x, pet.target.position.y) > width/2) {
+        pet.idle = true;
+        pet.attack = false;
+
+        System.out.println("OUT OF RANGE");
+       } else {
+        pet.idle = false;
+        System.out.println("pursue");
+      }
+
+      stroke(255,0,0);
+      line(pet.position.x, 0, pet.position.x, height);
+      line(pet.target.position.x, 0, pet.target.position.x, height);
+      line(pet.target.position.x + width/ATTACK_DISTANCE, 0, pet.target.position.x + width/ATTACK_DISTANCE, height);
+      line(pet.target.position.x - width/ATTACK_DISTANCE, 0, pet.target.position.x - width/ATTACK_DISTANCE, height);
+
+
+      if(!pet.idle) {
+        pet.attackTarget();
+      }
+    }
+  }
 }
 
 /*
@@ -275,6 +339,8 @@ public void bar() {
 public void unsummonPet() {
   if(millis() > petTimer +  PET_MAX_LIFE) {
     petAlive = false;
+    petTargetChosen = false;
+    pet.target = null;
     petTimer = millis();
   }
 }
@@ -289,7 +355,11 @@ public void checkCooldowns() {
 
 //summon pet
 public void summonPet() {
+  pet.position.x = guardian.position.x;
+  pet.position.y = guardian.position.y;
+
   petAlive = true;
+
   petTimer = millis();
 }
 
@@ -444,6 +514,7 @@ public void playerMove() {
   }
   if(petAlive) {
     updatePet();
+    petAttack();
   }
 }
 
@@ -547,23 +618,44 @@ public void enemyAttack() {
     //change magic numbers
     if(enemy.attack) {
       if(frameCount % 50 == 0) {
-        if(enemy.ranged == 1) {
-          if(enemy.right) {
-            attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
-              guardian.position.x, guardian.position.y + width/GUARDIAN_HEIGHT/2, true, 1));
-          } else {
-            attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
-              guardian.position.x, guardian.position.y + width/GUARDIAN_HEIGHT/2, false, 1));
+        if(!petAlive) {
+          if(enemy.ranged == 1) {
+            if(enemy.right) {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
+                guardian.position.x, guardian.position.y + width/GUARDIAN_HEIGHT/2, true, 1));
+            } else {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
+                guardian.position.x, guardian.position.y + width/GUARDIAN_HEIGHT/2, false, 1));
+            }
+          } else if(enemy.ranged == 2) {
+            if(enemy.right) {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y,
+                guardian.position.x, calculateAimHeight(enemy), true, 2));
+            } else {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y,
+                guardian.position.x, calculateAimHeight(enemy), false, 2));
+            }
           }
-        } else if(enemy.ranged == 2) {
-          if(enemy.right) {
-            attacks.add(new Attack(enemy.position.x, enemy.position.y,
-              guardian.position.x, calculateAimHeight(enemy), true, 2));
-          } else {
-            attacks.add(new Attack(enemy.position.x, enemy.position.y,
-              guardian.position.x, calculateAimHeight(enemy), false, 2));
+        } else {
+          if(enemy.ranged == 1) {
+            if(enemy.right) {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
+                pet.position.x, pet.position.y + width/GUARDIAN_HEIGHT/2, true, 1));
+            } else {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
+                pet.position.x, pet.position.y + width/GUARDIAN_HEIGHT/2, false, 1));
+            }
+          } else if(enemy.ranged == 2) {
+            if(enemy.right) {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y,
+                pet.position.x, calculateAimHeight(enemy), true, 2));
+            } else {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y,
+                pet.position.x, calculateAimHeight(enemy), false, 2));
+            }
           }
         }
+
       }
     }
       if(!enemy.idle) {
@@ -584,13 +676,17 @@ public void detectMeleeAttack(Enemy enemy) {
 
 
 public float calculateAimHeight(Enemy enemy) {
-  float maxLaunchHeight = height - guardian.position.y;
+  float enemyGuardianDistance = 0;
+  float optimalHeight = 0;
 
-  float enemyGuardianDistance = dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y);
-
-  float optimalHeight = height - 0.85f * enemyGuardianDistance;
-
-  return optimalHeight;
+  if(!petAlive) {
+      enemyGuardianDistance = dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y);
+      optimalHeight = height - 0.85f * enemyGuardianDistance;
+  } else {
+      enemyGuardianDistance = dist(pet.position.x, pet.position.y, enemy.position.x, enemy.position.y);
+      optimalHeight = height - 0.85f * enemyGuardianDistance;
+  }
+    return optimalHeight;
 
 }
 
@@ -608,16 +704,6 @@ public void checkLanded() {
     int i = 0;
 
     for(Platform platform : platGen.platforms) {
-
-      // pushMatrix();
-      //   stroke(255,0,0);
-      //   line(platform.position.x, height, platform.position.x, 0);
-      //   line(platform.position.x + platform.platformWidth, height, platform.position.x + platform.platformWidth, 0);
-      //   line(guardian.position.x, height, guardian.position.x, 0);
-      //   line(guardianHoriPosition, height, guardianHoriPosition, 0);
-      //   line(0, guardianVertPosition, width,  guardianVertPosition );
-      // popMatrix();
-
 
         if(guardianVertPosition >= platform.position.y && guardian.position.y + width/GUARDIAN_FEET/2 < platform.position.y) {
           if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
@@ -649,14 +735,12 @@ public void stopEnemiesFalling() {
       for(Platform platform : platGen.platforms) {
 
         if(enemy.position.x > platform.position.x && enemyHoriPosition < platform.position.x + platform.platformWidth) {
+
           if(enemy.right && platform.rightEdge) {
             if(enemyHoriPosition + 2 * enemy.velocity.x > platform.position.x + platform.platformWidth) {
               enemy.velocity.x = 0;
               enemy.position.x = platform.position.x + platform.platformWidth - width/GUARDIAN_WIDTH;
               i++;
-              System.out.println(
-                "me2"
-                );
             }
           }
 
@@ -665,44 +749,21 @@ public void stopEnemiesFalling() {
               enemy.velocity.x = 0;
               enemy.position.x = platform.position.x;
               j++;
-
-              System.out.println("ME");
             }
           }
 
-          if(i > 0) {
-            enemy.onRightEdge = true;
-          } else {
-            enemy.onRightEdge = false;
+            if(i > 0) {
+              enemy.onRightEdge = true;
+            } else {
+              enemy.onRightEdge = false;
+            }
+
+            if(j > 0) {
+              enemy.onLeftEdge = true;
+            } else {
+              enemy.onLeftEdge = false;
+            }
           }
-
-          if(j > 0) {
-            enemy.onLeftEdge = true;
-          } else {
-            enemy.onLeftEdge = false;
-          }
-
-
-
-        }
-
-
-
-
-
-
-        //   if(enemyVertPosition >= platform.position.y && enemy.position.y + width/GUARDIAN_FEET/2 < platform.position.y) {
-        //     if(enemy.position.x + 2 * enemy.velocity.x < platform.position.x && enemyHoriPosition  + 2 * enemy.velocity.x > platform.position.x + platform.platformWidth) {
-        //       enemy.onEdge = true;
-        //
-        //       i++;
-        //     }
-        //   }
-        // }
-        // if (i == 0) {
-        //   enemy.onEdge = false;
-        // }
-
         }
       }
     }
@@ -831,6 +892,11 @@ public void removeDeadEnemies() {
       if(enemy.health <= 0) {
         enemy.attack = false;
         enemy.alive = false;
+
+        if(enemy == pet.target) {
+          pet.target = null;
+        }
+
         if(enemy.playDead) {
           enemies.remove(enemy);
         }
@@ -1134,7 +1200,7 @@ public class Enemy extends Entity {
   final String ENEMY_THREE_PATH = "animations/enemy/3/";
   final String ENEMY_FOUR_PATH = "animations/enemy/4/";
 
-  final int IDLE_RESIZE_1 = width/27;
+  final int IDLE_RESIZE_1 = width/30;
   final int ATTACK_RESIZE_1 = width/23;
   final int JUMP_RESIZE_1 = width/20;
   final int RUN_RESIZE_1 = width/25;
@@ -1364,7 +1430,7 @@ public class Enemy extends Entity {
 
   //attack and pursue guardian
   public void attack() {
-    if(!attack && ranged ==0) {
+    if(!this.attack && ranged ==0) {
       if(right && !this.onRightEdge) {
         this.velocity.x = ENEMY_SPEED;
       } else if(!right && !this.onLeftEdge){
@@ -1426,6 +1492,7 @@ public class Entity {
   PVector velocity;
   PVector position;
 
+  Entity target;
   HashMap<String, Animation> animations;
 
   //Entity stalls all animations with HashMap
@@ -1464,6 +1531,7 @@ public class Entity {
     this.playDead = false;
 
     this.colliding = false;
+    this.target = null;
   }
 
   //add animations to HashMap
@@ -1543,9 +1611,9 @@ public class Entity {
         animate(IDLE_RIGHT);
       } else if(idle && !right) {
         animate(IDLE_LEFT);
-      } else if(!idle && right && !onRightEdge) {
+      } else if(!idle && right ) {
         animate(RUN_RIGHT);
-      } else if(!idle && !right && !onLeftEdge) {
+      } else if(!idle && !right) {
         animate(RUN_LEFT);
       }
     } else {
@@ -1590,6 +1658,10 @@ public class Entity {
 
   public int getAnchorLeftPos() {
     return width/5;
+  }
+
+  public void attackTarget() {
+
   }
 }
 //Class representing the playable Guardian
@@ -1912,16 +1984,19 @@ public class Pet extends Entity {
   final int JUMP_RESIZE = width/13;
   final int RUN_RESIZE = width/14;
 
-  final int PET_SPEED = 5;
+  final int PET_SPEED = 7;
   float GROUND = height - height/6.85f;
   float MIDDLE = width/2;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 2;
 
+  Entity target;
+
   Pet(String path, float x, float y) {
     super(path, x, y);
     resize();
     this.attack = true;
+    this.target = null;
   }
 
   //resize Animations
@@ -1993,20 +2068,36 @@ public class Pet extends Entity {
       case 2:
         break;
       case 3:
-        moveRight();
+        if(!b)
+          moveRight();
         break;
       case 4:
-        moveLeft();
+        if(!b)
+          moveLeft();
         break;
       case 5:
-        idle = true;
+        if(!b)
+          idle = true;
         break;
       case 6:
-        jump();
+        if(!b)
+          jump();
         break;
       default:
         break;
     }
+  }
+
+  public @Override
+  void attackTarget() {
+    if(!this.attack) {
+      if(this.right && !this.onRightEdge) {
+        this.velocity.x = PET_SPEED;
+      } else if( !this.right && !this.onLeftEdge){
+        this.velocity.x = -PET_SPEED;
+      }
+    }
+
   }
 
 

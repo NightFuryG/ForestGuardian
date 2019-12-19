@@ -76,6 +76,7 @@ boolean petAlive;
 boolean summon;
 boolean petCooldown;
 boolean attacking;
+boolean petTargetChosen;
 float ground;
 float tileGround;
 float entGround;
@@ -108,6 +109,8 @@ void setup() {
   petAlive = false;
 
   petCooldown = false;
+
+  petTargetChosen = false;
 
   summon = false;
 
@@ -229,8 +232,69 @@ void updateAnchor() {
 
 //mirrors pet movement when travelling
 void updatePet() {
-  pet.position.x = guardian.position.x;
-  pet.position.y = guardian.position.y;
+  if(!attacking) {
+    pet.position.x = guardian.position.x;
+    pet.position.y = guardian.position.y;
+  } else {
+    if(!petTargetChosen) {
+      for(Enemy enemy : enemies) {
+        if(!enemy.idle) {
+          pet.target = enemy;
+          petTargetChosen = true;
+        }
+      }
+    }
+  }
+}
+
+
+
+void petAttack() {
+  if(attacking && petTargetChosen) {
+    if(pet.target != null) {
+
+      if(!pet.attack) {
+        if(pet.position.x < pet.target.position.x) {
+          pet.right = true;
+        } else {
+          pet.right = false;
+        }
+      }
+
+
+      if(pet.right && pet.target.position.x < pet.position.x + width/ATTACK_DISTANCE) {
+        pet.attack = true;
+        pet.idle = false;
+        pet.velocity.x = 0;
+        System.out.println("ATTACK R");
+        //addmellee damage here
+      } else if(!pet.right && pet.target.position.x > pet.position.x - width/ATTACK_DISTANCE) {
+        pet.attack = true;
+        pet.idle = false;
+        pet.velocity.x = 0;
+        System.out.println("ATTACK L");
+      } else if (dist(pet.position.x, pet.position.y, pet.target.position.x, pet.target.position.y) > width/2) {
+        pet.idle = true;
+        pet.attack = false;
+
+        System.out.println("OUT OF RANGE");
+       } else {
+        pet.idle = false;
+        System.out.println("pursue");
+      }
+
+      stroke(255,0,0);
+      line(pet.position.x, 0, pet.position.x, height);
+      line(pet.target.position.x, 0, pet.target.position.x, height);
+      line(pet.target.position.x + width/ATTACK_DISTANCE, 0, pet.target.position.x + width/ATTACK_DISTANCE, height);
+      line(pet.target.position.x - width/ATTACK_DISTANCE, 0, pet.target.position.x - width/ATTACK_DISTANCE, height);
+
+
+      if(!pet.idle) {
+        pet.attackTarget();
+      }
+    }
+  }
 }
 
 /*
@@ -259,6 +323,8 @@ void bar() {
 void unsummonPet() {
   if(millis() > petTimer +  PET_MAX_LIFE) {
     petAlive = false;
+    petTargetChosen = false;
+    pet.target = null;
     petTimer = millis();
   }
 }
@@ -273,7 +339,11 @@ void checkCooldowns() {
 
 //summon pet
 void summonPet() {
+  pet.position.x = guardian.position.x;
+  pet.position.y = guardian.position.y;
+
   petAlive = true;
+
   petTimer = millis();
 }
 
@@ -428,6 +498,7 @@ void playerMove() {
   }
   if(petAlive) {
     updatePet();
+    petAttack();
   }
 }
 
@@ -531,23 +602,44 @@ void enemyAttack() {
     //change magic numbers
     if(enemy.attack) {
       if(frameCount % 50 == 0) {
-        if(enemy.ranged == 1) {
-          if(enemy.right) {
-            attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
-              guardian.position.x, guardian.position.y + width/GUARDIAN_HEIGHT/2, true, 1));
-          } else {
-            attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
-              guardian.position.x, guardian.position.y + width/GUARDIAN_HEIGHT/2, false, 1));
+        if(!petAlive) {
+          if(enemy.ranged == 1) {
+            if(enemy.right) {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
+                guardian.position.x, guardian.position.y + width/GUARDIAN_HEIGHT/2, true, 1));
+            } else {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
+                guardian.position.x, guardian.position.y + width/GUARDIAN_HEIGHT/2, false, 1));
+            }
+          } else if(enemy.ranged == 2) {
+            if(enemy.right) {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y,
+                guardian.position.x, calculateAimHeight(enemy), true, 2));
+            } else {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y,
+                guardian.position.x, calculateAimHeight(enemy), false, 2));
+            }
           }
-        } else if(enemy.ranged == 2) {
-          if(enemy.right) {
-            attacks.add(new Attack(enemy.position.x, enemy.position.y,
-              guardian.position.x, calculateAimHeight(enemy), true, 2));
-          } else {
-            attacks.add(new Attack(enemy.position.x, enemy.position.y,
-              guardian.position.x, calculateAimHeight(enemy), false, 2));
+        } else {
+          if(enemy.ranged == 1) {
+            if(enemy.right) {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
+                pet.position.x, pet.position.y + width/GUARDIAN_HEIGHT/2, true, 1));
+            } else {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y + width/ARROW_HEIGHT_ADJUST,
+                pet.position.x, pet.position.y + width/GUARDIAN_HEIGHT/2, false, 1));
+            }
+          } else if(enemy.ranged == 2) {
+            if(enemy.right) {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y,
+                pet.position.x, calculateAimHeight(enemy), true, 2));
+            } else {
+              attacks.add(new Attack(enemy.position.x, enemy.position.y,
+                pet.position.x, calculateAimHeight(enemy), false, 2));
+            }
           }
         }
+
       }
     }
       if(!enemy.idle) {
@@ -568,13 +660,17 @@ void detectMeleeAttack(Enemy enemy) {
 
 
 float calculateAimHeight(Enemy enemy) {
-  float maxLaunchHeight = height - guardian.position.y;
+  float enemyGuardianDistance = 0;
+  float optimalHeight = 0;
 
-  float enemyGuardianDistance = dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y);
-
-  float optimalHeight = height - 0.85 * enemyGuardianDistance;
-
-  return optimalHeight;
+  if(!petAlive) {
+      enemyGuardianDistance = dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y);
+      optimalHeight = height - 0.85 * enemyGuardianDistance;
+  } else {
+      enemyGuardianDistance = dist(pet.position.x, pet.position.y, enemy.position.x, enemy.position.y);
+      optimalHeight = height - 0.85 * enemyGuardianDistance;
+  }
+    return optimalHeight;
 
 }
 
@@ -592,16 +688,6 @@ void checkLanded() {
     int i = 0;
 
     for(Platform platform : platGen.platforms) {
-
-      // pushMatrix();
-      //   stroke(255,0,0);
-      //   line(platform.position.x, height, platform.position.x, 0);
-      //   line(platform.position.x + platform.platformWidth, height, platform.position.x + platform.platformWidth, 0);
-      //   line(guardian.position.x, height, guardian.position.x, 0);
-      //   line(guardianHoriPosition, height, guardianHoriPosition, 0);
-      //   line(0, guardianVertPosition, width,  guardianVertPosition );
-      // popMatrix();
-
 
         if(guardianVertPosition >= platform.position.y && guardian.position.y + width/GUARDIAN_FEET/2 < platform.position.y) {
           if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
@@ -633,14 +719,12 @@ void stopEnemiesFalling() {
       for(Platform platform : platGen.platforms) {
 
         if(enemy.position.x > platform.position.x && enemyHoriPosition < platform.position.x + platform.platformWidth) {
+
           if(enemy.right && platform.rightEdge) {
             if(enemyHoriPosition + 2 * enemy.velocity.x > platform.position.x + platform.platformWidth) {
               enemy.velocity.x = 0;
               enemy.position.x = platform.position.x + platform.platformWidth - width/GUARDIAN_WIDTH;
               i++;
-              System.out.println(
-                "me2"
-                );
             }
           }
 
@@ -649,44 +733,21 @@ void stopEnemiesFalling() {
               enemy.velocity.x = 0;
               enemy.position.x = platform.position.x;
               j++;
-
-              System.out.println("ME");
             }
           }
 
-          if(i > 0) {
-            enemy.onRightEdge = true;
-          } else {
-            enemy.onRightEdge = false;
+            if(i > 0) {
+              enemy.onRightEdge = true;
+            } else {
+              enemy.onRightEdge = false;
+            }
+
+            if(j > 0) {
+              enemy.onLeftEdge = true;
+            } else {
+              enemy.onLeftEdge = false;
+            }
           }
-
-          if(j > 0) {
-            enemy.onLeftEdge = true;
-          } else {
-            enemy.onLeftEdge = false;
-          }
-
-
-
-        }
-
-
-
-
-
-
-        //   if(enemyVertPosition >= platform.position.y && enemy.position.y + width/GUARDIAN_FEET/2 < platform.position.y) {
-        //     if(enemy.position.x + 2 * enemy.velocity.x < platform.position.x && enemyHoriPosition  + 2 * enemy.velocity.x > platform.position.x + platform.platformWidth) {
-        //       enemy.onEdge = true;
-        //
-        //       i++;
-        //     }
-        //   }
-        // }
-        // if (i == 0) {
-        //   enemy.onEdge = false;
-        // }
-
         }
       }
     }
@@ -815,6 +876,11 @@ void removeDeadEnemies() {
       if(enemy.health <= 0) {
         enemy.attack = false;
         enemy.alive = false;
+
+        if(enemy == pet.target) {
+          pet.target = null;
+        }
+
         if(enemy.playDead) {
           enemies.remove(enemy);
         }

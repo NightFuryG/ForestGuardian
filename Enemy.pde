@@ -6,7 +6,7 @@ public class Enemy extends Entity {
   final String ENEMY_THREE_PATH = "animations/enemy/3/";
   final String ENEMY_FOUR_PATH = "animations/enemy/4/";
 
-  final int IDLE_RESIZE_1 = width/27;
+  final int IDLE_RESIZE_1 = width/30;
   final int ATTACK_RESIZE_1 = width/23;
   final int JUMP_RESIZE_1 = width/20;
   final int RUN_RESIZE_1 = width/25;
@@ -236,7 +236,7 @@ public class Enemy extends Entity {
 
   //attack and pursue guardian
   void attack() {
-    if(!attack && ranged ==0) {
+    if(!this.attack && ranged ==0) {
       if(right && !this.onRightEdge) {
         this.velocity.x = ENEMY_SPEED;
       } else if(!right && !this.onLeftEdge){

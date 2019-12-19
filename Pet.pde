@@ -6,16 +6,19 @@ public class Pet extends Entity {
   final int JUMP_RESIZE = width/13;
   final int RUN_RESIZE = width/14;
 
-  final int PET_SPEED = 5;
+  final int PET_SPEED = 10;
   float GROUND = height - height/6.85;
   float MIDDLE = width/2;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 2;
 
+  Entity target;
+
   Pet(String path, float x, float y) {
     super(path, x, y);
     resize();
     this.attack = true;
+    this.target = null;
   }
 
   //resize Animations
@@ -87,20 +90,36 @@ public class Pet extends Entity {
       case 2:
         break;
       case 3:
-        moveRight();
+        if(!b)
+          moveRight();
         break;
       case 4:
-        moveLeft();
+        if(!b)
+          moveLeft();
         break;
       case 5:
-        idle = true;
+        if(!b)
+          idle = true;
         break;
       case 6:
-        jump();
+        if(!b)
+          jump();
         break;
       default:
         break;
     }
+  }
+
+  @Override
+  void attackTarget() {
+    if(!this.attack) {
+      if(this.right && !this.onRightEdge) {
+        this.velocity.x = PET_SPEED;
+      } else if( !this.right && !this.onLeftEdge){
+        this.velocity.x = -PET_SPEED;
+      }
+    }
+
   }
 
 
