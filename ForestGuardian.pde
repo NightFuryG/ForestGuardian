@@ -78,6 +78,8 @@ Entity guardian;
 Entity pet;
 PImage wolfAbilityImg;
 
+int level;
+
 
 boolean w, a, s, d, j;
 boolean petAlive;
@@ -130,6 +132,8 @@ void setup() {
 
   parallax = 0;
 
+  level = 1;
+
   summonCount = 0;
 
   guardianAttacks = 0;
@@ -163,7 +167,7 @@ void setup() {
 
   enemies = new ArrayList<Enemy>();
 
-  platGen = new PlatformGenerator();
+  platGen = new PlatformGenerator(level);
 
   spawnEnemies();
 
@@ -209,6 +213,8 @@ void draw() {
   guardianCollision();
   stopEnemiesFalling();
   removeDeadEnemies();
+  stopPetFalling();
+  setIdleOffScreen();
   //drawPlatformEdges();
 }
 
@@ -302,6 +308,10 @@ void updatePet() {
   if(!attacking) {
     pet.position.x = guardian.position.x;
     pet.position.y = guardian.position.y;
+    pet.attack = false;
+    pet.onRightEdge = false;
+    pet.onLeftEdge = false;
+
   } else {
     if(!petTargetChosen) {
       for(Enemy enemy : enemies) {
@@ -614,6 +624,13 @@ void drawAttack() {
   }
 }
 
+boolean checkEnemyOnScreen(Enemy enemy) {
+  if( enemy.position.x > width - width/10) {
+    return false;
+  }
+  return true;
+}
+
 //enemy detection distance
 //enemy will pursue guardian and attack if close enough
 void enemyAttack() {
@@ -628,39 +645,43 @@ void enemyAttack() {
       }
     }
 
-    if(enemy.ranged == 0) {
-      if(enemy.right && guardian.position.x < enemy.position.x + width/ATTACK_DISTANCE) {
-        enemy.attack = true;
-        enemy.idle = false;
-        enemy.velocity.x = 0;
-        detectMeleeAttack(enemy);
-      } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
-        enemy.attack = true;
-        enemy.idle = false;
-        enemy.velocity.x = 0;
-        detectMeleeAttack(enemy);
-      } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
-        enemy.idle = true;
-        enemy.attack = false;
-      } else {
-        enemy.idle = false;
-        }
-      } else {
-        if(enemy.right && guardian.position.x < enemy.position.x + width/RANGED_ATTACK_DISTANCE) {
+    if(checkEnemyOnScreen(enemy)) {
+      if(enemy.ranged == 0) {
+        if(enemy.right && guardian.position.x < enemy.position.x + width/ATTACK_DISTANCE) {
           enemy.attack = true;
           enemy.idle = false;
           enemy.velocity.x = 0;
-        } else if(!enemy.right && guardian.position.x > enemy.position.x - width/RANGED_ATTACK_DISTANCE) {
+          detectMeleeAttack(enemy);
+        } else if(!enemy.right && guardian.position.x > enemy.position.x - width/ATTACK_DISTANCE) {
           enemy.attack = true;
           enemy.idle = false;
           enemy.velocity.x = 0;
+          detectMeleeAttack(enemy);
         } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
           enemy.idle = true;
           enemy.attack = false;
         } else {
-          enemy.idle = true;
+          enemy.idle = false;
+          }
+        } else {
+          if(enemy.right && guardian.position.x < enemy.position.x + width/RANGED_ATTACK_DISTANCE) {
+            enemy.attack = true;
+            enemy.idle = false;
+            enemy.velocity.x = 0;
+          } else if(!enemy.right && guardian.position.x > enemy.position.x - width/RANGED_ATTACK_DISTANCE) {
+            enemy.attack = true;
+            enemy.idle = false;
+            enemy.velocity.x = 0;
+          } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/10) {
+            enemy.idle = true;
+            enemy.attack = false;
+          } else {
+            enemy.idle = false;
+          }
         }
-      }
+    }
+
+
 
       //change magic numbers
       if(enemy.attack) {
@@ -720,10 +741,6 @@ void detectMeleeAttack(Enemy enemy) {
      }
 }
 
-
-
-
-
 float calculateAimHeight(Enemy enemy) {
   float enemyGuardianDistance = 0;
   float optimalHeight = 0;
@@ -750,10 +767,18 @@ void checkGrounded() {
   }
 }
 
+void setIdleOffScreen() {
+  for(Enemy enemy : enemies) {
+    if( enemy.position.x > width || enemy.position.x < 0) {
+        enemy.idle =true;
+    }
+  }
+}
 
 void checkLanded() {
     float guardianVertPosition = guardian.position.y + width/GUARDIAN_FEET;
     float guardianHoriPosition = guardian.position.x + width/(GUARDIAN_WIDTH);
+
     int i = 0;
 
     for(Platform platform : platGen.platforms) {
@@ -762,6 +787,10 @@ void checkLanded() {
           if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
             guardian.grounded = true;
             guardian.position.y = platform.position.y - width/GUARDIAN_FEET;
+            if((pet.onRightEdge || pet.onLeftEdge) && pet.position.y != guardian.position.y)  {
+              pet.position.x = guardian.position.x;
+              pet.position.y = guardian.position.y;
+            }
             i++;
           }
         }
@@ -817,6 +846,52 @@ void stopEnemiesFalling() {
               enemy.onLeftEdge = false;
             }
           }
+
+
+        }
+      }
+    }
+  }
+}
+
+void stopPetFalling() {
+  if(attacking) {
+    if(!pet.idle) {
+      float petVertPosition = pet.position.y + width/GUARDIAN_FEET;
+      float petHoriPosition = pet.position.x + width/(GUARDIAN_WIDTH);
+      int i = 0;
+      int j = 0;
+
+      for(Platform platform : platGen.platforms) {
+        if(pet.position.x > platform.position.x && petHoriPosition < platform.position.x + platform.platformWidth) {
+
+          if(pet.right && platform.rightEdge) {
+            if(petHoriPosition +  pet.velocity.x > platform.position.x + platform.platformWidth) {
+              pet.velocity.x = 0;
+              pet.position.x = platform.position.x + platform.platformWidth - width/GUARDIAN_WIDTH;
+              i++;
+            }
+          }
+
+          if(!pet.right && platform.leftEdge) {
+            if(pet.position.x + pet.velocity.x < platform.position.x) {
+              pet.velocity.x = 0;
+              pet.position.x = platform.position.x;
+              j++;
+            }
+          }
+
+            if(i > 0) {
+              pet.onRightEdge = true;
+            } else {
+              pet.onRightEdge = false;
+            }
+
+            if(j > 0) {
+              pet.onLeftEdge = true;
+            } else {
+              pet.onLeftEdge = false;
+            }
         }
       }
     }
@@ -962,6 +1037,7 @@ void removeDeadEnemies() {
 
         if(enemy == pet.target) {
           pet.target = null;
+          petTargetChosen = false;
         }
 
         if(enemy.playDead) {

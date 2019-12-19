@@ -1,11 +1,11 @@
 class  PlatformGenerator {
 
-  final int PLATFORM_NUM = 100;
+  final int PLATFORM_NUM = 25;
 
   final int BLOCK_ONE = 1;
   final int BLOCK_TWO = 2;
   final int BLOCK_FIVE = 5;
-  final int BLOCK_MAX = 15;
+  final int BLOCK_MAX = 10;
   final float PERCENT_FORTY = 0.4;
   final float PERCENT_SEVENTY = 0.7;
   final float PERCENT_NINETY = 0.9;
@@ -23,9 +23,9 @@ class  PlatformGenerator {
 
   int cameraType;
 
-  PlatformGenerator() {
+  PlatformGenerator(int level) {
    this.platforms  = new ArrayList<Platform>();
-    this.numberOfPlatforms = PLATFORM_NUM;
+    this.numberOfPlatforms = level * PLATFORM_NUM;
     generatePlatforms();
     this.cameraType = BASE_SPEED;
   }
@@ -66,9 +66,9 @@ class  PlatformGenerator {
           platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, true));
         } else if (j == 0) {
           platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, false));
-        } else if(j == numPlat - 1 && numPlat != BLOCK_TWO) {
+        } else if(j == numPlat - 1) {
           platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
-        } else {
+        } else if(numPlat != BLOCK_TWO){
           float random = random(0,1);
           if(random > 0.9) {
             platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, false));
