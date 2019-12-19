@@ -83,6 +83,17 @@ public class Pet extends Entity {
   }
 
   @Override
+  void setVelR() {
+    velocity.x = PET_SPEED*2;
+  }
+
+
+  @Override
+  void setVelL() {
+    velocity.x = -PET_SPEED*2;
+  }
+
+  @Override
   void move(int i, boolean b) {
     switch (i) {
       case 1:

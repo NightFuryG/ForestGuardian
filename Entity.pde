@@ -218,6 +218,13 @@ public class Entity {
   }
 
   void attackTarget() {
+  }
 
+  void setVelL() {
+
+  }
+
+  void setVelR() {
+    
   }
 }

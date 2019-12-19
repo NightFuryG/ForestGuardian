@@ -36,10 +36,10 @@ final int UPPER_SUCCESS = 85;
 
 final int ENEMY_PARALLAX_POSITION = 20;
 
-final int START_GUARDIAN_ATTACK = 50;
+final int START_GUARDIAN_ATTACK = 25;
 final int START_ENEMY_ATTACK = 10;
 final int START_ENEMY_MELEE = 1;
-final int START_PET_MELEE = 2;
+final int START_PET_MELEE = 1;
 
 final int PET_MAX_LIFE = 10000;
 final int SUMMON_INCREASE = 3;
@@ -253,8 +253,24 @@ public void updateAnchor() {
 //mirrors pet movement when travelling
 public void updatePet() {
   if(!attacking) {
-    pet.position.x = guardian.position.x;
-    pet.position.y = guardian.position.y;
+
+    if(pet.position.x != guardian.position.x && pet.position.y != guardian.position.y) {
+      if(pet.position.x < guardian.position.x) {
+        if(!pet.right) {
+          pet.right = true;
+        }
+        pet.setVelR();
+      } else {
+        if(pet.right) {
+          pet.right = false;
+        }
+        pet.setVelL();
+      }
+    } else {
+      pet.position.x = guardian.position.x;
+      pet.position.y = guardian.position.y;
+    }
+
   } else {
     if(!petTargetChosen) {
       for(Enemy enemy : enemies) {
@@ -1672,7 +1688,14 @@ public class Entity {
   }
 
   public void attackTarget() {
+  }
 
+  public void setVelL() {
+
+  }
+
+  public void setVelR() {
+    
   }
 }
 //Class representing the playable Guardian
@@ -2069,6 +2092,17 @@ public class Pet extends Entity {
       velocity.y = -JUMP_SPEED;
       jump = true;
     }
+  }
+
+  public @Override
+  void setVelR() {
+    velocity.x = PET_SPEED*2;
+  }
+
+
+  public @Override
+  void setVelL() {
+    velocity.x = -PET_SPEED*2;
   }
 
   public @Override

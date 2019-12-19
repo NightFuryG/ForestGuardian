@@ -237,8 +237,10 @@ void updateAnchor() {
 //mirrors pet movement when travelling
 void updatePet() {
   if(!attacking) {
-    pet.position.x = guardian.position.x;
-    pet.position.y = guardian.position.y;
+
+      pet.position.x = guardian.position.x;
+      pet.position.y = guardian.position.y;
+
   } else {
     if(!petTargetChosen) {
       for(Enemy enemy : enemies) {
