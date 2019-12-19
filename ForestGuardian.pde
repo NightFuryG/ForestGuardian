@@ -178,7 +178,7 @@ void draw() {
   background(255);
   checkAttacking();
 
-  if(!attacking && !guardian.colliding) {
+  if(!attacking && !guardian.colliding && !guardian.dashing) {
     drawParallaxBackround();
   } else {
     background.draw(PARALLAX_NONE);
@@ -731,7 +731,7 @@ float calculateAimHeight(Enemy enemy) {
   if(!petAlive) {
       enemyGuardianDistance = dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y);
       heightDiff = guardian.position.y - enemy.position.y;
-      optimalHeight = guardian.position.y + 1.5 *  heightDiff -  0.5 *enemyGuardianDistance;
+      optimalHeight = guardian.position.y + 1.5 *  heightDiff -  0.5 * enemyGuardianDistance;
 
   } else {
       enemyGuardianDistance = dist(pet.position.x, pet.position.y, enemy.position.x, enemy.position.y);

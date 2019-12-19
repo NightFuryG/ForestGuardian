@@ -194,7 +194,7 @@ public void draw() {
   background(255);
   checkAttacking();
 
-  if(!attacking && !guardian.colliding) {
+  if(!attacking && !guardian.colliding && !guardian.dashing) {
     drawParallaxBackround();
   } else {
     background.draw(PARALLAX_NONE);
@@ -747,7 +747,7 @@ public float calculateAimHeight(Enemy enemy) {
   if(!petAlive) {
       enemyGuardianDistance = dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y);
       heightDiff = guardian.position.y - enemy.position.y;
-      optimalHeight = guardian.position.y + 1.5f *  heightDiff -  0.5f *enemyGuardianDistance;
+      optimalHeight = guardian.position.y + 1.5f *  heightDiff -  0.5f * enemyGuardianDistance;
 
   } else {
       enemyGuardianDistance = dist(pet.position.x, pet.position.y, enemy.position.x, enemy.position.y);
@@ -1298,13 +1298,13 @@ public class Enemy extends Entity {
   final int ATTACK_RESIZE_3 = width/20;
   final int JUMP_RESIZE_3 = width/15;
   final int RUN_RESIZE_3 = width/18;
-  final int DIE_RESIZE_3 = width/18;
+  final int DIE_RESIZE_3 = width/15;
 
   final int IDLE_RESIZE_4 = width/20;
   final int ATTACK_RESIZE_4 = width/17;
   final int JUMP_RESIZE_4 = width/15;
   final int RUN_RESIZE_4 = width/19;
-  final int DIE_RESIZE_4 = width/18;
+  final int DIE_RESIZE_4 = width/15;
 
   final int ENEMY_SPEED = 7;
   final int JUMP_SPEED = 20;
@@ -1567,6 +1567,7 @@ public class Entity {
   boolean anchorRight;
   boolean anchorLeft;
   boolean alive;
+  boolean dashing;
   boolean colliding;
   boolean playDead;
   boolean onLeftEdge;
@@ -1610,6 +1611,7 @@ public class Entity {
     this.jump = false;
     this.attack = false;
     this.grounded = true;
+    this.dashing = false;
 
     this.onLeftEdge = false;
     this.onRightEdge = false;
@@ -1670,6 +1672,7 @@ public class Entity {
     } else {
       velocity.y = 0;
       this.jump = false;
+      this.dashing = false;
       this.jumps = jumpMax;
       this.dash = dashMax;
     }
@@ -1877,9 +1880,14 @@ public class Guardian extends Entity {
     } else {
       anchorRight = true;
       anchorLeft = false;
+      if(!this.dashing) {
+
       velocity.x = -VELOCITY_SWITCH;
+      }
       if(position.x <= anchorLeftPos) {
-        velocity.x = 0;
+        if(!this.dashing) {
+          velocity.x = 0;
+        }
       }
     }
     right = true;
@@ -1933,9 +1941,14 @@ public class Guardian extends Entity {
     } else {
       anchorLeft = true;
       anchorRight = false;
+      if(!this.dashing) {
+
       velocity.x = VELOCITY_SWITCH;
+      }
       if(position.x >= anchorRightPos) {
+        if(!this.dashing) {
           velocity.x = 0;
+        }
       }
     }
     right = false;
@@ -1963,12 +1976,11 @@ public class Guardian extends Entity {
 
   public void dash() {
     if(this.dash > 0 && this.energy >= ENERGY) {
+      this.dashing = true;
       if(this.right) {
         this.velocity.x += DASH_SPEED;
-        this.velocity.y -= GRAVITY;
       } else {
         this.velocity.x -= DASH_SPEED;
-        this.velocity.y -= GRAVITY;
       }
       this.dash--;
       this.energy -= ENERGY;

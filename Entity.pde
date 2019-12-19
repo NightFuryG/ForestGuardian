@@ -42,6 +42,7 @@ public class Entity {
   boolean anchorRight;
   boolean anchorLeft;
   boolean alive;
+  boolean dashing;
   boolean colliding;
   boolean playDead;
   boolean onLeftEdge;
@@ -85,6 +86,7 @@ public class Entity {
     this.jump = false;
     this.attack = false;
     this.grounded = true;
+    this.dashing = false;
 
     this.onLeftEdge = false;
     this.onRightEdge = false;
@@ -145,6 +147,7 @@ public class Entity {
     } else {
       velocity.y = 0;
       this.jump = false;
+      this.dashing = false;
       this.jumps = jumpMax;
       this.dash = dashMax;
     }

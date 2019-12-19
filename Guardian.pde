@@ -107,9 +107,14 @@ public class Guardian extends Entity {
     } else {
       anchorRight = true;
       anchorLeft = false;
+      if(!this.dashing) {
+
       velocity.x = -VELOCITY_SWITCH;
+      }
       if(position.x <= anchorLeftPos) {
-        velocity.x = 0;
+        if(!this.dashing) {
+          velocity.x = 0;
+        }
       }
     }
     right = true;
@@ -163,9 +168,14 @@ public class Guardian extends Entity {
     } else {
       anchorLeft = true;
       anchorRight = false;
+      if(!this.dashing) {
+
       velocity.x = VELOCITY_SWITCH;
+      }
       if(position.x >= anchorRightPos) {
+        if(!this.dashing) {
           velocity.x = 0;
+        }
       }
     }
     right = false;
@@ -193,12 +203,11 @@ public class Guardian extends Entity {
 
   void dash() {
     if(this.dash > 0 && this.energy >= ENERGY) {
+      this.dashing = true;
       if(this.right) {
         this.velocity.x += DASH_SPEED;
-        this.velocity.y -= GRAVITY;
       } else {
         this.velocity.x -= DASH_SPEED;
-        this.velocity.y -= GRAVITY;
       }
       this.dash--;
       this.energy -= ENERGY;
