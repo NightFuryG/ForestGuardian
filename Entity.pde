@@ -13,6 +13,9 @@ public class Entity {
   final String DIE_RIGHT = "dieRight/";
   final String DIE_LEFT = "dieLeft/";
 
+  final int JUMP_MAX = 2;
+  final int DASH_MAX = 1;
+
   String idleRightPath;
   String idleLeftPath;
   String runRightPath;
@@ -45,6 +48,11 @@ public class Entity {
   boolean onRightEdge;
 
   int health;
+  int energy;
+  int jumps;
+  int jumpMax;
+  int dash;
+  int dashMax;
 
   PVector velocity;
   PVector position;
@@ -84,6 +92,11 @@ public class Entity {
     this.anchorRight = false;
 
     this.health = HEALTH;
+    this.energy = HEALTH;
+    this.jumpMax = JUMP_MAX;
+    this.jumps = jumpMax;
+    this.dashMax = DASH_MAX;
+    this.dash = dashMax;
     this.alive = true;
     this.playDead = false;
 
@@ -132,6 +145,8 @@ public class Entity {
     } else {
       velocity.y = 0;
       this.jump = false;
+      this.jumps = jumpMax;
+      this.dash = dashMax;
     }
 
 
@@ -225,6 +240,6 @@ public class Entity {
   }
 
   void setVelR() {
-    
+
   }
 }

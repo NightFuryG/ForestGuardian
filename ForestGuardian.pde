@@ -78,6 +78,7 @@ boolean summon;
 boolean petCooldown;
 boolean attacking;
 boolean petTargetChosen;
+boolean doubleJump;
 float ground;
 float tileGround;
 float entGround;
@@ -117,6 +118,8 @@ void setup() {
   summon = false;
 
   attacking = false;
+
+  doubleJump = false;
 
   camera = width/38;
 
@@ -223,6 +226,8 @@ void updateEnemies() {
     }
   }
 }
+
+
 
 
 void updateAnchor() {
@@ -504,11 +509,15 @@ void playerMove() {
       pet.move(5, attacking);
   }
   if(j) {
+    j = false;
     guardian.colliding = false;
     guardian.move(6, attacking);
-    if(petAlive)
+    if(petAlive) {
       pet.move(6, attacking);
+    }
   }
+
+
   if(petAlive) {
     updatePet();
     petAttack();

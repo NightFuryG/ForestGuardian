@@ -94,6 +94,7 @@ boolean summon;
 boolean petCooldown;
 boolean attacking;
 boolean petTargetChosen;
+boolean doubleJump;
 float ground;
 float tileGround;
 float entGround;
@@ -133,6 +134,8 @@ public void setup() {
   summon = false;
 
   attacking = false;
+
+  doubleJump = false;
 
   camera = width/38;
 
@@ -241,6 +244,8 @@ public void updateEnemies() {
 }
 
 
+
+
 public void updateAnchor() {
   if(attacking) {
     guardian.anchorLeft = false;
@@ -254,22 +259,8 @@ public void updateAnchor() {
 public void updatePet() {
   if(!attacking) {
 
-    if(pet.position.x != guardian.position.x && pet.position.y != guardian.position.y) {
-      if(pet.position.x < guardian.position.x) {
-        if(!pet.right) {
-          pet.right = true;
-        }
-        pet.setVelR();
-      } else {
-        if(pet.right) {
-          pet.right = false;
-        }
-        pet.setVelL();
-      }
-    } else {
       pet.position.x = guardian.position.x;
       pet.position.y = guardian.position.y;
-    }
 
   } else {
     if(!petTargetChosen) {
@@ -534,11 +525,15 @@ public void playerMove() {
       pet.move(5, attacking);
   }
   if(j) {
+    j = false;
     guardian.colliding = false;
     guardian.move(6, attacking);
-    if(petAlive)
+    if(petAlive) {
       pet.move(6, attacking);
+    }
   }
+
+
   if(petAlive) {
     updatePet();
     petAttack();
@@ -987,7 +982,7 @@ public class Animation {
 
     image(animation.get(currentFrame), position.x, position.y );
 
-    if(health < 15) {
+    if(health < 50) {
     tint(255, 0, 0, 100);
     image(animation.get(currentFrame), position.x, position.y );
     tint(255,255);
@@ -1483,6 +1478,9 @@ public class Entity {
   final String DIE_RIGHT = "dieRight/";
   final String DIE_LEFT = "dieLeft/";
 
+  final int JUMP_MAX = 2;
+  final int DASH_MAX = 1;
+
   String idleRightPath;
   String idleLeftPath;
   String runRightPath;
@@ -1515,6 +1513,11 @@ public class Entity {
   boolean onRightEdge;
 
   int health;
+  int energy;
+  int jumps;
+  int jumpMax;
+  int dash;
+  int dashMax;
 
   PVector velocity;
   PVector position;
@@ -1554,6 +1557,11 @@ public class Entity {
     this.anchorRight = false;
 
     this.health = HEALTH;
+    this.energy = HEALTH;
+    this.jumpMax = JUMP_MAX;
+    this.jumps = jumpMax;
+    this.dashMax = DASH_MAX;
+    this.dash = dashMax;
     this.alive = true;
     this.playDead = false;
 
@@ -1602,6 +1610,8 @@ public class Entity {
     } else {
       velocity.y = 0;
       this.jump = false;
+      this.jumps = jumpMax;
+      this.dash = dashMax;
     }
 
 
@@ -1695,7 +1705,7 @@ public class Entity {
   }
 
   public void setVelR() {
-    
+
   }
 }
 //Class representing the playable Guardian
@@ -1714,7 +1724,10 @@ public class Guardian extends Entity {
   final float MIDDLE = width/2;
   final int GUARDIAN_SPEED = width/150;
   final int JUMP_SPEED = 30;
+  final int DASH_SPEED = width/12;
+  final float GRAVITY = 3;
   final int GUARDIAN_WIDTH = 20;
+  final int ENERGY = 25;
 
   int anchorRightPos;
   int anchorLeftPos;
@@ -1871,10 +1884,34 @@ public class Guardian extends Entity {
 
   //jump - needs work
   public void jump() {
-    if(!jump) {
-      velocity.y = -JUMP_SPEED;
-      jump = true;
-      grounded = false;
+    if(this.jumps == 2 ) {
+      this.velocity.y = -JUMP_SPEED;
+      this.jump = true;
+      this.grounded = false;
+      this.jumps--;
+    } else if(this.jumps == 1) {
+      if(this.energy >= ENERGY) {
+        this.velocity.y = -JUMP_SPEED;
+        this.jump = true;
+        this.grounded = false;
+        this.jumps--;
+        this.energy -= ENERGY;
+      }
+    }
+  }
+
+
+  public void dash() {
+    if(this.dash > 0 && this.energy >= ENERGY) {
+      if(this.right) {
+        this.velocity.x += DASH_SPEED;
+        this.velocity.y -= GRAVITY;
+      } else {
+        this.velocity.x -= DASH_SPEED;
+        this.velocity.y -= GRAVITY;
+      }
+      this.dash--;
+      this.energy -= ENERGY;
     }
   }
 
@@ -1883,6 +1920,9 @@ public class Guardian extends Entity {
   void move(int i, boolean b) {
     switch (i) {
       case 1:
+        if(!this.grounded) {
+          dash();
+        }
         break;
       case 2:
         break;

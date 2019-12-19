@@ -14,7 +14,10 @@ public class Guardian extends Entity {
   final float MIDDLE = width/2;
   final int GUARDIAN_SPEED = width/150;
   final int JUMP_SPEED = 30;
+  final int DASH_SPEED = width/12;
+  final float GRAVITY = 3;
   final int GUARDIAN_WIDTH = 20;
+  final int ENERGY = 25;
 
   int anchorRightPos;
   int anchorLeftPos;
@@ -171,10 +174,34 @@ public class Guardian extends Entity {
 
   //jump - needs work
   void jump() {
-    if(!jump) {
-      velocity.y = -JUMP_SPEED;
-      jump = true;
-      grounded = false;
+    if(this.jumps == 2 ) {
+      this.velocity.y = -JUMP_SPEED;
+      this.jump = true;
+      this.grounded = false;
+      this.jumps--;
+    } else if(this.jumps == 1) {
+      if(this.energy >= ENERGY) {
+        this.velocity.y = -JUMP_SPEED;
+        this.jump = true;
+        this.grounded = false;
+        this.jumps--;
+        this.energy -= ENERGY;
+      }
+    }
+  }
+
+
+  void dash() {
+    if(this.dash > 0 && this.energy >= ENERGY) {
+      if(this.right) {
+        this.velocity.x += DASH_SPEED;
+        this.velocity.y -= GRAVITY;
+      } else {
+        this.velocity.x -= DASH_SPEED;
+        this.velocity.y -= GRAVITY;
+      }
+      this.dash--;
+      this.energy -= ENERGY;
     }
   }
 
@@ -183,6 +210,9 @@ public class Guardian extends Entity {
   void move(int i, boolean b) {
     switch (i) {
       case 1:
+        if(!this.grounded) {
+          dash();
+        }
         break;
       case 2:
         break;
