@@ -1,4 +1,4 @@
-
+import processing.sound.*;
 final int GUARDIAN_WIDTH = 24;
 final int ATTACK_WIDTH = 40;
 final int GUARDIAN_HEIGHT = 20;
@@ -25,7 +25,7 @@ final int LINE_TWO = 100;
 final int LINE_HEIGHT = 100;
 final int LINE_SUCCESS = 200;
 final int LOWER_SUCCESS = 65;
-final int UPPER_SUCCESS = 80;
+final int UPPER_SUCCESS = 75;
 
 final int ENEMY_PARALLAX_POSITION = 20;
 
@@ -88,6 +88,18 @@ public final float GROUND_PROP = 6.85;
 final float ENT_GROUND_PROP = 6;
 final float GROUND_TILE = 12;
 
+final String ATTACK_SOUND = "data/sound/attack.mp3";
+final String BACKGROUND_SOUND = "data/sound/background.mp3";
+final String GAMEOVER_SOUND = "data/sound/gameOver.mp3";
+final String HIT_SOUND = "data/sound/hit.mp3";
+final String SPELL_SOUND = "data/sound/spell.mp3";
+
+SoundFile attackSound;
+SoundFile backgoundSound;
+SoundFile gameOverSound;
+SoundFile hitSound;
+SoundFile spellSound;
+
 
 Background background;
 Entity guardian;
@@ -147,6 +159,12 @@ PImage nextRound;
 void setup() {
   fullScreen();
   frameRate(60);
+
+  attackSound = new SoundFile(this, ATTACK_SOUND);
+  backgoundSound = new SoundFile(this, BACKGROUND_SOUND);
+  gameOverSound = new SoundFile(this, GAMEOVER_SOUND);
+  hitSound = new SoundFile(this, HIT_SOUND);
+  spellSound = new SoundFile(this, SPELL_SOUND);
 
   title = loadImage(TITLE_SCREEN);
   gameOver = loadImage(GAME_OVER_SCREEN);
@@ -234,6 +252,8 @@ void setup() {
 //  enemiesClone = new ArrayList<Enemy>();
 
   spawnEnemies();
+
+  backgoundSound.loop();
 }
 
 void draw() {
@@ -311,6 +331,7 @@ void draw() {
 
 boolean checkNotDead() {
   if(guardian.health <= 0) {
+    gameOverSound.play();
     return false;
   }
   return true;
@@ -432,11 +453,16 @@ void updatePet() {
     pet.onLeftEdge = false;
 
   } else {
+
     if(!petTargetChosen && guardian.grounded) {
       for(Enemy enemy : enemies) {
         if(!enemy.idle) {
           pet.target = enemy;
           petTargetChosen = true;
+          pet.position.x = guardian.position.x;
+          pet.position.y = guardian.position.y;
+          System.out.println("true");
+          pet.idle = false;
         }
       }
     }
@@ -534,7 +560,7 @@ void summonPet() {
   pet.position.y = guardian.position.y;
 
   petAlive = true;
-
+  spellSound.play();
   petTimer = millis();
 }
 
@@ -599,6 +625,9 @@ void positionPlatforms(int velocity) {
 // movement and abilites
 void keyPressed() {
     if(key == 'w') {
+      if(!w) {
+        spellSound.play();
+      }
       w = true;
     } else if (key == 's') {
       s = true;
@@ -609,11 +638,11 @@ void keyPressed() {
     } else if(key == ' ') {
       j = true;
     } else if (key == '1') {
-      if(petCooldown)
+      if(petCooldown && !petAlive)
         summon = true;
         summonCount += SUMMON_INCREASE;
     } else if (key == '2') {
-
+        spellSound.play();
     }
 }
 
@@ -631,20 +660,22 @@ void keyReleased() {
     j = false;
   } else if (key == '1') {
 
-    if(summonCount >= LOWER_SUCCESS && summonCount <= UPPER_SUCCESS ) {
-      summonPet();
-    } else {
-      petCooldown = false;
-    }
+    if(petCooldown && !petAlive) {
+      if(summonCount >= LOWER_SUCCESS && summonCount <= UPPER_SUCCESS ) {
+        summonPet();
+      } else {
+        petCooldown = false;
+      }
 
-    summonCount = 0;
-    summon = false;
-    petCooldownTimer = millis();
+      summonCount = 0;
+      summon = false;
+      petCooldownTimer = millis();
+    }
   } else if (key == '2') {
     if(seeds > SEED_HEAL) {
-      guardian.health += SEED_HEAL/2;
+      guardian.health += SEED_HEAL/4;
       if(guardian.health > SEED_HEAL) {
-        guardian.health = SEED_HEAL
+        guardian.health = SEED_HEAL;
       }
       seeds -= SEED_HEAL;
     }
@@ -656,6 +687,7 @@ void keyReleased() {
 void playerMove() {
   if(w) {
     guardian.move(1, attacking);
+
     if(petAlive)
       pet.move(1, attacking);
   }
@@ -708,6 +740,7 @@ void playerMove() {
 
 void checkNextLevel() {
   if(guardian.position.x > platGen.getEnd()) {
+    gameOverSound.play();
     nextLevel();
   }
 }
@@ -737,6 +770,7 @@ void nextLevel() {
   enemies.clear();
   platGen = new PlatformGenerator(level);
   spawnEnemies();
+
 }
 
 void newGame() {
@@ -763,6 +797,7 @@ void newGame() {
   enemies.clear();
   platGen = new PlatformGenerator(level);
   spawnEnemies();
+
 }
 
 
@@ -787,7 +822,9 @@ void mousePressed() {
                 } else {
                   attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
                 }
-            } guardianAttacks++;
+            }
+            guardianAttacks++;
+            attackSound.play();
         }
       }
     } else {
@@ -827,8 +864,14 @@ void drawAttack() {
 }
 
 boolean checkEnemyOnScreen(Enemy enemy) {
-  if( enemy.position.x > width - width/4) {
-    return false;
+  if(!attacking) {
+    if( enemy.position.x > width - width/3) {
+      return false;
+    }
+  } else {
+    if( enemy.position.x > width - width/GUARDIAN_WIDTH) {
+      return false;
+    }
   }
   return true;
 }
@@ -886,7 +929,7 @@ void enemyAttack() {
 
       //change magic numbers
       if(enemy.attack) {
-        if(frameCount % 50 == 0) {
+        if(frameCount % (50 - 4 * level) == 0) {
           if(!petAlive) {
             if(enemy.ranged == 1) {
               if(enemy.right) {
@@ -1194,6 +1237,7 @@ void detectAttackCollision() {
               enemy.health -= guardianAttackDamage;
               attacks.remove(attack);
               guardianAttacks--;
+              hitSound.play();
           }
         }
       }
@@ -1207,6 +1251,7 @@ void detectAttackCollision() {
             if(attackY < guardianY && attackY > guardian.position.y) {
               guardian.health -= enemyAttackDamage - level;
               attacks.remove(attack);
+              hitSound.play();
             }
           }
 

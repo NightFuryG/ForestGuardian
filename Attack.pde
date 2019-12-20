@@ -3,15 +3,13 @@ public class Attack {
 
   PImage attackRight = loadImage("animations/guardian/wolfAttack/0.png");
   PImage attackLeft = loadImage("animations/guardian/wolfAttack/1.png");
-
   PImage rock = loadImage("animations/enemy/attack/rock.png");
-
   PImage arrowRight = loadImage("animations/enemy/attack/arrowRight.png");
   PImage arrowLeft = loadImage("animations/enemy/attack/arrowLeft.png");
 
   final int ATTACK_SPEED = width/100;
   final int ATTACK_SIZE = width/20;
-  final int MAX_DISTANCE = width/10;
+  final int MAX_DISTANCE = width/17;
   final int GUARDIAN_WOLF_ATTACK = 0;
   final int ENEMY_ARROW_ATTACK = 1;
   final int ENEMY_ROCK_ATTACK = 2;

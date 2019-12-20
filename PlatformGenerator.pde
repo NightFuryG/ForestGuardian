@@ -98,7 +98,7 @@ class  PlatformGenerator {
           platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
         } else if(numPlat > BLOCK_TWO){
           float random = random(0,1);
-          if(random > 0.9) {
+          if(random > 0.75) {
             platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, false));
           } else {
             platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, false));
