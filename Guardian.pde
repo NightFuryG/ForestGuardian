@@ -25,7 +25,7 @@ public class Guardian extends Entity {
       this.anchorLeft = false;
       this.anchorRightPos = width/3;
       this.anchorLeftPos =  width/5;
-    
+
   }
 
   //get anchors
@@ -195,7 +195,6 @@ public class Guardian extends Entity {
       case 5:
         if(!this.attack)
           this.idle = true;
-        //NEED TO REFACTOR
         if(!b) {
           if(anchorLeft) {
             if(guardian.position.x < 1.5*width/5) {

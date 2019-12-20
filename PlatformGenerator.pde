@@ -84,7 +84,7 @@ class  PlatformGenerator {
       } else {
         numPlat = BLOCK_MAX;
       }
-      
+
       for(int j = 0; j < numPlat; j++) {
         if (numPlat == BLOCK_MAX && j == numPlat - 1) {
           platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
@@ -108,14 +108,6 @@ class  PlatformGenerator {
     }
   }
 
-  // void setMoving() {
-  //   for(Platform platform : platforms) {
-  //     if(platform.leftEdge && platform.rightEdge) {
-  //
-  //     }
-  //   }
-  //
-  // }
 
   void setLast(){
     Platform endPlatform = platforms.get(platforms.size()-1);

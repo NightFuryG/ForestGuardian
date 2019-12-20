@@ -1,6 +1,6 @@
 //Enemy class used for enemy entites
 public class Enemy extends Entity {
-  
+
   final int ENEMY_SPEED = 15;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 2;
@@ -19,7 +19,6 @@ public class Enemy extends Entity {
     this.ranged = checkType(type);
     this.grounded = true;
     this.platform = platform;
-    //resize(path);
   }
 
   int checkType(int type) {

@@ -1,6 +1,0 @@
-class Tree {
-
-  PVector position;
-
-  
-}

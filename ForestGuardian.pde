@@ -1,4 +1,5 @@
 import processing.sound.*;
+
 final int GUARDIAN_WIDTH = 24;
 final int ATTACK_WIDTH = 40;
 final int GUARDIAN_HEIGHT = 20;
@@ -46,6 +47,7 @@ final int PARALLAX_RIGHT = 1;
 final int PARALLAX_LEFT = 2;
 final int PARALLAX_NONE = 0;
 final int CAMERA_ANCHOR = 10;
+final int CAMERA_ONE = 38;
 
 final float HEALTH_COLOUR_SCALE = 2.55;
 final float HEALTH_HEIGHT_SCALE = 0.925;
@@ -108,9 +110,7 @@ PImage wolfAbilityImg;
 PImage healAbilityImg;
 
 Animator animator;
-
 int level;
-
 
 boolean w, a, s, d, j;
 boolean petAlive;
@@ -154,8 +154,6 @@ PImage nextRound;
 
 
 
-
-
 void setup() {
   fullScreen();
   frameRate(60);
@@ -171,85 +169,56 @@ void setup() {
   click = loadImage(CLICK);
   nextRound = loadImage(NEXT_SCREEN);
 
-  w = a = s = d = j = false;
-
   animator = new Animator();
 
+  w = a = s = d = j = false;
   petAlive = false;
-
   petCooldown = false;
-
   petTargetChosen = false;
-
   summon = false;
-
   attacking = false;
-
   alive = true;
-
   startScreen = true;
-
   nextLevel = false;
-
   doubleJump = false;
 
   camera = width/38;
-
   parallax = 0;
-
   level = 1;
-
   score = 0;
-
   seeds = 0;
-
   summonCount = 0;
-
   guardianAttacks = 0;
 
   wolfAbilityImg = loadImage(WOLF_CD);
   healAbilityImg = loadImage(HEAL_CD);
 
   healAbilityImg.resize(HEAL_IMAGE_RESIZE, 0);
-
   wolfAbilityImg.resize(WOLF_IMAGE_RESIZE, 0);
 
   guardianAttackDamage = START_GUARDIAN_ATTACK;
-
   enemyAttackDamage = START_ENEMY_ATTACK;
-
   enemyMeleeDamage = START_ENEMY_MELEE;
-
   petMeleeDamage = START_PET_MELEE;
 
   petTimer = 0;
-
   petCooldownTimer = 0;
 
   ground = height - height/GROUND_PROP;
   entGround = height - height/ENT_GROUND_PROP;
-
   tileGround = height - height/GROUND_TILE;
 
   background = new Background(BACKGROUND_ONE_PATH, BACKGROUND_ONE_LAYERS);
 
   platGen = new PlatformGenerator(level);
-
   platGenClone = platGen;
-
   startX = platGen.platforms.get(3).position.x;
-
   startY = platGen.platforms.get(3).position.y - width/GUARDIAN_FEET;
 
   guardian = new Guardian(animator.guardian, startX, startY);
-
   pet = new Pet(animator.wolf, guardian.position.x, guardian.position.y);
-
   attacks = new ArrayList<Attack>();
-
   enemies = new ArrayList<Enemy>();
-
-//  enemiesClone = new ArrayList<Enemy>();
 
   spawnEnemies();
 
@@ -268,7 +237,6 @@ void draw() {
       image(title, displayWidth/2, displayHeight/2);
       image(click, displayWidth/2, 3*displayHeight/4);
       imageMode(CORNER);
-
       popStyle();
     } else if(nextLevel) {
       pushStyle();
@@ -384,11 +352,9 @@ void showWolfCooldown() {
 
 void showSeedCooldown() {
   pushStyle();
-
   if(seeds < 100) {
     tint(100, 50);
   }
-
   image(healAbilityImg, width/2 + healAbilityImg.width/2, healAbilityImg.height/4);
   textSize(displayWidth/TEXT_SIZE);
   text(seeds, width/2 + healAbilityImg.width, 0.75* healAbilityImg.height);
@@ -406,9 +372,7 @@ void regenEnergy() {
 void spawnEnemies() {
   for(Platform platform : platGen.platforms) {
     if(platform.enemy == true) {
-
       float r = random (0,1);
-
       if(r < 0.25) {
         enemies.add(new Enemy(animator.enemyOne, 0, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if ( r >= 0.25 && r < 0.5) {
@@ -422,7 +386,6 @@ void spawnEnemies() {
   }
 }
 
-
 void updateEnemies() {
   for(Enemy enemy : enemies ) {
     if(!attacking) {
@@ -430,9 +393,6 @@ void updateEnemies() {
     }
   }
 }
-
-
-
 
 void updateAnchor() {
   if(attacking) {
@@ -479,7 +439,6 @@ void ensureAttackWorks() {
 void petAttack() {
   if(attacking && petTargetChosen) {
     if(pet.target != null) {
-
       if(!pet.attack) {
         if(pet.position.x < pet.target.position.x) {
           pet.right = true;
@@ -487,7 +446,6 @@ void petAttack() {
           pet.right = false;
         }
       }
-
       if(pet.right && pet.target.position.x + (width/GUARDIAN_WIDTH)/2 < pet.position.x + width/GUARDIAN_WIDTH + width/ATTACK_DISTANCE/4) {
         pet.attack = true;
         pet.idle = false;
@@ -658,14 +616,12 @@ void keyReleased() {
   } else if (key == ' ') {
     j = false;
   } else if (key == '1') {
-
     if(petCooldown && !petAlive) {
       if(summonCount >= LOWER_SUCCESS && summonCount <= UPPER_SUCCESS ) {
         summonPet();
       } else {
         petCooldown = false;
       }
-
       summonCount = 0;
       summon = false;
       petCooldownTimer = millis();
@@ -686,7 +642,6 @@ void keyReleased() {
 void playerMove() {
   if(w) {
     guardian.move(1, attacking);
-
     if(petAlive)
       pet.move(1, attacking);
   }
@@ -923,9 +878,6 @@ void enemyAttack() {
         }
     }
 
-
-
-      //change magic numbers
       if(enemy.attack) {
         if(frameCount % (50 - 4 * level) == 0) {
           if(!petAlive) {
@@ -999,7 +951,6 @@ float calculateAimHeight(Enemy enemy) {
       optimalHeight = guardian.position.y + 1.5 * heightDiff -  0.5 * enemyGuardianDistance;
   }
     return optimalHeight;
-
 }
 
 void checkGrounded() {
@@ -1019,7 +970,6 @@ void setIdleOffScreen() {
 void checkLanded() {
     float guardianVertPosition = guardian.position.y + width/GUARDIAN_FEET;
     float guardianHoriPosition = guardian.position.x + width/(GUARDIAN_WIDTH);
-
     int i = 0;
 
     for(Platform platform : platGen.platforms) {
@@ -1190,8 +1140,7 @@ void guardianCollision() {
           guardian.colliding = true;
           platIndex = platGen.platforms.indexOf(platform);
         }
-
-
+        
     if (guardian.position.x + guardWidth > platform.position.x &&
         guardian.position.x < platform.position.x + platform.platformWidth &&
         guardian.position.y + guardHeight + guardian.velocity.y > platform.position.y &&

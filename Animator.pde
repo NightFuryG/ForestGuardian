@@ -1,3 +1,5 @@
+
+//Solves Performance issues by loading all at start.
 public class Animator {
 
   final String GUARDIAN_PATH = "animations/guardian/";
