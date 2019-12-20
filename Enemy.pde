@@ -51,6 +51,10 @@ public class Enemy extends Entity {
     resize(path);
   }
 
+  Enemy(Enemy enemy) {
+    
+  }
+
   int checkType(String path) {
     if(path.equals(ENEMY_TWO_PATH)  ) {
       return BOW;

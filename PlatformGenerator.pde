@@ -1,6 +1,6 @@
 class  PlatformGenerator {
 
-  final int PLATFORM_NUM = 200;
+  final int PLATFORM_NUM = 50;
 
   final int BLOCK_ONE = 1;
   final int BLOCK_TWO = 2;
@@ -135,6 +135,12 @@ class  PlatformGenerator {
         platform.transition = width/CAMERA_SPEED;
       }
       cameraType = CAMERA_SPEED;
+    }
+  }
+
+  void resetPlatformGenerator() {
+    for(Platform platform : platforms) {
+      platform.resetPosition();
     }
   }
 

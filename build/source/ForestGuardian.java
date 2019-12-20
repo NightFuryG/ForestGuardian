@@ -129,8 +129,10 @@ int enemyMeleeDamage;
 int petMeleeDamage;
 Platform platform;
 PlatformGenerator platGen;
+PlatformGenerator platGenClone;
 ArrayList<Attack> attacks;
 ArrayList<Enemy> enemies;
+ArrayList<Enemy> enemiesClone;
 
 PImage title;
 PImage gameOver;
@@ -203,6 +205,8 @@ public void setup() {
 
   platGen = new PlatformGenerator(level);
 
+  platGenClone = platGen;
+
   startX = platGen.platforms.get(3).position.x;
 
   startY = platGen.platforms.get(3).position.y - width/GUARDIAN_FEET;
@@ -215,7 +219,10 @@ public void setup() {
 
   enemies = new ArrayList<Enemy>();
 
+  enemiesClone = new ArrayList<Enemy>();
+
   spawnEnemies();
+  copyEnemies();
 }
 
 public void draw() {
@@ -267,7 +274,6 @@ public void draw() {
       setIdleOffScreen();
       ensureAttackWorks();
       drawPlatformEdges();
-      checkEndOfLevel();
       alive = checkNotDead();
     }
   } else {
@@ -342,16 +348,21 @@ public void spawnEnemies() {
       float r = random (0,1);
 
       if(r < 0.25f) {
-        enemies.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
+        enemiesClone.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if ( r >= 0.25f && r < 0.5f) {
-        enemies.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
+        enemiesClone.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if (r >= 0.5f && r < 0.75f) {
-        enemies.add(new Enemy(ENEMY_THREE_PATH, platform.position.x, platform.position.y - THREE_FOUR_SPAWN * platform.platformHeight, platform));
+        enemiesClone.add(new Enemy(ENEMY_THREE_PATH, platform.position.x, platform.position.y - THREE_FOUR_SPAWN * platform.platformHeight, platform));
       } else {
-        enemies.add(new Enemy(ENEMY_FOUR_PATH, platform.position.x, platform.position.y -  THREE_FOUR_SPAWN * platform.platformHeight, platform));
+        enemiesClone.add(new Enemy(ENEMY_FOUR_PATH, platform.position.x, platform.position.y -  THREE_FOUR_SPAWN * platform.platformHeight, platform));
       }
-
     }
+  }
+}
+
+public void copyEnemies() {
+  for(Enemy enemy : enemiesClone) {
+    enemies.add(new Enemy(enemy));
   }
 }
 
@@ -669,8 +680,8 @@ public void newGame() {
   doubleJump = false;
   petCooldownTimer = 0;
   attacks.clear();
-  enemies.clear();
-  spawnEnemies();
+  copyEnemies();
+  platGen.resetPlatformGenerator();
 }
 
 
@@ -1155,8 +1166,9 @@ public void removeDeadEnemies() {
 //Draw enemies
 public void drawEnemies() {
   for(Enemy enemy : enemies) {
-    enemy.draw();
-  }
+    if(enemy.position.x < width * 2);
+      enemy.draw();
+    }
 }
 //Animation class for loading in and setting animation speed
 public class Animation {
@@ -1927,7 +1939,7 @@ public class Entity {
 
   //play an animation
   public void animate(String animation) {
-    animations.get(animation).draw(position, this.health);
+      animations.get(animation).draw(position, this.health);
   }
 
   public void animateOnce(String animation) {
@@ -2465,6 +2477,8 @@ public class Platform {
   float transition;
   int platformWidth;
   int platformHeight;
+  float startX;
+  float startY;
   boolean leftEdge;
   boolean rightEdge;
   boolean last;
@@ -2474,6 +2488,8 @@ public class Platform {
 
   Platform( float x, float y, float transition, boolean enemy, boolean leftEdge, boolean rightEdge) {
     this.tile = loadImage(imgPath);
+    this.startX = x;
+    this.startY = y;
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
     this.tile.resize(width/RESIZE, 0);
@@ -2485,6 +2501,11 @@ public class Platform {
     this.rightEdge = rightEdge;
     this.moving = false;
     this.last = false;
+  }
+
+  public void resetPosition() {
+    this.position.x = startX;
+    this.position.y = startY;
   }
 
   public void platformShift(int direction) {
@@ -2506,12 +2527,14 @@ public class Platform {
   }
 
   public void draw() {
-    image(tile, position.x, position.y);
+    if(position.x < width*2) {
+      image(tile, position.x, position.y);
+    }
   }
 }
 class  PlatformGenerator {
 
-  final int PLATFORM_NUM = 200;
+  final int PLATFORM_NUM = 50;
 
   final int BLOCK_ONE = 1;
   final int BLOCK_TWO = 2;
@@ -2646,6 +2669,12 @@ class  PlatformGenerator {
         platform.transition = width/CAMERA_SPEED;
       }
       cameraType = CAMERA_SPEED;
+    }
+  }
+
+  public void resetPlatformGenerator() {
+    for(Platform platform : platforms) {
+      platform.resetPosition();
     }
   }
 

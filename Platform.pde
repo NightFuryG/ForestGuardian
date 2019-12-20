@@ -13,6 +13,8 @@ public class Platform {
   float transition;
   int platformWidth;
   int platformHeight;
+  float startX;
+  float startY;
   boolean leftEdge;
   boolean rightEdge;
   boolean last;
@@ -22,6 +24,8 @@ public class Platform {
 
   Platform( float x, float y, float transition, boolean enemy, boolean leftEdge, boolean rightEdge) {
     this.tile = loadImage(imgPath);
+    this.startX = x;
+    this.startY = y;
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
     this.tile.resize(width/RESIZE, 0);
@@ -33,6 +37,11 @@ public class Platform {
     this.rightEdge = rightEdge;
     this.moving = false;
     this.last = false;
+  }
+
+  void resetPosition() {
+    this.position.x = startX;
+    this.position.y = startY;
   }
 
   void platformShift(int direction) {
@@ -54,6 +63,8 @@ public class Platform {
   }
 
   void draw() {
-    image(tile, position.x, position.y);
+    if(position.x < width*2) {
+      image(tile, position.x, position.y);
+    }
   }
 }

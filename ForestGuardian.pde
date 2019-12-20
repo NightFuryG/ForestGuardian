@@ -113,8 +113,10 @@ int enemyMeleeDamage;
 int petMeleeDamage;
 Platform platform;
 PlatformGenerator platGen;
+PlatformGenerator platGenClone;
 ArrayList<Attack> attacks;
 ArrayList<Enemy> enemies;
+ArrayList<Enemy> enemiesClone;
 
 PImage title;
 PImage gameOver;
@@ -187,6 +189,8 @@ void setup() {
 
   platGen = new PlatformGenerator(level);
 
+  platGenClone = platGen;
+
   startX = platGen.platforms.get(3).position.x;
 
   startY = platGen.platforms.get(3).position.y - width/GUARDIAN_FEET;
@@ -199,7 +203,10 @@ void setup() {
 
   enemies = new ArrayList<Enemy>();
 
+  enemiesClone = new ArrayList<Enemy>();
+
   spawnEnemies();
+  copyEnemies();
 }
 
 void draw() {
@@ -325,16 +332,21 @@ void spawnEnemies() {
       float r = random (0,1);
 
       if(r < 0.25) {
-        enemies.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
+        enemiesClone.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if ( r >= 0.25 && r < 0.5) {
-        enemies.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
+        enemiesClone.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if (r >= 0.5 && r < 0.75) {
-        enemies.add(new Enemy(ENEMY_THREE_PATH, platform.position.x, platform.position.y - THREE_FOUR_SPAWN * platform.platformHeight, platform));
+        enemiesClone.add(new Enemy(ENEMY_THREE_PATH, platform.position.x, platform.position.y - THREE_FOUR_SPAWN * platform.platformHeight, platform));
       } else {
-        enemies.add(new Enemy(ENEMY_FOUR_PATH, platform.position.x, platform.position.y -  THREE_FOUR_SPAWN * platform.platformHeight, platform));
+        enemiesClone.add(new Enemy(ENEMY_FOUR_PATH, platform.position.x, platform.position.y -  THREE_FOUR_SPAWN * platform.platformHeight, platform));
       }
-
     }
+  }
+}
+
+void copyEnemies() {
+  for(Enemy enemy : enemiesClone) {
+    enemies.add(new Enemy(enemy));
   }
 }
 
@@ -652,8 +664,8 @@ void newGame() {
   doubleJump = false;
   petCooldownTimer = 0;
   attacks.clear();
-  enemies.clear();
-  spawnEnemies();
+  copyEnemies();
+  platGen.resetPlatformGenerator();
 }
 
 
@@ -1138,6 +1150,7 @@ void removeDeadEnemies() {
 //Draw enemies
 void drawEnemies() {
   for(Enemy enemy : enemies) {
-    enemy.draw();
-  }
+    if(enemy.position.x < width * 2);
+      enemy.draw();
+    }
 }

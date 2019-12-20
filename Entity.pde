@@ -237,7 +237,7 @@ public class Entity {
 
   //play an animation
   void animate(String animation) {
-    animations.get(animation).draw(position, this.health);
+      animations.get(animation).draw(position, this.health);
   }
 
   void animateOnce(String animation) {
