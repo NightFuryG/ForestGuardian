@@ -461,7 +461,6 @@ void updatePet() {
           petTargetChosen = true;
           pet.position.x = guardian.position.x;
           pet.position.y = guardian.position.y;
-          System.out.println("true");
           pet.idle = false;
         }
       }
@@ -746,7 +745,6 @@ void checkNextLevel() {
 }
 
 void nextLevel() {
-  System.out.println("lit");
   nextLevel = true;
   alive = true;
   guardian.reset();

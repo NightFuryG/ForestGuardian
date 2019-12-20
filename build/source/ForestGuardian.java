@@ -43,7 +43,7 @@ final int LINE_TWO = 100;
 final int LINE_HEIGHT = 100;
 final int LINE_SUCCESS = 200;
 final int LOWER_SUCCESS = 65;
-final int UPPER_SUCCESS = 80;
+final int UPPER_SUCCESS = 75;
 
 final int ENEMY_PARALLAX_POSITION = 20;
 
@@ -691,7 +691,7 @@ public void keyReleased() {
     }
   } else if (key == '2') {
     if(seeds > SEED_HEAL) {
-      guardian.health += SEED_HEAL/2;
+      guardian.health += SEED_HEAL/4;
       if(guardian.health > SEED_HEAL) {
         guardian.health = SEED_HEAL;
       }
@@ -920,7 +920,7 @@ public void enemyAttack() {
           enemy.idle = false;
           enemy.velocity.x = 0;
           detectMeleeAttack(enemy);
-        } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
+        } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width) {
           enemy.idle = true;
           enemy.attack = false;
         } else {
@@ -935,7 +935,7 @@ public void enemyAttack() {
             enemy.attack = true;
             enemy.idle = false;
             enemy.velocity.x = 0;
-          } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
+          } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width) {
             enemy.attack = false;
           } else {
             enemy.idle = false;
@@ -2590,9 +2590,7 @@ public class Platform {
   boolean rightEdge;
   boolean last;
   boolean moving;
-//
-  final int RESIZE = 10;
-  final int TREE_RESIZE = 2;
+
 
   Platform(PImage tile, float x, float y, float transition, boolean enemy, boolean leftEdge, boolean rightEdge) {
     this.tile = tile;
@@ -2600,7 +2598,6 @@ public class Platform {
     this.startY = y;
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
-    //this.tile.resize(width/RESIZE, 0);
     this.platformWidth = tile.width;
     this.platformHeight = tile.height;
     this.transition = transition;
@@ -2740,6 +2737,7 @@ class  PlatformGenerator {
         numPlat = BLOCK_MAX;
       }
 
+      //add doubleJump blocks
       for(int j = 0; j < numPlat; j++) {
         if (numPlat == BLOCK_MAX && j == numPlat - 1) {
           platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
@@ -2753,7 +2751,7 @@ class  PlatformGenerator {
           platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
         } else if(numPlat > BLOCK_TWO){
           float random = random(0,1);
-          if(random > 0.75f) {
+          if(random > 0.9f) {
             platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, false));
           } else {
             platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, false));

@@ -21,9 +21,7 @@ public class Platform {
   boolean rightEdge;
   boolean last;
   boolean moving;
-//
-  final int RESIZE = 10;
-  final int TREE_RESIZE = 2;
+
 
   Platform(PImage tile, float x, float y, float transition, boolean enemy, boolean leftEdge, boolean rightEdge) {
     this.tile = tile;
@@ -31,7 +29,6 @@ public class Platform {
     this.startY = y;
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
-    //this.tile.resize(width/RESIZE, 0);
     this.platformWidth = tile.width;
     this.platformHeight = tile.height;
     this.transition = transition;
