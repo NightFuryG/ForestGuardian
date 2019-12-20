@@ -2,7 +2,7 @@
 public class Platform {
 
   final String imgPath = "data/tileset/3.png";
-  final String treePath = "Forest/PNG/tree.png";
+  final String treePath = "data/tileset/tree.png";
 
   final int PLAT_RIGHT = 1;
   final int PLAT_LEFT = 2;

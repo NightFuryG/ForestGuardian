@@ -17,6 +17,7 @@ import java.io.IOException;
 public class ForestGuardian extends PApplet {
 
 
+
 final int GUARDIAN_WIDTH = 24;
 final int ATTACK_WIDTH = 40;
 final int GUARDIAN_HEIGHT = 20;
@@ -64,6 +65,7 @@ final int PARALLAX_RIGHT = 1;
 final int PARALLAX_LEFT = 2;
 final int PARALLAX_NONE = 0;
 final int CAMERA_ANCHOR = 10;
+final int CAMERA_ONE = 38;
 
 final float HEALTH_COLOUR_SCALE = 2.55f;
 final float HEALTH_HEIGHT_SCALE = 0.925f;
@@ -126,9 +128,7 @@ PImage wolfAbilityImg;
 PImage healAbilityImg;
 
 Animator animator;
-
 int level;
-
 
 boolean w, a, s, d, j;
 boolean petAlive;
@@ -172,8 +172,6 @@ PImage nextRound;
 
 
 
-
-
 public void setup() {
   
   frameRate(60);
@@ -189,85 +187,56 @@ public void setup() {
   click = loadImage(CLICK);
   nextRound = loadImage(NEXT_SCREEN);
 
-  w = a = s = d = j = false;
-
   animator = new Animator();
 
+  w = a = s = d = j = false;
   petAlive = false;
-
   petCooldown = false;
-
   petTargetChosen = false;
-
   summon = false;
-
   attacking = false;
-
   alive = true;
-
   startScreen = true;
-
   nextLevel = false;
-
   doubleJump = false;
 
   camera = width/38;
-
   parallax = 0;
-
   level = 1;
-
   score = 0;
-
   seeds = 0;
-
   summonCount = 0;
-
   guardianAttacks = 0;
 
   wolfAbilityImg = loadImage(WOLF_CD);
   healAbilityImg = loadImage(HEAL_CD);
 
   healAbilityImg.resize(HEAL_IMAGE_RESIZE, 0);
-
   wolfAbilityImg.resize(WOLF_IMAGE_RESIZE, 0);
 
   guardianAttackDamage = START_GUARDIAN_ATTACK;
-
   enemyAttackDamage = START_ENEMY_ATTACK;
-
   enemyMeleeDamage = START_ENEMY_MELEE;
-
   petMeleeDamage = START_PET_MELEE;
 
   petTimer = 0;
-
   petCooldownTimer = 0;
 
   ground = height - height/GROUND_PROP;
   entGround = height - height/ENT_GROUND_PROP;
-
   tileGround = height - height/GROUND_TILE;
 
   background = new Background(BACKGROUND_ONE_PATH, BACKGROUND_ONE_LAYERS);
 
   platGen = new PlatformGenerator(level);
-
   platGenClone = platGen;
-
   startX = platGen.platforms.get(3).position.x;
-
   startY = platGen.platforms.get(3).position.y - width/GUARDIAN_FEET;
 
   guardian = new Guardian(animator.guardian, startX, startY);
-
   pet = new Pet(animator.wolf, guardian.position.x, guardian.position.y);
-
   attacks = new ArrayList<Attack>();
-
   enemies = new ArrayList<Enemy>();
-
-//  enemiesClone = new ArrayList<Enemy>();
 
   spawnEnemies();
 
@@ -286,7 +255,6 @@ public void draw() {
       image(title, displayWidth/2, displayHeight/2);
       image(click, displayWidth/2, 3*displayHeight/4);
       imageMode(CORNER);
-
       popStyle();
     } else if(nextLevel) {
       pushStyle();
@@ -402,11 +370,9 @@ public void showWolfCooldown() {
 
 public void showSeedCooldown() {
   pushStyle();
-
   if(seeds < 100) {
     tint(100, 50);
   }
-
   image(healAbilityImg, width/2 + healAbilityImg.width/2, healAbilityImg.height/4);
   textSize(displayWidth/TEXT_SIZE);
   text(seeds, width/2 + healAbilityImg.width, 0.75f* healAbilityImg.height);
@@ -424,9 +390,7 @@ public void regenEnergy() {
 public void spawnEnemies() {
   for(Platform platform : platGen.platforms) {
     if(platform.enemy == true) {
-
       float r = random (0,1);
-
       if(r < 0.25f) {
         enemies.add(new Enemy(animator.enemyOne, 0, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if ( r >= 0.25f && r < 0.5f) {
@@ -440,7 +404,6 @@ public void spawnEnemies() {
   }
 }
 
-
 public void updateEnemies() {
   for(Enemy enemy : enemies ) {
     if(!attacking) {
@@ -448,9 +411,6 @@ public void updateEnemies() {
     }
   }
 }
-
-
-
 
 public void updateAnchor() {
   if(attacking) {
@@ -479,7 +439,6 @@ public void updatePet() {
           petTargetChosen = true;
           pet.position.x = guardian.position.x;
           pet.position.y = guardian.position.y;
-          System.out.println("true");
           pet.idle = false;
         }
       }
@@ -498,7 +457,6 @@ public void ensureAttackWorks() {
 public void petAttack() {
   if(attacking && petTargetChosen) {
     if(pet.target != null) {
-
       if(!pet.attack) {
         if(pet.position.x < pet.target.position.x) {
           pet.right = true;
@@ -506,7 +464,6 @@ public void petAttack() {
           pet.right = false;
         }
       }
-
       if(pet.right && pet.target.position.x + (width/GUARDIAN_WIDTH)/2 < pet.position.x + width/GUARDIAN_WIDTH + width/ATTACK_DISTANCE/4) {
         pet.attack = true;
         pet.idle = false;
@@ -677,14 +634,12 @@ public void keyReleased() {
   } else if (key == ' ') {
     j = false;
   } else if (key == '1') {
-
     if(petCooldown && !petAlive) {
       if(summonCount >= LOWER_SUCCESS && summonCount <= UPPER_SUCCESS ) {
         summonPet();
       } else {
         petCooldown = false;
       }
-
       summonCount = 0;
       summon = false;
       petCooldownTimer = millis();
@@ -705,7 +660,6 @@ public void keyReleased() {
 public void playerMove() {
   if(w) {
     guardian.move(1, attacking);
-
     if(petAlive)
       pet.move(1, attacking);
   }
@@ -764,7 +718,6 @@ public void checkNextLevel() {
 }
 
 public void nextLevel() {
-  System.out.println("lit");
   nextLevel = true;
   alive = true;
   guardian.reset();
@@ -943,9 +896,6 @@ public void enemyAttack() {
         }
     }
 
-
-
-      //change magic numbers
       if(enemy.attack) {
         if(frameCount % (50 - 4 * level) == 0) {
           if(!petAlive) {
@@ -1019,7 +969,6 @@ public float calculateAimHeight(Enemy enemy) {
       optimalHeight = guardian.position.y + 1.5f * heightDiff -  0.5f * enemyGuardianDistance;
   }
     return optimalHeight;
-
 }
 
 public void checkGrounded() {
@@ -1039,7 +988,6 @@ public void setIdleOffScreen() {
 public void checkLanded() {
     float guardianVertPosition = guardian.position.y + width/GUARDIAN_FEET;
     float guardianHoriPosition = guardian.position.x + width/(GUARDIAN_WIDTH);
-
     int i = 0;
 
     for(Platform platform : platGen.platforms) {
@@ -1210,8 +1158,7 @@ public void guardianCollision() {
           guardian.colliding = true;
           platIndex = platGen.platforms.indexOf(platform);
         }
-
-
+        
     if (guardian.position.x + guardWidth > platform.position.x &&
         guardian.position.x < platform.position.x + platform.platformWidth &&
         guardian.position.y + guardHeight + guardian.velocity.y > platform.position.y &&
@@ -1364,7 +1311,6 @@ public class Animation {
     }
     pushMatrix();
     image(animation.get(currentFrame), position.x, position.y );
-
     if(health < 15) {
     tint(255, 0, 0, 100);
     image(animation.get(currentFrame), position.x, position.y );
@@ -1388,7 +1334,6 @@ public class Animation {
 
 
     pushMatrix();
-
     image(animation.get(currentFrame), position.x, position.y );
     tint(255,0,0,100);
     image(animation.get(currentFrame), position.x, position.y );
@@ -1397,6 +1342,8 @@ public class Animation {
   }
 
 }
+
+//Solves Performance issues by loading all at start.
 public class Animator {
 
   final String GUARDIAN_PATH = "animations/guardian/";
@@ -1911,7 +1858,7 @@ public class Background {
   }
 //Enemy class used for enemy entites
 public class Enemy extends Entity {
-  
+
   final int ENEMY_SPEED = 15;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 2;
@@ -1930,7 +1877,6 @@ public class Enemy extends Entity {
     this.ranged = checkType(type);
     this.grounded = true;
     this.platform = platform;
-    //resize(path);
   }
 
   public int checkType(int type) {
@@ -2202,7 +2148,7 @@ public class Guardian extends Entity {
       this.anchorLeft = false;
       this.anchorRightPos = width/3;
       this.anchorLeftPos =  width/5;
-    
+
   }
 
   //get anchors
@@ -2372,7 +2318,6 @@ public class Guardian extends Entity {
       case 5:
         if(!this.attack)
           this.idle = true;
-        //NEED TO REFACTOR
         if(!b) {
           if(anchorLeft) {
             if(guardian.position.x < 1.5f*width/5) {
@@ -2571,7 +2516,7 @@ public class Pet extends Entity {
 public class Platform {
 
   final String imgPath = "data/tileset/3.png";
-  final String treePath = "Forest/PNG/tree.png";
+  final String treePath = "data/tileset/tree.png";
 
   final int PLAT_RIGHT = 1;
   final int PLAT_LEFT = 2;
@@ -2737,7 +2682,6 @@ class  PlatformGenerator {
         numPlat = BLOCK_MAX;
       }
 
-      //add doubleJump blocks
       for(int j = 0; j < numPlat; j++) {
         if (numPlat == BLOCK_MAX && j == numPlat - 1) {
           platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
@@ -2761,14 +2705,6 @@ class  PlatformGenerator {
     }
   }
 
-  // void setMoving() {
-  //   for(Platform platform : platforms) {
-  //     if(platform.leftEdge && platform.rightEdge) {
-  //
-  //     }
-  //   }
-  //
-  // }
 
   public void setLast(){
     Platform endPlatform = platforms.get(platforms.size()-1);
@@ -2824,12 +2760,6 @@ class  PlatformGenerator {
       }
     }
   }
-}
-class Tree {
-
-  PVector position;
-
-  
 }
   public void settings() {  fullScreen(); }
   static public void main(String[] passedArgs) {
