@@ -43,12 +43,7 @@ public class Animation {
       }
       prevTime = millis();
     }
-
-
-
     pushMatrix();
-
-
     image(animation.get(currentFrame), position.x, position.y );
 
     if(health < 15) {

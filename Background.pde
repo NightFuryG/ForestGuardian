@@ -78,11 +78,11 @@ public class Background {
 
   //draw background with parallax if requested
   void draw(int direction) {
-    for(Layer layer : layers) {
-      layer.draw();
-      if(direction > 0) {
-        layer.parallaxShift(direction);
+    for(int i = 0; i < layers.size(); i++) {
+        this.layers.get(i).draw();
+          if(direction > 0) {
+            layers.get(i).parallaxShift(direction);
+          }
+        }
       }
-    }
   }
-}

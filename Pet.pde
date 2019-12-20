@@ -6,7 +6,7 @@ public class Pet extends Entity {
   final int JUMP_RESIZE = width/13;
   final int RUN_RESIZE = width/14;
 
-  final int PET_SPEED = 15;
+  final int PET_SPEED = 20;
   float GROUND = height - height/6.85;
   float MIDDLE = width/2;
   final int JUMP_SPEED = 20;

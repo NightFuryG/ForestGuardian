@@ -209,6 +209,32 @@ public class Entity {
     }
   }
 
+  void reset() {
+    this.right = true;
+    this.idle = true;
+    this.jump = false;
+    this.attack = false;
+    this.grounded = true;
+    this.dashing = false;
+
+    this.onLeftEdge = false;
+    this.onRightEdge = false;
+    this.anchorLeft = false;
+    this.anchorRight = false;
+
+    this.health = HEALTH;
+    this.energy = HEALTH;
+    this.jumpMax = JUMP_MAX;
+    this.jumps = jumpMax;
+    this.dashMax = DASH_MAX;
+    this.dash = dashMax;
+    this.alive = true;
+    this.playDead = false;
+
+    this.colliding = false;
+    this.target = null;
+  }
+
   //play an animation
   void animate(String animation) {
     animations.get(animation).draw(position, this.health);

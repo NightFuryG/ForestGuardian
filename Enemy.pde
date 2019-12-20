@@ -30,7 +30,7 @@ public class Enemy extends Entity {
   final int RUN_RESIZE_4 = width/19;
   final int DIE_RESIZE_4 = width/15;
 
-  final int ENEMY_SPEED = 7;
+  final int ENEMY_SPEED = 15;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 2;
   final int ENEMY_WIDTH = 20;

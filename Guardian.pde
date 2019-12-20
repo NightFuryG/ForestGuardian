@@ -31,7 +31,6 @@ public class Guardian extends Entity {
       this.anchorRightPos = width/3;
       this.anchorLeftPos =  width/5;
       resize();
-      System.out.println(GUARDIAN_SPEED);
   }
 
   //get anchors
@@ -240,7 +239,8 @@ public class Guardian extends Entity {
         }
         break;
       case 5:
-        idle = true;
+        if(!this.attack)
+          this.idle = true;
         //NEED TO REFACTOR
         if(!b) {
           if(anchorLeft) {

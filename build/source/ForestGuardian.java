@@ -32,7 +32,7 @@ final int LINE_TWO = 100;
 final int LINE_HEIGHT = 100;
 final int LINE_SUCCESS = 200;
 final int LOWER_SUCCESS = 65;
-final int UPPER_SUCCESS = 85;
+final int UPPER_SUCCESS = 80;
 
 final int ENEMY_PARALLAX_POSITION = 20;
 
@@ -84,6 +84,11 @@ final String TILE_SIX =  "tileset/6.png";
 final String TILE_SEVEN =  "tileset/7.png";
 final String WOLF_CD = "animations/pet/1/idleRight/0.png";
 
+final String CLICK = "data/screen/click.png";
+final String GAME_OVER_SCREEN = "data/screen/gameover.png";
+final String NEXT_SCREEN = "data/screen/next.png";
+final String TITLE_SCREEN = "data/screen/title.png";
+
 public final float GROUND_PROP = 6.85f;
 final float ENT_GROUND_PROP = 6;
 final float GROUND_TILE = 12;
@@ -104,12 +109,17 @@ boolean petCooldown;
 boolean attacking;
 boolean petTargetChosen;
 boolean doubleJump;
+
+boolean alive;
+boolean startScreen;
 float ground;
 float tileGround;
 float entGround;
 int parallax;
 int summonCount;
 int camera;
+float startX;
+float startY;
 int petTimer;
 int petCooldownTimer;
 int guardianAttacks;
@@ -122,6 +132,11 @@ PlatformGenerator platGen;
 ArrayList<Attack> attacks;
 ArrayList<Enemy> enemies;
 
+PImage title;
+PImage gameOver;
+PImage click;
+PImage nextRound;
+
 
 
 
@@ -129,6 +144,11 @@ ArrayList<Enemy> enemies;
 public void setup() {
   
   frameRate(60);
+
+  title = loadImage(TITLE_SCREEN);
+  gameOver = loadImage(GAME_OVER_SCREEN);
+  click = loadImage(CLICK);
+  nextRound = loadImage(NEXT_SCREEN);
 
   w = a = s = d = j = false;
 
@@ -141,6 +161,10 @@ public void setup() {
   summon = false;
 
   attacking = false;
+
+  alive = true;
+
+  startScreen = true;
 
   doubleJump = false;
 
@@ -155,6 +179,7 @@ public void setup() {
   guardianAttacks = 0;
 
   wolfAbilityImg = loadImage(WOLF_CD);
+
   wolfAbilityImg.resize(WOLF_IMAGE_RESIZE, 0);
 
   guardianAttackDamage = START_GUARDIAN_ATTACK;
@@ -176,77 +201,108 @@ public void setup() {
 
   background = new Background(BACKGROUND_ONE_PATH, BACKGROUND_ONE_LAYERS);
 
-  guardian = new Guardian(GUARDIAN_PATH, width/4, ground);
+  platGen = new PlatformGenerator(level);
+
+  startX = platGen.platforms.get(3).position.x;
+
+  startY = platGen.platforms.get(3).position.y - width/GUARDIAN_FEET;
+
+  guardian = new Guardian(GUARDIAN_PATH, startX, startY);
 
   pet = new Pet(WOLF_PATH, guardian.position.x, guardian.position.y);
+
   attacks = new ArrayList<Attack>();
 
   enemies = new ArrayList<Enemy>();
 
-  platGen = new PlatformGenerator(level);
-
   spawnEnemies();
-
-  System.out.println(width/HEALTH_HEIGHT);
-
-  System.out.println(width/HEALTH_WIDTH);
-
 }
 
 public void draw() {
   imageMode(CORNER);
   background(255);
-  checkAttacking();
 
-  if(!attacking && !guardian.colliding && !guardian.dashing) {
-    drawParallaxBackround();
+  if(alive) {
+    if(startScreen) {
+      pushStyle();
+      background.draw(PARALLAX_NONE);
+      imageMode(CENTER);
+      image(title, displayWidth/2, displayHeight/2);
+      image(click, displayWidth/2, 3*displayHeight/4);
+      imageMode(CORNER);
+
+      popStyle();
+    } else {
+      checkAttacking();
+      if(!attacking && !guardian.colliding && !guardian.dashing) {
+        drawParallaxBackround();
+      } else {
+        background.draw(PARALLAX_NONE);
+        platGen.draw(PARALLAX_NONE);
+      }
+      playerMove();
+      if(petAlive) {
+        pet.draw();
+      }
+      showHealthBar();
+      showEnergyBar();
+      showWolfCooldown();
+      regenEnergy();
+      unsummonPet();
+      guardian.draw();
+      attack();
+      drawEnemies();
+      enemyAttack();
+      updateEnemies();
+      bar();
+      checkCooldowns();
+      detectAttackCollision();
+      updateAnchor();
+      checkLanded();
+      checkGrounded();
+      guardianCollision();
+      stopEnemiesFalling();
+      removeDeadEnemies();
+      stopPetFalling();
+      setIdleOffScreen();
+      ensureAttackWorks();
+      drawPlatformEdges();
+      checkEndOfLevel();
+      alive = checkNotDead();
+    }
   } else {
+    pushStyle();
+    tint(255,0,0);
     background.draw(PARALLAX_NONE);
-    platGen.draw(PARALLAX_NONE);
+    imageMode(CENTER);
+    image(gameOver, displayWidth/2, displayHeight/2);
+    image(click, displayWidth/2, 3*displayHeight/4);
+    imageMode(CORNER);
+    popStyle();
   }
-
-  playerMove();
-  if(petAlive) {
-    pet.draw();
-  }
-
-  showHealthBar();
-  showEnergyBar();
-  showWolfCooldown();
-  regenEnergy();
-  unsummonPet();
-  guardian.draw();
-  attack();
-  drawEnemies();
-  enemyAttack();
-  updateEnemies();
-  bar();
-  checkCooldowns();
-  detectAttackCollision();
-  updateAnchor();
-  checkLanded();
-  checkGrounded();
-  guardianCollision();
-  stopEnemiesFalling();
-  removeDeadEnemies();
-  stopPetFalling();
-  setIdleOffScreen();
-  //drawPlatformEdges();
 }
 
+public boolean checkNotDead() {
+  if(guardian.health <= 0) {
+    return false;
+  }
+  return true;
+}
+
+
 public void showHealthBar() {
-  pushMatrix();
+  pushStyle();
   rectMode(CENTER);
   fill(0,0,0,100);
   rect(width/2 - width/4, height/2 - HEALTH_HEIGHT_SCALE * height/2, width/HEALTH_WIDTH, width/HEALTH_HEIGHT);
   fill(255 - HEALTH_COLOUR_SCALE * guardian.health, HEALTH_COLOUR_SCALE * guardian.health, 0);
   rect(width/2 - width/4, height/2 - HEALTH_HEIGHT_SCALE * height/2, HEALTH_DECREASE_SCALE * guardian.health, width/HEALTH_HEIGHT);
   rectMode(CORNER);
-  popMatrix();
+  popStyle();
 }
 
 public void showEnergyBar() {
-  pushMatrix();
+  pushStyle();
   rectMode(CENTER);
   fill(0,0,0,100);
   rect(width/2 + width/4, height/2 - HEALTH_HEIGHT_SCALE * height/2, width/HEALTH_WIDTH, width/HEALTH_HEIGHT);
@@ -254,12 +310,12 @@ public void showEnergyBar() {
   rect(width/2 + width/4, height/2 - HEALTH_HEIGHT_SCALE * height/2, HEALTH_DECREASE_SCALE * guardian.energy, width/HEALTH_HEIGHT);
   rectMode(CORNER);
   noFill();
-  popMatrix();
+  popStyle();
 }
 
 public void showWolfCooldown() {
 
-  pushMatrix();
+  pushStyle();
   if(!petCooldown) {
     tint(100, 50);
 
@@ -267,7 +323,7 @@ public void showWolfCooldown() {
   image(wolfAbilityImg, width/2 - wolfAbilityImg.width/2, wolfAbilityImg.height/4);
 
   noTint();
-  popMatrix();
+  popStyle();
 
 }
 
@@ -329,7 +385,7 @@ public void updatePet() {
     pet.onLeftEdge = false;
 
   } else {
-    if(!petTargetChosen) {
+    if(!petTargetChosen && guardian.grounded) {
       for(Enemy enemy : enemies) {
         if(!enemy.idle) {
           pet.target = enemy;
@@ -337,6 +393,12 @@ public void updatePet() {
         }
       }
     }
+  }
+}
+
+public void ensureAttackWorks() {
+  if(guardianAttacks < 0 ) {
+    guardianAttacks = 0;
   }
 }
 
@@ -385,7 +447,7 @@ public void petMeleeDamage() {
 */
 public void bar() {
   if(!petAlive && summon) {
-    pushMatrix();
+    pushStyle();
     rectMode(CORNER);
     fill(255,255,255, 100);
     rect(guardian.position.x - width/BAR_LEFT, guardian.position.y - width/BAR_ABOVE, width/BAR_WIDTH, width/BAR_HEIGHT);
@@ -397,7 +459,7 @@ public void bar() {
     strokeWeight(1);
     rect(guardian.position.x + width/LINE_ONE, guardian.position.y - width/BAR_ABOVE, width/LINE_SUCCESS, width/BAR_HEIGHT);
     strokeWeight(1);
-    popMatrix();
+    popStyle();
   }
 }
 
@@ -472,7 +534,6 @@ public void drawParallaxBackround() {
     background.draw(parallax);
     platGen.draw(parallax);
   }
-
 
 
 //adjust enemis for parallax
@@ -588,28 +649,60 @@ public void playerMove() {
   }
 }
 
+public void newGame() {
+  alive = true;
+  guardian.reset();
+  guardian.position.x = startX;
+  guardian.position.y = startY;
+  pet.reset();
+  guardianAttacks = 0;
+  petAlive = false;
+  level = 1;
+  petTimer = 0;
+  petAlive = false;
+  petCooldown = false;
+  petTargetChosen = false;
+  summon = false;
+  attacking = false;
+  alive = true;
+  startScreen = true;
+  doubleJump = false;
+  petCooldownTimer = 0;
+  attacks.clear();
+  enemies.clear();
+  spawnEnemies();
+}
+
+
 //guardian attack
 // fires and orients the attack depending on mouse click and direction
 public void mousePressed() {
-  if(mouseButton == LEFT) {
-    guardian.attack = true;
-    if(guardianAttacks == 0) {
-      if(guardian.right) {
-            if(mouseX < guardian.position.x) {
-              attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
+  if(!startScreen) {
+    if(alive) {
+      if(mouseButton == LEFT) {
+          guardian.attack = true;
+          guardian.idle = false;
+          if(guardianAttacks == 0) {
+            if(guardian.right) {
+                if(mouseX < guardian.position.x) {
+                  attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
+                } else {
+                  attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true, 0));
+                }
             } else {
-              attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true, 0));
-            }
-          } else {
-            if(mouseX > guardian.position.x) {
-
-              attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true, 0));
-            } else {
-              attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
-            }
-          }
-          guardianAttacks++;
+                if(mouseX > guardian.position.x) {
+                  attacks.add( new Attack(guardian.position.x + width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, true, 0));
+                } else {
+                  attacks.add( new Attack(guardian.position.x - width/ATTACK_WIDTH, guardian.position.y, mouseX, mouseY, false, 0));
+                }
+            } guardianAttacks++;
         }
+      }
+    } else {
+      newGame();
+    }
+  } else {
+    startScreen = false;
   }
 }
 
@@ -641,7 +734,7 @@ public void drawAttack() {
 }
 
 public boolean checkEnemyOnScreen(Enemy enemy) {
-  if( enemy.position.x > width - width/10) {
+  if( enemy.position.x > width - width/4) {
     return false;
   }
   return true;
@@ -673,7 +766,7 @@ public void enemyAttack() {
           enemy.idle = false;
           enemy.velocity.x = 0;
           detectMeleeAttack(enemy);
-        } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/2) {
+        } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width) {
           enemy.idle = true;
           enemy.attack = false;
         } else {
@@ -688,8 +781,7 @@ public void enemyAttack() {
             enemy.attack = true;
             enemy.idle = false;
             enemy.velocity.x = 0;
-          } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width/10) {
-            enemy.idle = true;
+          } else if (dist(guardian.position.x, guardian.position.y, enemy.position.x, enemy.position.y) > width) {
             enemy.attack = false;
           } else {
             enemy.idle = false;
@@ -777,9 +869,8 @@ public float calculateAimHeight(Enemy enemy) {
 }
 
 public void checkGrounded() {
-  if(guardian.position.y + guardian.velocity.y >= ground) {
-    guardian.grounded = true;
-    guardian.position.y = ground;
+  if(guardian.position.y > height) {
+    guardian.health = 0;
   }
 }
 
@@ -798,10 +889,10 @@ public void checkLanded() {
     int i = 0;
 
     for(Platform platform : platGen.platforms) {
-
         if(guardianVertPosition >= platform.position.y && guardian.position.y + width/GUARDIAN_FEET/2 < platform.position.y) {
           if(guardianHoriPosition > platform.position.x && guardian.position.x < platform.position.x + platform.platformWidth) {
             guardian.grounded = true;
+            guardian.colliding = false;
             guardian.position.y = platform.position.y - width/GUARDIAN_FEET;
             if((pet.onRightEdge || pet.onLeftEdge) && pet.position.y != guardian.position.y)  {
               pet.position.x = guardian.position.x;
@@ -814,7 +905,9 @@ public void checkLanded() {
       if (i == 0) {
         guardian.grounded = false;
       }
-    }
+}
+
+
 
 public void stopEnemiesFalling() {
 
@@ -959,15 +1052,11 @@ public void guardianCollision() {
         guardian.position.x + guardian.velocity.x < platform.position.x + platform.platformWidth &&
         guardian.position.y + guardHeight > platform.position.y &&
         guardian.position.y < platform.position.y + platform.platformHeight) {
-          guardian.velocity.x = -guardian.velocity.x;
+          guardian.velocity.x = -2*guardian.velocity.x;
           guardian.colliding = true;
           platIndex = platGen.platforms.indexOf(platform);
-          if(guardian.right) {
-            guardian.position.x = platform.position.x - guardWidth;
-          } else {
-            guardian.position.x = platform.position.x + platform.platformWidth;
-          }
         }
+
 
     if (guardian.position.x + guardWidth > platform.position.x &&
         guardian.position.x < platform.position.x + platform.platformWidth &&
@@ -1114,12 +1203,7 @@ public class Animation {
       }
       prevTime = millis();
     }
-
-
-
     pushMatrix();
-
-
     image(animation.get(currentFrame), position.x, position.y );
 
     if(health < 15) {
@@ -1239,7 +1323,6 @@ public class Attack {
 
   //display differently depending on orientation
   public void display() {
-
     switch(this.attackType) {
       case GUARDIAN_WOLF_ATTACK:
         if(right) {
@@ -1348,14 +1431,14 @@ public class Background {
 
   //draw background with parallax if requested
   public void draw(int direction) {
-    for(Layer layer : layers) {
-      layer.draw();
-      if(direction > 0) {
-        layer.parallaxShift(direction);
+    for(int i = 0; i < layers.size(); i++) {
+        this.layers.get(i).draw();
+          if(direction > 0) {
+            layers.get(i).parallaxShift(direction);
+          }
+        }
       }
-    }
   }
-}
 //Enemy class used for enemy entites
 public class Enemy extends Entity {
 
@@ -1388,7 +1471,7 @@ public class Enemy extends Entity {
   final int RUN_RESIZE_4 = width/19;
   final int DIE_RESIZE_4 = width/15;
 
-  final int ENEMY_SPEED = 7;
+  final int ENEMY_SPEED = 15;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 2;
   final int ENEMY_WIDTH = 20;
@@ -1816,6 +1899,32 @@ public class Entity {
     }
   }
 
+  public void reset() {
+    this.right = true;
+    this.idle = true;
+    this.jump = false;
+    this.attack = false;
+    this.grounded = true;
+    this.dashing = false;
+
+    this.onLeftEdge = false;
+    this.onRightEdge = false;
+    this.anchorLeft = false;
+    this.anchorRight = false;
+
+    this.health = HEALTH;
+    this.energy = HEALTH;
+    this.jumpMax = JUMP_MAX;
+    this.jumps = jumpMax;
+    this.dashMax = DASH_MAX;
+    this.dash = dashMax;
+    this.alive = true;
+    this.playDead = false;
+
+    this.colliding = false;
+    this.target = null;
+  }
+
   //play an animation
   public void animate(String animation) {
     animations.get(animation).draw(position, this.health);
@@ -1886,7 +1995,6 @@ public class Guardian extends Entity {
       this.anchorRightPos = width/3;
       this.anchorLeftPos =  width/5;
       resize();
-      System.out.println(GUARDIAN_SPEED);
   }
 
   //get anchors
@@ -2095,7 +2203,8 @@ public class Guardian extends Entity {
         }
         break;
       case 5:
-        idle = true;
+        if(!this.attack)
+          this.idle = true;
         //NEED TO REFACTOR
         if(!b) {
           if(anchorLeft) {
@@ -2212,7 +2321,7 @@ public class Pet extends Entity {
   final int JUMP_RESIZE = width/13;
   final int RUN_RESIZE = width/14;
 
-  final int PET_SPEED = 15;
+  final int PET_SPEED = 20;
   float GROUND = height - height/6.85f;
   float MIDDLE = width/2;
   final int JUMP_SPEED = 20;
@@ -2358,6 +2467,8 @@ public class Platform {
   int platformHeight;
   boolean leftEdge;
   boolean rightEdge;
+  boolean last;
+  boolean moving;
 //
   final int RESIZE = 10;
 
@@ -2372,6 +2483,8 @@ public class Platform {
     this.enemy = enemy;
     this.leftEdge = leftEdge;
     this.rightEdge = rightEdge;
+    this.moving = false;
+    this.last = false;
   }
 
   public void platformShift(int direction) {
@@ -2398,7 +2511,7 @@ public class Platform {
 }
 class  PlatformGenerator {
 
-  final int PLATFORM_NUM = 25;
+  final int PLATFORM_NUM = 200;
 
   final int BLOCK_ONE = 1;
   final int BLOCK_TWO = 2;
@@ -2413,6 +2526,8 @@ class  PlatformGenerator {
   final int ANCHOR_SPEED = 85;
   final int BASE_SPEED = 80;
 
+  final int START = 8;
+
   ArrayList<Platform> platforms;
 
   int numberOfPlatforms;
@@ -2426,13 +2541,27 @@ class  PlatformGenerator {
     this.numberOfPlatforms = level * PLATFORM_NUM;
     generatePlatforms();
     this.cameraType = BASE_SPEED;
+    setLast();
   }
 
   public void generatePlatforms() {
 
-    platforms.add(new Platform(width, height - height/5, width/BASE_SPEED, false, true, true));
-    this.newPlatformWidth = platforms.get(0).platformWidth;
-    this.newPlatformHeight = platforms.get(0).platformHeight*2;
+
+    for(int i = 0; i < START; i++) {
+      if(i == 0) {
+        platforms.add(new Platform(0, height - height/10, width/BASE_SPEED, false, true, false));
+        this.newPlatformWidth = platforms.get(0).platformWidth;
+        this.newPlatformHeight = platforms.get(0).platformHeight*2;
+      }
+      else if(i == START - 1) {
+        platforms.add(new Platform(i*newPlatformWidth, height - height/10, width/BASE_SPEED, false, false, true));
+      }
+      else {
+        platforms.add(new Platform(i*newPlatformWidth, height - height/10, width/BASE_SPEED, false, false, false));
+      }
+    }
+
+
 
     int last;
     float ground = height - height/6.85f;
@@ -2464,9 +2593,11 @@ class  PlatformGenerator {
           platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, true));
         } else if (j == 0) {
           platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, false));
+        } else if(j == numPlat - 1 && numPlat == BLOCK_TWO) {
+          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, true));
         } else if(j == numPlat - 1) {
           platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
-        } else if(numPlat != BLOCK_TWO){
+        } else if(numPlat > BLOCK_TWO){
           float random = random(0,1);
           if(random > 0.9f) {
             platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, false));
@@ -2476,6 +2607,19 @@ class  PlatformGenerator {
         }
       }
     }
+  }
+
+  // void setMoving() {
+  //   for(Platform platform : platforms) {
+  //     if(platform.leftEdge && platform.rightEdge) {
+  //
+  //     }
+  //   }
+  //
+  // }
+
+  public void setLast(){
+    platforms.get(platforms.size()-1).last = true;
   }
 
   public void anchorSpeed() {

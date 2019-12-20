@@ -15,6 +15,8 @@ public class Platform {
   int platformHeight;
   boolean leftEdge;
   boolean rightEdge;
+  boolean last;
+  boolean moving;
 //
   final int RESIZE = 10;
 
@@ -29,6 +31,8 @@ public class Platform {
     this.enemy = enemy;
     this.leftEdge = leftEdge;
     this.rightEdge = rightEdge;
+    this.moving = false;
+    this.last = false;
   }
 
   void platformShift(int direction) {

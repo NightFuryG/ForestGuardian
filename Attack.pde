@@ -83,7 +83,6 @@ public class Attack {
 
   //display differently depending on orientation
   void display() {
-
     switch(this.attackType) {
       case GUARDIAN_WOLF_ATTACK:
         if(right) {
