@@ -99,6 +99,8 @@ Entity guardian;
 Entity pet;
 PImage wolfAbilityImg;
 
+Animator animator;
+
 int level;
 
 
@@ -153,6 +155,8 @@ public void setup() {
   nextRound = loadImage(NEXT_SCREEN);
 
   w = a = s = d = j = false;
+
+  animator = new Animator();
 
   petAlive = false;
 
@@ -211,18 +215,17 @@ public void setup() {
 
   startY = platGen.platforms.get(3).position.y - width/GUARDIAN_FEET;
 
-  guardian = new Guardian(GUARDIAN_PATH, startX, startY);
+  guardian = new Guardian(animator.guardian, startX, startY);
 
-  pet = new Pet(WOLF_PATH, guardian.position.x, guardian.position.y);
+  pet = new Pet(animator.wolf, guardian.position.x, guardian.position.y);
 
   attacks = new ArrayList<Attack>();
 
   enemies = new ArrayList<Enemy>();
 
-  enemiesClone = new ArrayList<Enemy>();
+//  enemiesClone = new ArrayList<Enemy>();
 
   spawnEnemies();
-  copyEnemies();
 }
 
 public void draw() {
@@ -275,6 +278,7 @@ public void draw() {
       ensureAttackWorks();
       drawPlatformEdges();
       alive = checkNotDead();
+      checkNextLevel();
     }
   } else {
     pushStyle();
@@ -348,23 +352,18 @@ public void spawnEnemies() {
       float r = random (0,1);
 
       if(r < 0.25f) {
-        enemiesClone.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
+        enemies.add(new Enemy(animator.enemyOne, 0, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if ( r >= 0.25f && r < 0.5f) {
-        enemiesClone.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
+        enemies.add(new Enemy(animator.enemyTwo, 1, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if (r >= 0.5f && r < 0.75f) {
-        enemiesClone.add(new Enemy(ENEMY_THREE_PATH, platform.position.x, platform.position.y - THREE_FOUR_SPAWN * platform.platformHeight, platform));
+        enemies.add(new Enemy(animator.enemyThree, 2, platform.position.x, platform.position.y - THREE_FOUR_SPAWN * platform.platformHeight, platform));
       } else {
-        enemiesClone.add(new Enemy(ENEMY_FOUR_PATH, platform.position.x, platform.position.y -  THREE_FOUR_SPAWN * platform.platformHeight, platform));
+        enemies.add(new Enemy(animator.enemyFour, 0, platform.position.x, platform.position.y -  THREE_FOUR_SPAWN * platform.platformHeight, platform));
       }
     }
   }
 }
 
-public void copyEnemies() {
-  for(Enemy enemy : enemiesClone) {
-    enemies.add(new Enemy(enemy));
-  }
-}
 
 public void updateEnemies() {
   for(Enemy enemy : enemies ) {
@@ -660,6 +659,16 @@ public void playerMove() {
   }
 }
 
+public void checkNextLevel() {
+  if(guardian.position.x > platGen.endX) {
+    nextLevel();
+  }
+}
+
+public void nextLevel() {
+  System.out.println("lit");
+}
+
 public void newGame() {
   alive = true;
   guardian.reset();
@@ -676,12 +685,12 @@ public void newGame() {
   summon = false;
   attacking = false;
   alive = true;
-  startScreen = true;
   doubleJump = false;
   petCooldownTimer = 0;
   attacks.clear();
-  copyEnemies();
-  platGen.resetPlatformGenerator();
+  enemies.clear();
+  platGen = new PlatformGenerator(level);
+  spawnEnemies();
 }
 
 
@@ -1250,6 +1259,319 @@ public class Animation {
   }
 
 }
+public class Animator {
+
+  final String GUARDIAN_PATH = "animations/guardian/";
+  final String WOLF_PATH = "animations/pet/1/";
+  final String ENEMY_ONE_PATH = "animations/enemy/1/";
+  final String ENEMY_TWO_PATH = "animations/enemy/2/";
+  final String ENEMY_THREE_PATH = "animations/enemy/3/";
+  final String ENEMY_FOUR_PATH = "animations/enemy/4/";
+
+  final String IDLE_RIGHT = "idleRight/";
+  final String IDLE_LEFT = "idleLeft/";
+  final String RUN_RIGHT = "runRight/";
+  final String RUN_LEFT = "runLeft/";
+  final String JUMP_RIGHT = "jumpRight/";
+  final String JUMP_LEFT = "jumpLeft/";
+  final String ATTACK_RIGHT = "attackRight/";
+  final String ATTACK_LEFT = "attackLeft/";
+  final String DIE_RIGHT = "dieRight/";
+  final String DIE_LEFT = "dieLeft/";
+
+  final int IDLE_RESIZE_1 = width/30;
+  final int ATTACK_RESIZE_1 = width/23;
+  final int JUMP_RESIZE_1 = width/20;
+  final int RUN_RESIZE_1 = width/25;
+  final int DIE_RESIZE_1 = width/17;
+
+  final int IDLE_RESIZE_2 = width/25;
+  final int ATTACK_RESIZE_2 = width/24;
+  final int JUMP_RESIZE_2 = width/20;
+  final int RUN_RESIZE_2 = width/25;
+  final int DIE_RESIZE_2 = width/17;
+
+  final int IDLE_RESIZE_3 = width/20;
+  final int ATTACK_RESIZE_3 = width/20;
+  final int JUMP_RESIZE_3 = width/15;
+  final int RUN_RESIZE_3 = width/18;
+  final int DIE_RESIZE_3 = width/15;
+
+  final int IDLE_RESIZE_4 = width/20;
+  final int ATTACK_RESIZE_4 = width/17;
+  final int JUMP_RESIZE_4 = width/15;
+  final int RUN_RESIZE_4 = width/19;
+  final int DIE_RESIZE_4 = width/15;
+
+  final int IDLE_RESIZE_WOLF = width/15;
+  final int ATTACK_RESIZE_WOLF = width/14;
+  final int JUMP_RESIZE_WOLF = width/13;
+  final int RUN_RESIZE_WOLF = width/14;
+  final int DIE_RESIZE_WOLF = width/14;
+
+  final int IDLE_RESIZE_G = width/23;
+  final int ATTACK_RESIZE_G = width/22;
+  final int JUMP_RESIZE_G = width/20;
+  final int RUN_RESIZE_G = width/20;
+  final int DIE_RESIZE_G = width/20;
+
+  final int ANIMATION_TOTAL = 10;
+
+  HashMap<String, Animation> guardian;
+  HashMap<String, Animation> wolf;
+  HashMap<String, Animation> enemyOne;
+  HashMap<String, Animation> enemyTwo;
+  HashMap<String, Animation> enemyThree;
+  HashMap<String, Animation> enemyFour;
+
+  ArrayList<String> animationPaths;
+
+  Animator() {
+    guardian = new HashMap<String, Animation>();
+    wolf = new HashMap<String, Animation>();
+    enemyOne = new HashMap<String, Animation>();
+    enemyTwo = new HashMap<String, Animation>();
+    enemyThree = new HashMap<String, Animation>();
+    enemyFour = new HashMap<String, Animation>();
+    animationPaths = new ArrayList();
+    initAnimationPaths();
+    initAnimations();
+    resizeAnimations();
+  }
+
+  public void initAnimationPaths() {
+    animationPaths.add(IDLE_RIGHT);
+    animationPaths.add(IDLE_LEFT);
+    animationPaths.add(RUN_RIGHT);
+    animationPaths.add(RUN_LEFT);
+    animationPaths.add(JUMP_RIGHT);
+    animationPaths.add(JUMP_LEFT);
+    animationPaths.add(ATTACK_RIGHT);
+    animationPaths.add(ATTACK_LEFT);
+    animationPaths.add(DIE_RIGHT);
+    animationPaths.add(DIE_LEFT);
+  }
+
+  public void initAnimations() {
+    for(int i = 0; i < ANIMATION_TOTAL; i ++) {
+      guardian.put(animationPaths.get(i), new Animation(GUARDIAN_PATH + animationPaths.get(i)));
+      wolf.put(animationPaths.get(i), new Animation(WOLF_PATH + animationPaths.get(i)));
+      enemyOne.put(animationPaths.get(i), new Animation(ENEMY_ONE_PATH + animationPaths.get(i)));
+      enemyTwo.put(animationPaths.get(i), new Animation(ENEMY_TWO_PATH + animationPaths.get(i)));
+      enemyThree.put(animationPaths.get(i), new Animation(ENEMY_THREE_PATH + animationPaths.get(i)));
+      enemyFour.put(animationPaths.get(i), new Animation(ENEMY_FOUR_PATH + animationPaths.get(i)));
+    }
+  }
+
+  public void resizeAnimations(){
+    resizeGuardian(guardian);
+    resizeWolf(wolf);
+    resizeEnemyOne(enemyOne);
+    resizeEnemyTwo(enemyTwo);
+    resizeEnemyThree(enemyThree);
+    resizeEnemyFour(enemyFour);
+  }
+
+  public void resizeEnemyOne(HashMap<String, Animation> animations) {
+    for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
+      frame.resize(ATTACK_RESIZE_1, 0);
+    }
+    for(PImage frame : animations.get(ATTACK_LEFT).animation) {
+      frame.resize(ATTACK_RESIZE_1, 0);
+    }
+    for(PImage frame : animations.get(IDLE_LEFT).animation) {
+      frame.resize(IDLE_RESIZE_1, 0);
+    }
+    for(PImage frame : animations.get(IDLE_RIGHT).animation) {
+      frame.resize(IDLE_RESIZE_1, 0);
+    }
+    for(PImage frame : animations.get(RUN_LEFT).animation) {
+      frame.resize(RUN_RESIZE_1, 0);
+    }
+    for(PImage frame : animations.get(RUN_RIGHT).animation) {
+      frame.resize(RUN_RESIZE_1, 0);
+    }
+    for(PImage frame : animations.get(JUMP_LEFT).animation) {
+      frame.resize(JUMP_RESIZE_1, 0);
+    }
+    for(PImage frame : animations.get(JUMP_RIGHT).animation) {
+      frame.resize(JUMP_RESIZE_1, 0);
+    }
+    for(PImage frame : animations.get(DIE_LEFT).animation) {
+      frame.resize(DIE_RESIZE_1, 0);
+    }
+    for(PImage frame : animations.get(DIE_RIGHT).animation) {
+      frame.resize(DIE_RESIZE_1, 0);
+    }
+  }
+
+  public void resizeEnemyTwo(HashMap<String, Animation> animations) {
+    for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
+      frame.resize(ATTACK_RESIZE_2, 0);
+    }
+    for(PImage frame : animations.get(ATTACK_LEFT).animation) {
+      frame.resize(ATTACK_RESIZE_2, 0);
+    }
+    for(PImage frame : animations.get(IDLE_LEFT).animation) {
+      frame.resize(IDLE_RESIZE_2, 0);
+    }
+    for(PImage frame : animations.get(IDLE_RIGHT).animation) {
+      frame.resize(IDLE_RESIZE_2, 0);
+    }
+    for(PImage frame : animations.get(RUN_LEFT).animation) {
+      frame.resize(RUN_RESIZE_2, 0);
+    }
+    for(PImage frame : animations.get(RUN_RIGHT).animation) {
+      frame.resize(RUN_RESIZE_2, 0);
+    }
+    for(PImage frame : animations.get(JUMP_LEFT).animation) {
+      frame.resize(JUMP_RESIZE_2, 0);
+    }
+    for(PImage frame : animations.get(JUMP_RIGHT).animation) {
+      frame.resize(JUMP_RESIZE_2, 0);
+    }
+    for(PImage frame : animations.get(DIE_LEFT).animation) {
+      frame.resize(DIE_RESIZE_2, 0);
+    }
+    for(PImage frame : animations.get(DIE_RIGHT).animation) {
+      frame.resize(DIE_RESIZE_2, 0);
+    }
+  }
+
+  public void resizeEnemyThree(HashMap<String, Animation> animations) {
+    for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
+      frame.resize(ATTACK_RESIZE_3, 0);
+    }
+    for(PImage frame : animations.get(ATTACK_LEFT).animation) {
+      frame.resize(ATTACK_RESIZE_3, 0);
+    }
+    for(PImage frame : animations.get(IDLE_LEFT).animation) {
+      frame.resize(IDLE_RESIZE_3, 0);
+    }
+    for(PImage frame : animations.get(IDLE_RIGHT).animation) {
+      frame.resize(IDLE_RESIZE_3, 0);
+    }
+    for(PImage frame : animations.get(RUN_LEFT).animation) {
+      frame.resize(RUN_RESIZE_3, 0);
+    }
+    for(PImage frame : animations.get(RUN_RIGHT).animation) {
+      frame.resize(RUN_RESIZE_3, 0);
+    }
+    for(PImage frame : animations.get(JUMP_LEFT).animation) {
+      frame.resize(JUMP_RESIZE_3, 0);
+    }
+    for(PImage frame : animations.get(JUMP_RIGHT).animation) {
+      frame.resize(JUMP_RESIZE_3, 0);
+    }
+    for(PImage frame : animations.get(DIE_LEFT).animation) {
+      frame.resize(DIE_RESIZE_3, 0);
+    }
+    for(PImage frame : animations.get(DIE_RIGHT).animation) {
+      frame.resize(DIE_RESIZE_3, 0);
+    }
+  }
+
+  public void resizeEnemyFour(HashMap<String, Animation> animations) {
+    for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
+      frame.resize(ATTACK_RESIZE_4, 0);
+    }
+    for(PImage frame : animations.get(ATTACK_LEFT).animation) {
+      frame.resize(ATTACK_RESIZE_4, 0);
+    }
+    for(PImage frame : animations.get(IDLE_LEFT).animation) {
+      frame.resize(IDLE_RESIZE_4, 0);
+    }
+    for(PImage frame : animations.get(IDLE_RIGHT).animation) {
+      frame.resize(IDLE_RESIZE_4, 0);
+    }
+    for(PImage frame : animations.get(RUN_LEFT).animation) {
+      frame.resize(RUN_RESIZE_4, 0);
+    }
+    for(PImage frame : animations.get(RUN_RIGHT).animation) {
+      frame.resize(RUN_RESIZE_4, 0);
+    }
+    for(PImage frame : animations.get(JUMP_LEFT).animation) {
+      frame.resize(JUMP_RESIZE_4, 0);
+    }
+    for(PImage frame : animations.get(JUMP_RIGHT).animation) {
+      frame.resize(JUMP_RESIZE_4, 0);
+    }
+    for(PImage frame : animations.get(DIE_LEFT).animation) {
+      frame.resize(DIE_RESIZE_4, 0);
+    }
+    for(PImage frame : animations.get(DIE_RIGHT).animation) {
+      frame.resize(DIE_RESIZE_4, 0);
+    }
+  }
+
+  public void resizeGuardian(HashMap<String, Animation> animations) {
+    for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
+      frame.resize(ATTACK_RESIZE_G, 0);
+    }
+    for(PImage frame : animations.get(ATTACK_LEFT).animation) {
+      frame.resize(ATTACK_RESIZE_G, 0);
+    }
+    for(PImage frame : animations.get(IDLE_LEFT).animation) {
+      frame.resize(IDLE_RESIZE_G, 0);
+    }
+    for(PImage frame : animations.get(IDLE_RIGHT).animation) {
+      frame.resize(IDLE_RESIZE_G, 0);
+    }
+    for(PImage frame : animations.get(RUN_LEFT).animation) {
+      frame.resize(RUN_RESIZE_G, 0);
+    }
+    for(PImage frame : animations.get(RUN_RIGHT).animation) {
+      frame.resize(RUN_RESIZE_G, 0);
+    }
+    for(PImage frame : animations.get(JUMP_LEFT).animation) {
+      frame.resize(JUMP_RESIZE_G, 0);
+    }
+    for(PImage frame : animations.get(JUMP_RIGHT).animation) {
+      frame.resize(JUMP_RESIZE_G, 0);
+    }
+    for(PImage frame : animations.get(DIE_LEFT).animation) {
+      frame.resize(DIE_RESIZE_G, 0);
+    }
+    for(PImage frame : animations.get(DIE_RIGHT).animation) {
+      frame.resize(DIE_RESIZE_G, 0);
+    }
+  }
+
+  public void resizeWolf(HashMap<String, Animation> animations) {
+    for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
+      frame.resize(ATTACK_RESIZE_WOLF, 0);
+    }
+    for(PImage frame : animations.get(ATTACK_LEFT).animation) {
+      frame.resize(ATTACK_RESIZE_WOLF, 0);
+    }
+    for(PImage frame : animations.get(IDLE_LEFT).animation) {
+      frame.resize(IDLE_RESIZE_WOLF, 0);
+    }
+    for(PImage frame : animations.get(IDLE_RIGHT).animation) {
+      frame.resize(IDLE_RESIZE_WOLF, 0);
+    }
+    for(PImage frame : animations.get(RUN_LEFT).animation) {
+      frame.resize(RUN_RESIZE_WOLF, 0);
+    }
+    for(PImage frame : animations.get(RUN_RIGHT).animation) {
+      frame.resize(RUN_RESIZE_WOLF, 0);
+    }
+    for(PImage frame : animations.get(JUMP_LEFT).animation) {
+      frame.resize(JUMP_RESIZE_WOLF, 0);
+    }
+    for(PImage frame : animations.get(JUMP_RIGHT).animation) {
+      frame.resize(JUMP_RESIZE_WOLF, 0);
+    }
+    for(PImage frame : animations.get(DIE_LEFT).animation) {
+      frame.resize(DIE_RESIZE_WOLF, 0);
+    }
+    for(PImage frame : animations.get(DIE_RIGHT).animation) {
+      frame.resize(DIE_RESIZE_WOLF, 0);
+    }
+  }
+
+
+}
 //Attack class for projectile
 public class Attack {
 
@@ -1453,36 +1775,7 @@ public class Background {
   }
 //Enemy class used for enemy entites
 public class Enemy extends Entity {
-
-  final String ENEMY_ONE_PATH = "animations/enemy/1/";
-  final String ENEMY_TWO_PATH = "animations/enemy/2/";
-  final String ENEMY_THREE_PATH = "animations/enemy/3/";
-  final String ENEMY_FOUR_PATH = "animations/enemy/4/";
-
-  final int IDLE_RESIZE_1 = width/30;
-  final int ATTACK_RESIZE_1 = width/23;
-  final int JUMP_RESIZE_1 = width/20;
-  final int RUN_RESIZE_1 = width/25;
-  final int DIE_RESIZE_1 = width/17;
-
-  final int IDLE_RESIZE_2 = width/25;
-  final int ATTACK_RESIZE_2 = width/24;
-  final int JUMP_RESIZE_2 = width/20;
-  final int RUN_RESIZE_2 = width/25;
-  final int DIE_RESIZE_2 = width/17;
-
-  final int IDLE_RESIZE_3 = width/20;
-  final int ATTACK_RESIZE_3 = width/20;
-  final int JUMP_RESIZE_3 = width/15;
-  final int RUN_RESIZE_3 = width/18;
-  final int DIE_RESIZE_3 = width/15;
-
-  final int IDLE_RESIZE_4 = width/20;
-  final int ATTACK_RESIZE_4 = width/17;
-  final int JUMP_RESIZE_4 = width/15;
-  final int RUN_RESIZE_4 = width/19;
-  final int DIE_RESIZE_4 = width/15;
-
+  
   final int ENEMY_SPEED = 15;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 2;
@@ -1496,194 +1789,22 @@ public class Enemy extends Entity {
   Platform platform;
 
 
-  Enemy(String path, float x, float y, Platform platform) {
-    super(path, x ,y);
-    this.ranged = checkType(path);
+  Enemy(HashMap<String, Animation> animations, int type, float x, float y, Platform platform) {
+    super(animations, x ,y);
+    this.ranged = checkType(type);
     this.grounded = true;
     this.platform = platform;
-    resize(path);
+    //resize(path);
   }
 
-  public int checkType(String path) {
-    if(path.equals(ENEMY_TWO_PATH)  ) {
+  public int checkType(int type) {
+    if(type == BOW)   {
       return BOW;
-    } else if (path.equals(ENEMY_THREE_PATH)) {
+    } else if (type == ROCK) {
       return ROCK;
     }
 
     return MELEE;
-
-  }
-
-  //resize animations so all same size
-  public void resize(String path) {
-    resizeIdle(path);
-    resizeRun(path);
-    resizeJump(path);
-    resizeAttack(path);
-    resizeDie(path);
-  }
-
-  public void resizeAttack(String path) {
-
-    if(path.equals(ENEMY_ONE_PATH)) {
-      for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
-        frame.resize(ATTACK_RESIZE_1, 0);
-      }
-      for(PImage frame : animations.get(ATTACK_LEFT).animation) {
-        frame.resize(ATTACK_RESIZE_1, 0);
-      }
-    } else if (path.equals(ENEMY_TWO_PATH)) {
-        for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
-          frame.resize(ATTACK_RESIZE_2, 0);
-        }
-        for(PImage frame : animations.get(ATTACK_LEFT).animation) {
-          frame.resize(ATTACK_RESIZE_2, 0);
-        }
-    } else if (path.equals(ENEMY_THREE_PATH)) {
-        for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
-          frame.resize(ATTACK_RESIZE_3, 0);
-        }
-        for(PImage frame : animations.get(ATTACK_LEFT).animation) {
-          frame.resize(ATTACK_RESIZE_3, 0);
-        }
-    } else if (path.equals(ENEMY_FOUR_PATH)) {
-        for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
-          frame.resize(ATTACK_RESIZE_4, 0);
-        }
-        for(PImage frame : animations.get(ATTACK_LEFT).animation) {
-          frame.resize(ATTACK_RESIZE_4, 0);
-        }
-    }
-  }
-
-  public void resizeIdle(String path) {
-    if(path.equals(ENEMY_ONE_PATH)) {
-      for(PImage frame : animations.get(IDLE_LEFT).animation) {
-        frame.resize(IDLE_RESIZE_1, 0);
-      }
-      for(PImage frame : animations.get(IDLE_RIGHT).animation) {
-        frame.resize(IDLE_RESIZE_1, 0);
-      }
-    } else if(path.equals(ENEMY_TWO_PATH)) {
-        for(PImage frame : animations.get(IDLE_LEFT).animation) {
-          frame.resize(IDLE_RESIZE_2, 0);
-        }
-        for(PImage frame : animations.get(IDLE_RIGHT).animation) {
-          frame.resize(IDLE_RESIZE_2, 0);
-        }
-    } else if(path.equals(ENEMY_THREE_PATH)) {
-        for(PImage frame : animations.get(IDLE_LEFT).animation) {
-          frame.resize(IDLE_RESIZE_3, 0);
-        }
-        for(PImage frame : animations.get(IDLE_RIGHT).animation) {
-          frame.resize(IDLE_RESIZE_3, 0);
-        }
-    } else if(path.equals(ENEMY_FOUR_PATH)) {
-        for(PImage frame : animations.get(IDLE_LEFT).animation) {
-          frame.resize(IDLE_RESIZE_4, 0);
-        }
-        for(PImage frame : animations.get(IDLE_RIGHT).animation) {
-          frame.resize(IDLE_RESIZE_4, 0);
-        }
-    }
-  }
-
-  public void resizeRun(String path) {
-    if(path.equals(ENEMY_ONE_PATH)) {
-      for(PImage frame : animations.get(RUN_LEFT).animation) {
-        frame.resize(RUN_RESIZE_1, 0);
-      }
-      for(PImage frame : animations.get(RUN_RIGHT).animation) {
-        frame.resize(RUN_RESIZE_1, 0);
-      }
-    } else if(path.equals(ENEMY_TWO_PATH)) {
-      for(PImage frame : animations.get(RUN_LEFT).animation) {
-        frame.resize(RUN_RESIZE_2, 0);
-      }
-      for(PImage frame : animations.get(RUN_RIGHT).animation) {
-        frame.resize(RUN_RESIZE_2, 0);
-      }
-    } else if(path.equals(ENEMY_THREE_PATH)) {
-      for(PImage frame : animations.get(RUN_LEFT).animation) {
-        frame.resize(RUN_RESIZE_3, 0);
-      }
-      for(PImage frame : animations.get(RUN_RIGHT).animation) {
-        frame.resize(RUN_RESIZE_3, 0);
-      }
-    } else if(path.equals(ENEMY_FOUR_PATH)) {
-      for(PImage frame : animations.get(RUN_LEFT).animation) {
-        frame.resize(RUN_RESIZE_4, 0);
-      }
-      for(PImage frame : animations.get(RUN_RIGHT).animation) {
-        frame.resize(RUN_RESIZE_4, 0);
-      }
-    }
-
-  }
-
-  public void resizeJump(String path) {
-    if(path.equals(ENEMY_ONE_PATH)) {
-      for(PImage frame : animations.get(JUMP_LEFT).animation) {
-        frame.resize(JUMP_RESIZE_1, 0);
-      }
-      for(PImage frame : animations.get(JUMP_RIGHT).animation) {
-        frame.resize(JUMP_RESIZE_1, 0);
-      }
-    } else if(path.equals(ENEMY_TWO_PATH)) {
-        for(PImage frame : animations.get(JUMP_LEFT).animation) {
-          frame.resize(JUMP_RESIZE_2, 0);
-        }
-        for(PImage frame : animations.get(JUMP_RIGHT).animation) {
-          frame.resize(JUMP_RESIZE_2, 0);
-        }
-    } else if(path.equals(ENEMY_THREE_PATH)) {
-        for(PImage frame : animations.get(JUMP_LEFT).animation) {
-          frame.resize(JUMP_RESIZE_3, 0);
-        }
-        for(PImage frame : animations.get(JUMP_RIGHT).animation) {
-          frame.resize(JUMP_RESIZE_3, 0);
-        }
-    } else if(path.equals(ENEMY_FOUR_PATH)) {
-        for(PImage frame : animations.get(JUMP_LEFT).animation) {
-          frame.resize(JUMP_RESIZE_4, 0);
-        }
-        for(PImage frame : animations.get(JUMP_RIGHT).animation) {
-          frame.resize(JUMP_RESIZE_4, 0);
-        }
-    }
-
-  }
-  public void resizeDie(String path) {
-    if(path.equals(ENEMY_ONE_PATH)) {
-      for(PImage frame : animations.get(DIE_LEFT).animation) {
-        frame.resize(DIE_RESIZE_1, 0);
-      }
-      for(PImage frame : animations.get(DIE_RIGHT).animation) {
-        frame.resize(DIE_RESIZE_1, 0);
-      }
-    } else if(path.equals(ENEMY_TWO_PATH)) {
-        for(PImage frame : animations.get(DIE_LEFT).animation) {
-          frame.resize(DIE_RESIZE_2, 0);
-        }
-        for(PImage frame : animations.get(DIE_RIGHT).animation) {
-          frame.resize(DIE_RESIZE_2, 0);
-        }
-    } else if(path.equals(ENEMY_THREE_PATH)) {
-        for(PImage frame : animations.get(DIE_LEFT).animation) {
-          frame.resize(DIE_RESIZE_3, 0);
-        }
-        for(PImage frame : animations.get(DIE_RIGHT).animation) {
-          frame.resize(DIE_RESIZE_3, 0);
-        }
-    } else if(path.equals(ENEMY_FOUR_PATH)) {
-        for(PImage frame : animations.get(DIE_LEFT).animation) {
-          frame.resize(DIE_RESIZE_4, 0);
-        }
-        for(PImage frame : animations.get(DIE_RIGHT).animation) {
-          frame.resize(DIE_RESIZE_4, 0);
-        }
-    }
 
   }
 
@@ -1718,19 +1839,7 @@ public class Entity {
   final int JUMP_MAX = 2;
   final int DASH_MAX = 1;
 
-  String idleRightPath;
-  String idleLeftPath;
-  String runRightPath;
-  String runLeftPath;
-  String jumpRightPath;
-  String jumpLeftPath;
-  String attackRightPath;
-  String attackLeftPath;
-  String dieRightPath;
-  String dieLeftPath;
-
-
-  float GROUND = height - height/6.85f;
+  final float GROUND = height - height/6.85f;
   final int ENTITY_SPEED = 10;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 3;
@@ -1765,23 +1874,10 @@ public class Entity {
 
   //Entity stalls all animations with HashMap
   //Nifty path manipulation allows any entity to be created with a single path given
-  Entity (String path, float x, float y) {
+  Entity (HashMap<String, Animation> animations, float x, float y) {
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
-    this.animations = new HashMap<String, Animation>();
-
-    this.idleRightPath = path + IDLE_RIGHT;
-    this.idleLeftPath = path + IDLE_LEFT;
-    this.runRightPath = path + RUN_RIGHT;
-    this.runLeftPath = path + RUN_LEFT;
-    this.jumpRightPath = path + JUMP_RIGHT;
-    this.jumpLeftPath = path + JUMP_LEFT;
-    this.attackRightPath = path + ATTACK_RIGHT;
-    this.attackLeftPath = path + ATTACK_LEFT;
-    this.dieRightPath = path + DIE_RIGHT;
-    this.dieLeftPath = path + DIE_LEFT;
-
-    initialiseAnimations();
+    this.animations = animations;
 
     this.right = true;
     this.idle = true;
@@ -1808,32 +1904,6 @@ public class Entity {
     this.target = null;
   }
 
-  //add animations to HashMap
-  public void initialiseAnimations() {
-
-    Animation idleRight = new Animation(idleRightPath);
-    Animation idleLeft = new Animation(idleLeftPath);
-    Animation runRight = new Animation(runRightPath);
-    Animation runLeft = new Animation(runLeftPath);
-    Animation jumpRight = new Animation(jumpRightPath);
-    Animation jumpLeft = new Animation(jumpLeftPath);
-    Animation attackRight = new Animation(attackRightPath);
-    Animation attackLeft = new Animation(attackLeftPath);
-    Animation dieRight = new Animation(dieRightPath);
-    Animation dieLeft = new Animation(dieLeftPath);
-
-    animations.put(IDLE_RIGHT, idleRight);
-    animations.put(IDLE_LEFT, idleLeft);
-    animations.put(RUN_RIGHT, runRight);
-    animations.put(RUN_LEFT, runLeft);
-    animations.put(JUMP_RIGHT, jumpRight);
-    animations.put(JUMP_LEFT, jumpLeft);
-    animations.put(ATTACK_RIGHT, attackRight);
-    animations.put(ATTACK_LEFT, attackLeft);
-    animations.put(DIE_RIGHT, dieRight);
-    animations.put(DIE_LEFT, dieLeft);
-  }
-
 
   //add momentum to entites and friction
   //gravity also added to entity movement
@@ -1853,9 +1923,6 @@ public class Entity {
       this.jumps = jumpMax;
       this.dash = dashMax;
     }
-
-
-
 
     position.add(velocity);
   }
@@ -1967,21 +2034,14 @@ public class Entity {
   }
 
   public void setVelL() {
-
   }
 
   public void setVelR() {
-
   }
 }
 //Class representing the playable Guardian
 //contains the anchor positions for parallax;
 public class Guardian extends Entity {
-
-  final int IDLE_RESIZE = width/23;
-  final int ATTACK_RESIZE = width/22;
-  final int JUMP_RESIZE = width/20;
-  final int RUN_RESIZE = width/20;
 
   final int VELOCITY_SWITCH = width/38;
   final int CAMERA_ANCHOR = 10;
@@ -2000,13 +2060,13 @@ public class Guardian extends Entity {
 
 
   //path and position
-  Guardian (String path, float x, float y) {
-      super(path, x, y);
+  Guardian (HashMap<String, Animation> animations, float x, float y) {
+      super(animations, x, y);
       this.anchorRight = false;
       this.anchorLeft = false;
       this.anchorRightPos = width/3;
       this.anchorLeftPos =  width/5;
-      resize();
+    
   }
 
   //get anchors
@@ -2026,49 +2086,8 @@ public class Guardian extends Entity {
     return anchorLeftPos;
   }
 
-  //resize animations()
-  public void resize() {
-    resizeIdle();
-    resizeRun();
-    resizeJump();
-    resizeAttack();
-  }
 
-  public void resizeAttack() {
-    for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
-      frame.resize(ATTACK_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(ATTACK_LEFT).animation) {
-      frame.resize(ATTACK_RESIZE, 0);
-    }
-  }
 
-  public void resizeIdle() {
-    for(PImage frame : animations.get(IDLE_LEFT).animation) {
-      frame.resize(IDLE_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(IDLE_RIGHT).animation) {
-      frame.resize(IDLE_RESIZE, 0);
-    }
-  }
-
-  public void resizeRun() {
-    for(PImage frame : animations.get(RUN_LEFT).animation) {
-      frame.resize(RUN_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(RUN_RIGHT).animation) {
-      frame.resize(RUN_RESIZE, 0);
-    }
-  }
-
-  public void resizeJump() {
-    for(PImage frame : animations.get(JUMP_LEFT).animation) {
-      frame.resize(JUMP_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(JUMP_RIGHT).animation) {
-      frame.resize(JUMP_RESIZE, 0);
-    }
-  }
 
   //  parallax move right
   // logic for moving when moving right and anchoring
@@ -2328,11 +2347,6 @@ public class Layer {
 //Pet class used for when successfully summoned
 public class Pet extends Entity {
 
-  final int IDLE_RESIZE = width/15;
-  final int ATTACK_RESIZE = width/14;
-  final int JUMP_RESIZE = width/13;
-  final int RUN_RESIZE = width/14;
-
   final int PET_SPEED = 20;
   float GROUND = height - height/6.85f;
   float MIDDLE = width/2;
@@ -2341,55 +2355,10 @@ public class Pet extends Entity {
 
   Entity target;
 
-  Pet(String path, float x, float y) {
-    super(path, x, y);
-    resize();
+  Pet(HashMap<String, Animation> animations, float x, float y) {
+    super(animations, x, y);
     this.attack = true;
     this.target = null;
-  }
-
-  //resize Animations
-  public void resize() {
-    resizeIdle();
-    resizeRun();
-    resizeJump();
-    resizeAttack();
-  }
-
-  public void resizeAttack() {
-    for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
-      frame.resize(ATTACK_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(ATTACK_LEFT).animation) {
-      frame.resize(ATTACK_RESIZE, 0);
-    }
-  }
-
-  public void resizeIdle() {
-    for(PImage frame : animations.get(IDLE_LEFT).animation) {
-      frame.resize(IDLE_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(IDLE_RIGHT).animation) {
-      frame.resize(IDLE_RESIZE, 0);
-    }
-  }
-
-  public void resizeRun() {
-    for(PImage frame : animations.get(RUN_LEFT).animation) {
-      frame.resize(RUN_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(RUN_RIGHT).animation) {
-      frame.resize(RUN_RESIZE, 0);
-    }
-  }
-
-  public void resizeJump() {
-    for(PImage frame : animations.get(JUMP_LEFT).animation) {
-      frame.resize(JUMP_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(JUMP_RIGHT).animation) {
-      frame.resize(JUMP_RESIZE, 0);
-    }
   }
 
   public void moveRight() {
@@ -2466,6 +2435,7 @@ public class Pet extends Entity {
 public class Platform {
 
   final String imgPath = "data/tileset/3.png";
+  final String treePath = "Forest/PNG/tree.png";
 
   final int PLAT_RIGHT = 1;
   final int PLAT_LEFT = 2;
@@ -2473,6 +2443,7 @@ public class Platform {
   PVector position;
   PVector velocity;
   PImage tile;
+  PImage tree;
   boolean enemy;
   float transition;
   int platformWidth;
@@ -2485,14 +2456,15 @@ public class Platform {
   boolean moving;
 //
   final int RESIZE = 10;
+  final int TREE_RESIZE = 2;
 
-  Platform( float x, float y, float transition, boolean enemy, boolean leftEdge, boolean rightEdge) {
-    this.tile = loadImage(imgPath);
+  Platform(PImage tile, float x, float y, float transition, boolean enemy, boolean leftEdge, boolean rightEdge) {
+    this.tile = tile;
     this.startX = x;
     this.startY = y;
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
-    this.tile.resize(width/RESIZE, 0);
+    //this.tile.resize(width/RESIZE, 0);
     this.platformWidth = tile.width;
     this.platformHeight = tile.height;
     this.transition = transition;
@@ -2501,6 +2473,16 @@ public class Platform {
     this.rightEdge = rightEdge;
     this.moving = false;
     this.last = false;
+  }
+
+  public void loadTree() {
+    tree = loadImage(treePath);
+    tree.resize(width, 0);
+
+  }
+
+  public float getEnd() {
+    return (this.position.x + tree.width/2);
   }
 
   public void resetPosition() {
@@ -2529,12 +2511,18 @@ public class Platform {
   public void draw() {
     if(position.x < width*2) {
       image(tile, position.x, position.y);
+      if(last) {
+        image(tree, position.x - width/6, 0);
+      }
     }
   }
 }
 class  PlatformGenerator {
 
-  final int PLATFORM_NUM = 50;
+  final String imgPath = "data/tileset/3.png";
+  final int RESIZE = 10;
+
+  final int PLATFORM_NUM = 2;
 
   final int BLOCK_ONE = 1;
   final int BLOCK_TWO = 2;
@@ -2552,19 +2540,26 @@ class  PlatformGenerator {
   final int START = 8;
 
   ArrayList<Platform> platforms;
+  PImage platform;
 
   int numberOfPlatforms;
   int newPlatformHeight;
   int newPlatformWidth;
-
+  float endX;
   int cameraType;
 
   PlatformGenerator(int level) {
    this.platforms  = new ArrayList<Platform>();
+   initPlatform();
     this.numberOfPlatforms = level * PLATFORM_NUM;
     generatePlatforms();
     this.cameraType = BASE_SPEED;
     setLast();
+  }
+
+  public void initPlatform() {
+    this.platform = loadImage(imgPath);
+    this.platform.resize(width/RESIZE, 0);
   }
 
   public void generatePlatforms() {
@@ -2572,15 +2567,15 @@ class  PlatformGenerator {
 
     for(int i = 0; i < START; i++) {
       if(i == 0) {
-        platforms.add(new Platform(0, height - height/10, width/BASE_SPEED, false, true, false));
+        platforms.add(new Platform(platform, 0, height - height/10, width/BASE_SPEED, false, true, false));
         this.newPlatformWidth = platforms.get(0).platformWidth;
         this.newPlatformHeight = platforms.get(0).platformHeight*2;
       }
       else if(i == START - 1) {
-        platforms.add(new Platform(i*newPlatformWidth, height - height/10, width/BASE_SPEED, false, false, true));
+        platforms.add(new Platform(platform, i*newPlatformWidth, height - height/10, width/BASE_SPEED, false, false, true));
       }
       else {
-        platforms.add(new Platform(i*newPlatformWidth, height - height/10, width/BASE_SPEED, false, false, false));
+        platforms.add(new Platform(platform, i*newPlatformWidth, height - height/10, width/BASE_SPEED, false, false, false));
       }
     }
 
@@ -2611,21 +2606,21 @@ class  PlatformGenerator {
 
       for(int j = 0; j < numPlat; j++) {
         if (numPlat == BLOCK_MAX && j == numPlat - 1) {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
+          platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
         } else if(j == 0 && numPlat == 1) {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, true));
+          platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, true));
         } else if (j == 0) {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, false));
+          platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, true, false));
         } else if(j == numPlat - 1 && numPlat == BLOCK_TWO) {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, true));
+          platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, true));
         } else if(j == numPlat - 1) {
-          platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
+          platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, true));
         } else if(numPlat > BLOCK_TWO){
           float random = random(0,1);
           if(random > 0.9f) {
-            platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, false));
+            platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, true, false, false));
           } else {
-            platforms.add(new Platform(positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, false));
+            platforms.add(new Platform(platform,positionX + j*this.newPlatformWidth, randomPlatformHeight, width/BASE_SPEED, false, false, false));
           }
         }
       }
@@ -2642,7 +2637,11 @@ class  PlatformGenerator {
   // }
 
   public void setLast(){
-    platforms.get(platforms.size()-1).last = true;
+
+    Platform endPlatform =   platforms.get(platforms.size()-1);
+    endPlatform.last = true;
+    endPlatform.loadTree();
+    this.endX = endPlatform.getEnd();
   }
 
   public void anchorSpeed() {
@@ -2687,6 +2686,12 @@ class  PlatformGenerator {
       }
     }
   }
+}
+class Tree {
+
+  PVector position;
+
+  
 }
   public void settings() {  fullScreen(); }
   static public void main(String[] passedArgs) {

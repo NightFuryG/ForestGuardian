@@ -2,11 +2,6 @@
 //contains the anchor positions for parallax;
 public class Guardian extends Entity {
 
-  final int IDLE_RESIZE = width/23;
-  final int ATTACK_RESIZE = width/22;
-  final int JUMP_RESIZE = width/20;
-  final int RUN_RESIZE = width/20;
-
   final int VELOCITY_SWITCH = width/38;
   final int CAMERA_ANCHOR = 10;
 
@@ -24,13 +19,13 @@ public class Guardian extends Entity {
 
 
   //path and position
-  Guardian (String path, float x, float y) {
-      super(path, x, y);
+  Guardian (HashMap<String, Animation> animations, float x, float y) {
+      super(animations, x, y);
       this.anchorRight = false;
       this.anchorLeft = false;
       this.anchorRightPos = width/3;
       this.anchorLeftPos =  width/5;
-      resize();
+    
   }
 
   //get anchors
@@ -50,49 +45,8 @@ public class Guardian extends Entity {
     return anchorLeftPos;
   }
 
-  //resize animations()
-  void resize() {
-    resizeIdle();
-    resizeRun();
-    resizeJump();
-    resizeAttack();
-  }
 
-  void resizeAttack() {
-    for(PImage frame : animations.get(ATTACK_RIGHT).animation) {
-      frame.resize(ATTACK_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(ATTACK_LEFT).animation) {
-      frame.resize(ATTACK_RESIZE, 0);
-    }
-  }
 
-  void resizeIdle() {
-    for(PImage frame : animations.get(IDLE_LEFT).animation) {
-      frame.resize(IDLE_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(IDLE_RIGHT).animation) {
-      frame.resize(IDLE_RESIZE, 0);
-    }
-  }
-
-  void resizeRun() {
-    for(PImage frame : animations.get(RUN_LEFT).animation) {
-      frame.resize(RUN_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(RUN_RIGHT).animation) {
-      frame.resize(RUN_RESIZE, 0);
-    }
-  }
-
-  void resizeJump() {
-    for(PImage frame : animations.get(JUMP_LEFT).animation) {
-      frame.resize(JUMP_RESIZE, 0);
-    }
-    for(PImage frame : animations.get(JUMP_RIGHT).animation) {
-      frame.resize(JUMP_RESIZE, 0);
-    }
-  }
 
   //  parallax move right
   // logic for moving when moving right and anchoring

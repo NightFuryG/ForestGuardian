@@ -1,0 +1,6 @@
+class Tree {
+
+  PVector position;
+
+  
+}

@@ -16,19 +16,7 @@ public class Entity {
   final int JUMP_MAX = 2;
   final int DASH_MAX = 1;
 
-  String idleRightPath;
-  String idleLeftPath;
-  String runRightPath;
-  String runLeftPath;
-  String jumpRightPath;
-  String jumpLeftPath;
-  String attackRightPath;
-  String attackLeftPath;
-  String dieRightPath;
-  String dieLeftPath;
-
-
-  float GROUND = height - height/6.85;
+  final float GROUND = height - height/6.85;
   final int ENTITY_SPEED = 10;
   final int JUMP_SPEED = 20;
   final float GRAVITY = 3;
@@ -63,23 +51,10 @@ public class Entity {
 
   //Entity stalls all animations with HashMap
   //Nifty path manipulation allows any entity to be created with a single path given
-  Entity (String path, float x, float y) {
+  Entity (HashMap<String, Animation> animations, float x, float y) {
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
-    this.animations = new HashMap<String, Animation>();
-
-    this.idleRightPath = path + IDLE_RIGHT;
-    this.idleLeftPath = path + IDLE_LEFT;
-    this.runRightPath = path + RUN_RIGHT;
-    this.runLeftPath = path + RUN_LEFT;
-    this.jumpRightPath = path + JUMP_RIGHT;
-    this.jumpLeftPath = path + JUMP_LEFT;
-    this.attackRightPath = path + ATTACK_RIGHT;
-    this.attackLeftPath = path + ATTACK_LEFT;
-    this.dieRightPath = path + DIE_RIGHT;
-    this.dieLeftPath = path + DIE_LEFT;
-
-    initialiseAnimations();
+    this.animations = animations;
 
     this.right = true;
     this.idle = true;
@@ -106,32 +81,6 @@ public class Entity {
     this.target = null;
   }
 
-  //add animations to HashMap
-  void initialiseAnimations() {
-
-    Animation idleRight = new Animation(idleRightPath);
-    Animation idleLeft = new Animation(idleLeftPath);
-    Animation runRight = new Animation(runRightPath);
-    Animation runLeft = new Animation(runLeftPath);
-    Animation jumpRight = new Animation(jumpRightPath);
-    Animation jumpLeft = new Animation(jumpLeftPath);
-    Animation attackRight = new Animation(attackRightPath);
-    Animation attackLeft = new Animation(attackLeftPath);
-    Animation dieRight = new Animation(dieRightPath);
-    Animation dieLeft = new Animation(dieLeftPath);
-
-    animations.put(IDLE_RIGHT, idleRight);
-    animations.put(IDLE_LEFT, idleLeft);
-    animations.put(RUN_RIGHT, runRight);
-    animations.put(RUN_LEFT, runLeft);
-    animations.put(JUMP_RIGHT, jumpRight);
-    animations.put(JUMP_LEFT, jumpLeft);
-    animations.put(ATTACK_RIGHT, attackRight);
-    animations.put(ATTACK_LEFT, attackLeft);
-    animations.put(DIE_RIGHT, dieRight);
-    animations.put(DIE_LEFT, dieLeft);
-  }
-
 
   //add momentum to entites and friction
   //gravity also added to entity movement
@@ -151,9 +100,6 @@ public class Entity {
       this.jumps = jumpMax;
       this.dash = dashMax;
     }
-
-
-
 
     position.add(velocity);
   }
@@ -265,10 +211,8 @@ public class Entity {
   }
 
   void setVelL() {
-
   }
 
   void setVelR() {
-
   }
 }

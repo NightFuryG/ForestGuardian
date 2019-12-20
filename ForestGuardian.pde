@@ -83,6 +83,8 @@ Entity guardian;
 Entity pet;
 PImage wolfAbilityImg;
 
+Animator animator;
+
 int level;
 
 
@@ -137,6 +139,8 @@ void setup() {
   nextRound = loadImage(NEXT_SCREEN);
 
   w = a = s = d = j = false;
+
+  animator = new Animator();
 
   petAlive = false;
 
@@ -195,18 +199,17 @@ void setup() {
 
   startY = platGen.platforms.get(3).position.y - width/GUARDIAN_FEET;
 
-  guardian = new Guardian(GUARDIAN_PATH, startX, startY);
+  guardian = new Guardian(animator.guardian, startX, startY);
 
-  pet = new Pet(WOLF_PATH, guardian.position.x, guardian.position.y);
+  pet = new Pet(animator.wolf, guardian.position.x, guardian.position.y);
 
   attacks = new ArrayList<Attack>();
 
   enemies = new ArrayList<Enemy>();
 
-  enemiesClone = new ArrayList<Enemy>();
+//  enemiesClone = new ArrayList<Enemy>();
 
   spawnEnemies();
-  copyEnemies();
 }
 
 void draw() {
@@ -259,6 +262,7 @@ void draw() {
       ensureAttackWorks();
       drawPlatformEdges();
       alive = checkNotDead();
+      checkNextLevel();
     }
   } else {
     pushStyle();
@@ -332,23 +336,18 @@ void spawnEnemies() {
       float r = random (0,1);
 
       if(r < 0.25) {
-        enemiesClone.add(new Enemy(ENEMY_ONE_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
+        enemies.add(new Enemy(animator.enemyOne, 0, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if ( r >= 0.25 && r < 0.5) {
-        enemiesClone.add(new Enemy(ENEMY_TWO_PATH, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
+        enemies.add(new Enemy(animator.enemyTwo, 1, platform.position.x, platform.position.y - ONE_TWO_SPAWN * platform.platformHeight, platform));
       } else if (r >= 0.5 && r < 0.75) {
-        enemiesClone.add(new Enemy(ENEMY_THREE_PATH, platform.position.x, platform.position.y - THREE_FOUR_SPAWN * platform.platformHeight, platform));
+        enemies.add(new Enemy(animator.enemyThree, 2, platform.position.x, platform.position.y - THREE_FOUR_SPAWN * platform.platformHeight, platform));
       } else {
-        enemiesClone.add(new Enemy(ENEMY_FOUR_PATH, platform.position.x, platform.position.y -  THREE_FOUR_SPAWN * platform.platformHeight, platform));
+        enemies.add(new Enemy(animator.enemyFour, 0, platform.position.x, platform.position.y -  THREE_FOUR_SPAWN * platform.platformHeight, platform));
       }
     }
   }
 }
 
-void copyEnemies() {
-  for(Enemy enemy : enemiesClone) {
-    enemies.add(new Enemy(enemy));
-  }
-}
 
 void updateEnemies() {
   for(Enemy enemy : enemies ) {
@@ -644,6 +643,16 @@ void playerMove() {
   }
 }
 
+void checkNextLevel() {
+  if(guardian.position.x > platGen.endX) {
+    nextLevel();
+  }
+}
+
+void nextLevel() {
+  System.out.println("lit");
+}
+
 void newGame() {
   alive = true;
   guardian.reset();
@@ -660,12 +669,12 @@ void newGame() {
   summon = false;
   attacking = false;
   alive = true;
-  startScreen = true;
   doubleJump = false;
   petCooldownTimer = 0;
   attacks.clear();
-  copyEnemies();
-  platGen.resetPlatformGenerator();
+  enemies.clear();
+  platGen = new PlatformGenerator(level);
+  spawnEnemies();
 }
 
 
