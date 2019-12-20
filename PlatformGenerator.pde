@@ -3,7 +3,7 @@ class  PlatformGenerator {
   final String imgPath = "data/tileset/3.png";
   final int RESIZE = 10;
 
-  final int PLATFORM_NUM = 2;
+  final int PLATFORM_NUM = 10;
 
   final int BLOCK_ONE = 1;
   final int BLOCK_TWO = 2;
@@ -65,7 +65,7 @@ class  PlatformGenerator {
     int last;
     float ground = height - height/6.85;
 
-    for(int i = 0; i < PLATFORM_NUM; i++) {
+    for(int i = 0; i < numberOfPlatforms; i++) {
 
       last = platforms.size() - 1;
 
@@ -118,11 +118,15 @@ class  PlatformGenerator {
   // }
 
   void setLast(){
-
-    Platform endPlatform =   platforms.get(platforms.size()-1);
+    Platform endPlatform = platforms.get(platforms.size()-1);
     endPlatform.last = true;
     endPlatform.loadTree();
     this.endX = endPlatform.getEnd();
+  }
+
+  float getEnd() {
+    Platform endPlatform = platforms.get(platforms.size()-1);
+    return endPlatform.getEnd();
   }
 
   void anchorSpeed() {

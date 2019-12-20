@@ -49,7 +49,7 @@ public class Platform {
   }
 
   float getEnd() {
-    return (this.position.x + tree.width/2);
+    return (this.position.x + tree.width/4);
   }
 
   void resetPosition() {

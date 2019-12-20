@@ -27,6 +27,15 @@ final int BAR_LEFT = 150;
 final int BAR_HEIGHT = 100;
 final int BAR_ABOVE = 80;
 
+final int TEXT_POSITION = 50;
+final int TEXT_SIZE = 100;
+
+final int SEED_HEAL = 100;
+final int SEED_GAIN = 10;
+final int SCORE_KILL = 100;
+final int SCORE_ROUND = 1000;
+
+
 final int LINE_ONE = 30;
 final int LINE_TWO = 100;
 final int LINE_HEIGHT = 100;
@@ -61,6 +70,7 @@ final int HEALTH_HEIGHT = 41;
 final float HEALTH_WIDTH = 4.2f;
 
 final int WOLF_IMAGE_RESIZE = 100;
+final int HEAL_IMAGE_RESIZE = 75;
 
 final int ARROW_HEIGHT_ADJUST = 60;
 
@@ -83,6 +93,7 @@ final String TILE_FIVE =  "tileset/5.png";
 final String TILE_SIX =  "tileset/6.png";
 final String TILE_SEVEN =  "tileset/7.png";
 final String WOLF_CD = "animations/pet/1/idleRight/0.png";
+final String HEAL_CD = "data/tileset/leaf.png";
 
 final String CLICK = "data/screen/click.png";
 final String GAME_OVER_SCREEN = "data/screen/gameover.png";
@@ -98,6 +109,7 @@ Background background;
 Entity guardian;
 Entity pet;
 PImage wolfAbilityImg;
+PImage healAbilityImg;
 
 Animator animator;
 
@@ -114,12 +126,15 @@ boolean doubleJump;
 
 boolean alive;
 boolean startScreen;
+boolean nextLevel;
 float ground;
 float tileGround;
 float entGround;
 int parallax;
 int summonCount;
 int camera;
+int score;
+int seeds;
 float startX;
 float startY;
 int petTimer;
@@ -172,6 +187,8 @@ public void setup() {
 
   startScreen = true;
 
+  nextLevel = false;
+
   doubleJump = false;
 
   camera = width/38;
@@ -180,11 +197,18 @@ public void setup() {
 
   level = 1;
 
+  score = 0;
+
+  seeds = 0;
+
   summonCount = 0;
 
   guardianAttacks = 0;
 
   wolfAbilityImg = loadImage(WOLF_CD);
+  healAbilityImg = loadImage(HEAL_CD);
+
+  healAbilityImg.resize(HEAL_IMAGE_RESIZE, 0);
 
   wolfAbilityImg.resize(WOLF_IMAGE_RESIZE, 0);
 
@@ -230,7 +254,7 @@ public void setup() {
 
 public void draw() {
   imageMode(CORNER);
-  background(255);
+  background(0);
 
   if(alive) {
     if(startScreen) {
@@ -241,6 +265,14 @@ public void draw() {
       image(click, displayWidth/2, 3*displayHeight/4);
       imageMode(CORNER);
 
+      popStyle();
+    } else if(nextLevel) {
+      pushStyle();
+      background.draw(PARALLAX_NONE);
+      imageMode(CENTER);
+      image(nextRound, displayWidth/2, displayHeight/2);
+      image(click, displayWidth/2, 3*displayHeight/4);
+      imageMode(CORNER);
       popStyle();
     } else {
       checkAttacking();
@@ -257,6 +289,8 @@ public void draw() {
       showHealthBar();
       showEnergyBar();
       showWolfCooldown();
+      showSeedCooldown();
+      showStats();
       regenEnergy();
       unsummonPet();
       guardian.draw();
@@ -276,7 +310,6 @@ public void draw() {
       stopPetFalling();
       setIdleOffScreen();
       ensureAttackWorks();
-      drawPlatformEdges();
       alive = checkNotDead();
       checkNextLevel();
     }
@@ -300,6 +333,16 @@ public boolean checkNotDead() {
 }
 
 
+public void showStats() {
+  pushStyle();
+  textAlign(CENTER);
+  fill(255);
+  textSize(displayWidth/TEXT_SIZE);
+  text("Level: " + level, 1.2f *displayWidth/TEXT_POSITION, displayWidth/(TEXT_POSITION));
+  text("Score: " + score, 3.6f * displayWidth/TEXT_POSITION, displayWidth/(TEXT_POSITION));
+  popStyle();
+
+}
 public void showHealthBar() {
   pushStyle();
   rectMode(CENTER);
@@ -324,17 +367,27 @@ public void showEnergyBar() {
 }
 
 public void showWolfCooldown() {
-
   pushStyle();
   if(!petCooldown) {
     tint(100, 50);
 
   }
-  image(wolfAbilityImg, width/2 - wolfAbilityImg.width/2, wolfAbilityImg.height/4);
-
+  image(wolfAbilityImg, width/2 - 1.5f*wolfAbilityImg.width, wolfAbilityImg.height/4);
   noTint();
   popStyle();
+}
 
+public void showSeedCooldown() {
+  pushStyle();
+
+  if(seeds < 100) {
+    tint(100, 50);
+  }
+
+  image(healAbilityImg, width/2 + healAbilityImg.width/2, healAbilityImg.height/4);
+  textSize(displayWidth/TEXT_SIZE);
+  text(seeds, width/2 + healAbilityImg.width, 0.75f* healAbilityImg.height);
+  popStyle();
 }
 
 public void regenEnergy() {
@@ -575,6 +628,8 @@ public void keyPressed() {
       if(petCooldown)
         summon = true;
         summonCount += SUMMON_INCREASE;
+    } else if (key == '2') {
+
     }
 }
 
@@ -601,6 +656,11 @@ public void keyReleased() {
     summonCount = 0;
     summon = false;
     petCooldownTimer = millis();
+  } else if (key == '2') {
+    if(seeds > 10) {
+      guardian.health += SEED_HEAL/2;
+      seeds -= SEED_HEAL;
+    }
   }
 }
 
@@ -660,13 +720,36 @@ public void playerMove() {
 }
 
 public void checkNextLevel() {
-  if(guardian.position.x > platGen.endX) {
+  if(guardian.position.x > platGen.getEnd()) {
     nextLevel();
   }
 }
 
 public void nextLevel() {
   System.out.println("lit");
+  nextLevel = true;
+  alive = true;
+  guardian.reset();
+  guardian.position.x = startX;
+  guardian.position.y = startY;
+  pet.reset();
+  guardianAttacks = 0;
+  petAlive = false;
+  level++;
+  score += SCORE_ROUND;
+  petTimer = 0;
+  petAlive = false;
+  petCooldown = false;
+  petTargetChosen = false;
+  summon = false;
+  attacking = false;
+  alive = true;
+  doubleJump = false;
+  petCooldownTimer = 0;
+  attacks.clear();
+  enemies.clear();
+  platGen = new PlatformGenerator(level);
+  spawnEnemies();
 }
 
 public void newGame() {
@@ -685,6 +768,8 @@ public void newGame() {
   summon = false;
   attacking = false;
   alive = true;
+  score = 0;
+  seeds = 0;
   doubleJump = false;
   petCooldownTimer = 0;
   attacks.clear();
@@ -697,7 +782,7 @@ public void newGame() {
 //guardian attack
 // fires and orients the attack depending on mouse click and direction
 public void mousePressed() {
-  if(!startScreen) {
+  if(!startScreen && !nextLevel) {
     if(alive) {
       if(mouseButton == LEFT) {
           guardian.attack = true;
@@ -723,6 +808,7 @@ public void mousePressed() {
     }
   } else {
     startScreen = false;
+    nextLevel = false;
   }
 }
 
@@ -865,7 +951,7 @@ public void enemyAttack() {
 public void detectMeleeAttack(Enemy enemy) {
   if(guardian.position.y + width/GUARDIAN_FEET/3 > enemy.position.y &&
      guardian.position.y < enemy.position.y + width/GUARDIAN_FEET/3) {
-       guardian.health -= enemyMeleeDamage;
+       guardian.health -= enemyMeleeDamage - level/5;
      }
 }
 
@@ -1132,7 +1218,7 @@ public void detectAttackCollision() {
           if(attackX < guardianX && attackX > guardian.position.x ) {
 
             if(attackY < guardianY && attackY > guardian.position.y) {
-              guardian.health -= enemyAttackDamage;
+              guardian.health -= enemyAttackDamage - level;
               attacks.remove(attack);
             }
           }
@@ -1167,6 +1253,8 @@ public void removeDeadEnemies() {
 
         if(enemy.playDead) {
           enemies.remove(enemy);
+          seeds += SEED_GAIN;
+          score += SCORE_KILL;
         }
       }
     }
@@ -2482,7 +2570,7 @@ public class Platform {
   }
 
   public float getEnd() {
-    return (this.position.x + tree.width/2);
+    return (this.position.x + tree.width/4);
   }
 
   public void resetPosition() {
@@ -2522,7 +2610,7 @@ class  PlatformGenerator {
   final String imgPath = "data/tileset/3.png";
   final int RESIZE = 10;
 
-  final int PLATFORM_NUM = 2;
+  final int PLATFORM_NUM = 10;
 
   final int BLOCK_ONE = 1;
   final int BLOCK_TWO = 2;
@@ -2584,7 +2672,7 @@ class  PlatformGenerator {
     int last;
     float ground = height - height/6.85f;
 
-    for(int i = 0; i < PLATFORM_NUM; i++) {
+    for(int i = 0; i < numberOfPlatforms; i++) {
 
       last = platforms.size() - 1;
 
@@ -2637,11 +2725,15 @@ class  PlatformGenerator {
   // }
 
   public void setLast(){
-
-    Platform endPlatform =   platforms.get(platforms.size()-1);
+    Platform endPlatform = platforms.get(platforms.size()-1);
     endPlatform.last = true;
     endPlatform.loadTree();
     this.endX = endPlatform.getEnd();
+  }
+
+  public float getEnd() {
+    Platform endPlatform = platforms.get(platforms.size()-1);
+    return endPlatform.getEnd();
   }
 
   public void anchorSpeed() {
